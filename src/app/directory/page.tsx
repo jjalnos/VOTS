@@ -1,0 +1,78 @@
+import Link from "next/link";
+import type { Metadata } from "next";
+import { PageBanner } from "@/components/page-banner";
+import { PublicShell } from "@/components/public-shell";
+import { StatusPill } from "@/components/status-pill";
+import { getPublicCatalog } from "@/lib/data/public-catalog";
+import { localeFrom, t, withLocale } from "@/lib/i18n";
+
+export const metadata: Metadata = { title: "Survivor directory / Directorio" };
+
+export default async function DirectoryPage({ searchParams }: PageProps<"/directory">) {
+  const params = await searchParams;
+  const locale = localeFrom(params.lang);
+  const query = typeof params.q === "string" ? params.q.trim() : "";
+  const catalog = getPublicCatalog(locale);
+  const records = catalog.survivors.filter((survivor) =>
+    `${survivor.displayName[locale]} ${survivor.summary[locale]}`
+      .toLocaleLowerCase()
+      .includes(query.toLocaleLowerCase()),
+  );
+
+  return (
+    <PublicShell locale={locale} path="/directory">
+      <PageBanner
+        eyebrow={t(locale, "publicArchive")}
+        title={locale === "es" ? "Directorio de sobrevivientes" : "Survivor directory"}
+        description={
+          locale === "es"
+            ? "Busque únicamente perfiles cuya publicación en este idioma fue aprobada por curaduría."
+            : "Search only profiles whose publication in this language was approved by a curator."
+        }
+      />
+      <section className="section">
+        <div className="content-wrap">
+          <form className="search-form" action="/directory" method="get">
+            <input type="hidden" name="lang" value={locale} />
+            <label className="sr-only" htmlFor="directory-search">
+              {locale === "es" ? "Buscar perfiles publicados" : "Search published profiles"}
+            </label>
+            <input
+              id="directory-search"
+              name="q"
+              type="search"
+              defaultValue={query}
+              placeholder={locale === "es" ? "Buscar perfiles publicados" : "Search published profiles"}
+            />
+            <button className="button" type="submit">{locale === "es" ? "Buscar" : "Search"}</button>
+          </form>
+          <p className="notice">{t(locale, "onlyPublished")}</p>
+          <div className="record-grid" style={{ marginTop: "2rem" }}>
+            {records.map((record, index) => (
+              <article className="card record-card" key={record.id}>
+                <div>
+                  <div className="record-placeholder" aria-hidden="true">{String(index + 1).padStart(2, "0")}</div>
+                  <div className="status-row">
+                    <StatusPill>{t(locale, "curatorReviewed")}</StatusPill>
+                    {record.isDemonstration ? <StatusPill tone="pending">Demo</StatusPill> : null}
+                  </div>
+                  <h2>{record.displayName[locale]}</h2>
+                  <p>{record.summary[locale]}</p>
+                </div>
+                <Link href={withLocale(`/profiles/${record.slug}`, locale)}>
+                  {locale === "es" ? "Abrir perfil" : "Open profile"} →
+                </Link>
+              </article>
+            ))}
+          </div>
+          {!records.length ? (
+            <div className="card">
+              <h2>{locale === "es" ? "Sin resultados publicados" : "No published results"}</h2>
+              <p>{locale === "es" ? "Pruebe una búsqueda diferente." : "Try a different search."}</p>
+            </div>
+          ) : null}
+        </div>
+      </section>
+    </PublicShell>
+  );
+}

@@ -6,3 +6,7 @@
 node_modules/
 coverage/
 *.log
+.local-data/
+.wrangler/
+dist/
+*.tsbuildinfo

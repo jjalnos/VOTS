@@ -1,0 +1,15 @@
+import type { Metadata } from "next";
+import { StatusPill } from "@/components/status-pill";
+import { WorkspaceShell } from "@/components/workspace-shell";
+import { requireAction } from "@/lib/auth/server-session";
+import { seedUsers } from "@/lib/data/seed";
+import { localeFrom } from "@/lib/i18n";
+
+export const dynamic = "force-dynamic";
+export const metadata: Metadata = { title: "Access management", robots: { index: false, follow: false } };
+
+export default async function AdminAccessPage({ searchParams }: PageProps<"/admin/access">) {
+  const locale = localeFrom((await searchParams).lang);
+  const actor = await requireAction("manage_access", "/admin/access");
+  return <WorkspaceShell actor={actor} locale={locale} path="/admin/access" title={locale === "es" ? "Acceso y políticas" : "Access and policy"} description={locale === "es" ? "Administrar invitaciones, roles, estado de cuenta y requisitos de MFA." : "Manage invitations, roles, account state, and MFA requirements."}><section className="section"><div className="content-wrap"><p className="notice">{locale === "es" ? "Base de desarrollo: las escrituras administrativas permanecen deshabilitadas hasta configurar el proveedor de identidad y PostgreSQL." : "Development foundation: administrative writes remain disabled until the identity provider and PostgreSQL are configured."}</p><div className="data-table-wrap" style={{ marginTop: "2rem" }}><table className="data-table"><thead><tr><th>{locale === "es" ? "Cuenta" : "Account"}</th><th>{locale === "es" ? "Roles" : "Roles"}</th><th>MFA</th><th>{locale === "es" ? "Estado" : "Status"}</th><th>{locale === "es" ? "Acción" : "Action"}</th></tr></thead><tbody>{seedUsers.map((user) => <tr key={user.id}><td><strong>{user.displayName}</strong><br />{user.email}</td><td>{user.roles.join(", ")}</td><td><StatusPill tone={user.mfaRequired ? "approved" : "pending"}>{user.mfaRequired ? (locale === "es" ? "Requerido" : "Required") : (locale === "es" ? "Familia: contraseña" : "Family: password")}</StatusPill></td><td><StatusPill>{user.active ? (locale === "es" ? "Activo" : "Active") : (locale === "es" ? "Inactivo" : "Inactive")}</StatusPill></td><td><button className="button secondary" type="button" disabled>{locale === "es" ? "Editar" : "Edit"}</button></td></tr>)}</tbody></table></div><div className="grid-2" style={{ marginTop: "2rem" }}><article className="card"><h2>{locale === "es" ? "Política de acceso" : "Access policy"}</h2><p>{locale === "es" ? "Administradores: acceso y políticas. Curadores: registros, revisión, investigación y publicación. Familias: contribución exclusiva a su grupo invitado." : "Admins: access and policy. Curators: records, review, research, and publication. Families: contribution limited to their invited group."}</p></article><article className="card"><h2>{locale === "es" ? "Auditoría" : "Audit"}</h2><p>{locale === "es" ? "Cambios de rol, sesiones, cargas, decisiones y publicaciones se modelan como eventos de auditoría inmutables." : "Role changes, sessions, uploads, decisions, and releases are modeled as immutable audit events."}</p></article></div></div></section></WorkspaceShell>;
+}

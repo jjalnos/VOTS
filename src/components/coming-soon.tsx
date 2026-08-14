@@ -8,14 +8,15 @@ const copy = {
     preview: "Private staging preview",
     previewNote: "Demonstration content only",
     eyebrow: "Bilingual digital archive · San Antonio",
-    headline: "Preserving voices. Connecting generations.",
-    lead: "A bilingual home for Holocaust survivor testimony, family histories, and the sources that help every story remain accurate, contextual, and connected.",
+    headline: "So a voice is not lost between generations.",
+    lead: "Shape testimony into a family record without separating a memory from the person who entrusted it to us.",
     learnMore: "How the archive is being built",
     signIn: "Family & staff sign in",
     trust: "Only permissioned, museum-reviewed material is made public.",
     collectionLabel: "A living record",
-    collectionTitle: "Voice, memory, and source—kept together.",
-    collectionNote: "Testimony · Photographs · Documents · Family histories",
+    collectionTitle: "From generation to generation.",
+    collectionNote: "One testimony. Four generations. A record still growing.",
+    imageCredit: "Museum gallery image courtesy of the Holocaust Memorial Museum of San Antonio",
     processEyebrow: "A careful path to publication",
     processTitle: "Care is part of the archive.",
     processLead: "Every contribution moves through a documented, human review before it can become part of the public record.",
@@ -55,14 +56,15 @@ const copy = {
     preview: "Vista previa privada",
     previewNote: "Solo contenido de demostración",
     eyebrow: "Archivo digital bilingüe · San Antonio",
-    headline: "Preservamos voces. Conectamos generaciones.",
-    lead: "Un espacio bilingüe para los testimonios de sobrevivientes del Holocausto, las historias familiares y las fuentes que ayudan a mantener cada relato preciso, contextualizado y conectado.",
+    headline: "Para que una voz no se pierda entre generaciones.",
+    lead: "Damos forma al testimonio como registro familiar sin separar un recuerdo de la persona que nos lo confió.",
     learnMore: "Cómo se está creando el archivo",
     signIn: "Acceso para familias y personal",
     trust: "Solo se publica material autorizado y revisado por el museo.",
     collectionLabel: "Un registro vivo",
-    collectionTitle: "Voz, memoria y fuente, conservadas juntas.",
-    collectionNote: "Testimonios · Fotografías · Documentos · Historias familiares",
+    collectionTitle: "De generación en generación.",
+    collectionNote: "Un testimonio. Cuatro generaciones. Un registro que sigue creciendo.",
+    imageCredit: "Imagen de la galería cortesía del Holocaust Memorial Museum of San Antonio",
     processEyebrow: "Un camino cuidadoso hacia la publicación",
     processTitle: "El cuidado forma parte del archivo.",
     processLead: "Cada contribución pasa por una revisión humana documentada antes de formar parte del registro público.",
@@ -173,18 +175,15 @@ export function ComingSoon({ locale }: { locale: Locale }) {
             </div>
 
             <aside className={styles.collection} aria-label={content.collectionLabel}>
-              <div className={styles.collectionRings} aria-hidden="true" />
-              <div className={styles.collectionIndex} aria-hidden="true">01</div>
+              <div className={styles.collectionIndex} aria-hidden="true">
+                <span>01</span><span>02</span><span>03</span><span>04</span>
+              </div>
               <div className={styles.collectionContent}>
-                <p>{content.collectionLabel}</p>
+                <p lang="he" dir="rtl">לְדוֹר וָדוֹר</p>
                 <h2>{content.collectionTitle}</h2>
-                <div className={styles.voiceLine} aria-hidden="true">
-                  {[18, 34, 52, 28, 70, 44, 84, 38, 62, 30, 48, 22].map((height, index) => (
-                    <span key={index} style={{ height }} />
-                  ))}
-                </div>
                 <small>{content.collectionNote}</small>
               </div>
+              <span className={styles.imageCredit}>{content.imageCredit}</span>
             </aside>
           </div>
         </section>

@@ -1229,6 +1229,7 @@ export function RobinDemo() {
           </span>
         </a>
         <nav aria-label="Robin demo sections">
+          <a href="/demo/robin/studio">Survivor Studio</a>
           <a href="#ask-robin">Archive Assistant</a>
           <a href="#uploads">Uploads</a>
           <a href="#research">Research review</a>
@@ -1251,6 +1252,13 @@ export function RobinDemo() {
               A private place to listen closely, follow the evidence, and decide what belongs in
               the record.
             </p>
+            <a className={styles.studioLaunch} href="/demo/robin/studio">
+              <span>
+                <small>Research · manuscripts · citations</small>
+                <strong>Open Survivor Studio</strong>
+              </span>
+              <span className={styles.studioLaunchArrow} aria-hidden="true">→</span>
+            </a>
             <dl className={styles.deskLedger}>
               <div>
                 <dt>Synthetic uploads</dt>

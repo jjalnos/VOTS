@@ -8,6 +8,7 @@ const copy = {
   en: {
     preview: "Private staging preview",
     previewNote: "Demonstration content only",
+    demoLink: "Open Robin’s workspace demo",
     eyebrow: "Bilingual digital archive · Coming soon",
     headline: "So a voice is not lost between generations.",
     lead: "Shape testimony into a family record without separating a memory from the person who entrusted it to us.",
@@ -65,6 +66,7 @@ const copy = {
   es: {
     preview: "Vista previa privada",
     previewNote: "Solo contenido de demostración",
+    demoLink: "Abrir la demostración de Robin",
     eyebrow: "Archivo digital bilingüe · Próximamente",
     headline: "Para que una voz no se pierda entre generaciones.",
     lead: "Damos forma al testimonio como registro familiar sin separar un recuerdo de la persona que nos lo confió.",
@@ -138,6 +140,9 @@ export function ComingSoon({
           {content.preview}
         </span>
         <span>{content.previewNote}</span>
+        <Link href="/demo/robin">
+          {content.demoLink} <span aria-hidden="true">→</span>
+        </Link>
       </div>
 
       <header className={styles.header}>

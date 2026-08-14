@@ -225,6 +225,40 @@ export const seedArchiveItems: ArchiveItem[] = [
     createdAt: now,
     updatedAt: now,
   },
+  ...Array.from({ length: 20 }, (_, index): ArchiveItem => {
+    const sequence = String(index + 1).padStart(2, "0");
+    const itemType = ([
+      "document",
+      "photograph",
+      "audio",
+      "video",
+      "artifact",
+      "other",
+    ] as const)[index % 6];
+    const reviewStatus = ([
+      "pending",
+      "in_review",
+      "approved",
+      "rejected",
+    ] as const)[index % 4];
+    const createdAt = new Date(Date.UTC(2026, 7, 14, 20 - index)).toISOString();
+
+    return {
+      id: `archive-item-synthetic-private-${sequence}`,
+      familyId: "family-demo",
+      title: `Synthetic private demo upload ${sequence}`,
+      itemType,
+      sourceContributor: "Robin demo intake — synthetic fixture",
+      originalLanguage: "en",
+      consentRights: "documented_restriction",
+      rightsStatement: "Synthetic demonstration record only. Contains no historical claim or personal media.",
+      visibility: "private",
+      reviewStatus,
+      uploadedBy: "user-curator-demo",
+      createdAt,
+      updatedAt: createdAt,
+    };
+  }),
 ];
 
 export const seedStories: Story[] = [

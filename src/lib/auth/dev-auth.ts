@@ -1,6 +1,7 @@
 import { scryptSync, timingSafeEqual } from "node:crypto";
 import type { Actor } from "@/lib/auth/policy";
 import { seedUsers } from "@/lib/data/seed";
+import { staffMfaRequired } from "@/lib/auth/mfa";
 
 const demoPasswords: Record<string, string> = {
   "admin@archive.local": "admin-demo",
@@ -31,8 +32,9 @@ export function authenticateDevelopmentUser(
   if (!user || !expectedPassword || !constantTimePasswordMatch(password, expectedPassword, email)) {
     return null;
   }
-  const mfaVerified = user.mfaRequired ? mfaCode === "000000" : true;
-  if (user.mfaRequired && !mfaVerified) return null;
+  const enforceStaffMfa = user.mfaRequired && staffMfaRequired();
+  const mfaVerified = enforceStaffMfa ? mfaCode === "000000" : true;
+  if (enforceStaffMfa && !mfaVerified) return null;
 
   return {
     userId: user.id,

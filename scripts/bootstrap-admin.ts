@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { closeDatabase, getDatabase } from "@/db/client";
 import { auditEvents, userRoles, users } from "@/db/schema";
+import { staffMfaRequired } from "@/lib/auth/mfa";
 import { hashPassword } from "@/lib/auth/password";
 
 const requiredNames = [
@@ -8,22 +9,27 @@ const requiredNames = [
   "BOOTSTRAP_ADMIN_EMAIL",
   "BOOTSTRAP_ADMIN_DISPLAY_NAME",
   "BOOTSTRAP_ADMIN_PASSWORD",
-  "BOOTSTRAP_ADMIN_MFA_REFERENCE",
 ] as const;
 
 async function bootstrap(): Promise<void> {
   if (process.env.BOOTSTRAP_CONFIRM !== "CREATE_INITIAL_ADMIN") {
     throw new Error("Set BOOTSTRAP_CONFIRM=CREATE_INITIAL_ADMIN for this one-time operation.");
   }
-  const missing = requiredNames.filter((name) => !process.env[name]);
+  const enforceStaffMfa = staffMfaRequired();
+  const missing = [
+    ...requiredNames.filter((name) => !process.env[name]),
+    ...(enforceStaffMfa && !process.env.BOOTSTRAP_ADMIN_MFA_REFERENCE
+      ? ["BOOTSTRAP_ADMIN_MFA_REFERENCE"]
+      : []),
+  ];
   if (missing.length) throw new Error(`Missing required variables: ${missing.join(", ")}.`);
 
   const email = process.env.BOOTSTRAP_ADMIN_EMAIL!.trim().toLowerCase();
   const displayName = process.env.BOOTSTRAP_ADMIN_DISPLAY_NAME!.trim();
   const password = process.env.BOOTSTRAP_ADMIN_PASSWORD!;
-  const mfaProviderReference = process.env.BOOTSTRAP_ADMIN_MFA_REFERENCE!.trim();
+  const mfaProviderReference = process.env.BOOTSTRAP_ADMIN_MFA_REFERENCE?.trim() || null;
   delete process.env.BOOTSTRAP_ADMIN_PASSWORD;
-  if (!/^\S+@\S+\.\S+$/.test(email) || !displayName || !mfaProviderReference) {
+  if (!/^\S+@\S+\.\S+$/.test(email) || !displayName || (enforceStaffMfa && !mfaProviderReference)) {
     throw new Error("Bootstrap identity metadata is invalid.");
   }
   const passwordHash = hashPassword(password);

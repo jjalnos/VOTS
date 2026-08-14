@@ -16,7 +16,10 @@ export const metadata: Metadata = {
     description:
       "Published survivor and family stories, timelines, sources, and a cited archive guide.",
   },
-  robots: { index: true, follow: true },
+  robots:
+    process.env.NEXT_PUBLIC_COMING_SOON !== "false"
+      ? { index: false, follow: false }
+      : { index: true, follow: true },
 };
 
 export const viewport: Viewport = {

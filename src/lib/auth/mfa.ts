@@ -6,6 +6,10 @@ export interface MfaVerificationInput {
   code: string | undefined;
 }
 
+export function staffMfaRequired(): boolean {
+  return process.env.STAFF_MFA_REQUIRED === "true";
+}
+
 export function mfaWebhookConfiguration(): { url: string; token?: string } | null {
   if (process.env.MFA_PROVIDER !== "webhook") return null;
   const value = process.env.MFA_VERIFY_URL;

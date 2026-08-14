@@ -4,7 +4,15 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Locale } from "@/lib/domain/types";
 
-export function LoginForm({ locale, showDevelopmentHint }: { locale: Locale; showDevelopmentHint: boolean }) {
+export function LoginForm({
+  locale,
+  requireStaffMfa,
+  showDevelopmentHint,
+}: {
+  locale: Locale;
+  requireStaffMfa: boolean;
+  showDevelopmentHint: boolean;
+}) {
   const router = useRouter();
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
 
@@ -40,10 +48,12 @@ export function LoginForm({ locale, showDevelopmentHint }: { locale: Locale; sho
         <label htmlFor="password">{locale === "es" ? "Contraseña" : "Password"}</label>
         <input id="password" name="password" type="password" autoComplete="current-password" minLength={8} required />
       </div>
-      <div className="field">
-        <label htmlFor="mfaCode">{locale === "es" ? "Código MFA (personal solamente)" : "MFA code (staff only)"}</label>
-        <input id="mfaCode" name="mfaCode" inputMode="numeric" autoComplete="one-time-code" />
-      </div>
+      {requireStaffMfa ? (
+        <div className="field">
+          <label htmlFor="mfaCode">{locale === "es" ? "Código MFA (personal solamente)" : "MFA code (staff only)"}</label>
+          <input id="mfaCode" name="mfaCode" inputMode="numeric" autoComplete="one-time-code" />
+        </div>
+      ) : null}
       <button className="button" type="submit" disabled={status === "loading"}>
         {status === "loading" ? (locale === "es" ? "Verificando…" : "Verifying…") : (locale === "es" ? "Entrar" : "Sign in")}
       </button>
@@ -52,8 +62,8 @@ export function LoginForm({ locale, showDevelopmentHint }: { locale: Locale; sho
         <div className="notice">
           <strong>{locale === "es" ? "Solo desarrollo" : "Development only"}</strong>
           <p>family@archive.local / family-demo</p>
-          <p>curator@archive.local / curator-demo / MFA 000000</p>
-          <p>admin@archive.local / admin-demo / MFA 000000</p>
+          <p>curator@archive.local / curator-demo{requireStaffMfa ? " / MFA 000000" : ""}</p>
+          <p>admin@archive.local / admin-demo{requireStaffMfa ? " / MFA 000000" : ""}</p>
         </div>
       ) : null}
     </form>

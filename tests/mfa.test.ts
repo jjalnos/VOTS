@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { mfaWebhookConfiguration, verifyStaffMfa } from "@/lib/auth/mfa";
+import { mfaWebhookConfiguration, staffMfaRequired, verifyStaffMfa } from "@/lib/auth/mfa";
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -7,6 +7,12 @@ afterEach(() => {
 });
 
 describe("staff MFA hook", () => {
+  it("only enforces MFA when the temporary policy flag is explicitly enabled", () => {
+    expect(staffMfaRequired()).toBe(false);
+    vi.stubEnv("STAFF_MFA_REQUIRED", "true");
+    expect(staffMfaRequired()).toBe(true);
+  });
+
   it("fails closed when the provider is not configured", async () => {
     vi.stubEnv("MFA_PROVIDER", "");
     vi.stubEnv("MFA_VERIFY_URL", "");

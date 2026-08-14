@@ -1,42 +1,243 @@
 import Link from "next/link";
+import styles from "./coming-soon.module.css";
 import type { Locale } from "@/lib/domain/types";
 import { t, withLocale } from "@/lib/i18n";
 
+const copy = {
+  en: {
+    preview: "Private staging preview",
+    previewNote: "Demonstration content only",
+    eyebrow: "Bilingual digital archive · San Antonio",
+    headline: "Preserving voices. Connecting generations.",
+    lead: "A bilingual home for Holocaust survivor testimony, family histories, and the sources that help every story remain accurate, contextual, and connected.",
+    learnMore: "How the archive is being built",
+    signIn: "Family & staff sign in",
+    trust: "Only permissioned, museum-reviewed material is made public.",
+    collectionLabel: "A living record",
+    collectionTitle: "Voice, memory, and source—kept together.",
+    collectionNote: "Testimony · Photographs · Documents · Family histories",
+    processEyebrow: "A careful path to publication",
+    processTitle: "Care is part of the archive.",
+    processLead: "Every contribution moves through a documented, human review before it can become part of the public record.",
+    steps: [
+      {
+        title: "Contribute privately",
+        body: "Family material begins in an invited workspace, visible only to the people entrusted with its care.",
+      },
+      {
+        title: "Review together",
+        body: "Families and museum curators confirm names, rights, translation, sources, and context.",
+      },
+      {
+        title: "Publish with permission",
+        body: "Only explicitly approved, source-connected material enters the public archive.",
+      },
+    ],
+    spacesEyebrow: "Behind the public archive",
+    spacesTitle: "Built for people, not just records.",
+    spacesLead: "Two connected private spaces help the museum and families shape testimony without losing consent, context, or source connections.",
+    spaces: [
+      {
+        index: "01",
+        title: "Source-led writing studio",
+        body: "Shape stories from recorded testimony while keeping quotations, facts, translations, and review decisions connected.",
+      },
+      {
+        index: "02",
+        title: "Family & descendant network",
+        body: "Connect generations while keeping consent, contact preferences, and family relationships clear.",
+      },
+    ],
+    footerLine: "Memory deserves care.",
+    collaboration: "A project of HMMSA, developed in collaboration with Clicksmith.",
+  },
+  es: {
+    preview: "Vista previa privada",
+    previewNote: "Solo contenido de demostración",
+    eyebrow: "Archivo digital bilingüe · San Antonio",
+    headline: "Preservamos voces. Conectamos generaciones.",
+    lead: "Un espacio bilingüe para los testimonios de sobrevivientes del Holocausto, las historias familiares y las fuentes que ayudan a mantener cada relato preciso, contextualizado y conectado.",
+    learnMore: "Cómo se está creando el archivo",
+    signIn: "Acceso para familias y personal",
+    trust: "Solo se publica material autorizado y revisado por el museo.",
+    collectionLabel: "Un registro vivo",
+    collectionTitle: "Voz, memoria y fuente, conservadas juntas.",
+    collectionNote: "Testimonios · Fotografías · Documentos · Historias familiares",
+    processEyebrow: "Un camino cuidadoso hacia la publicación",
+    processTitle: "El cuidado forma parte del archivo.",
+    processLead: "Cada contribución pasa por una revisión humana documentada antes de formar parte del registro público.",
+    steps: [
+      {
+        title: "Contribuir en privado",
+        body: "El material familiar comienza en un espacio por invitación, visible solo para las personas encargadas de cuidarlo.",
+      },
+      {
+        title: "Revisar juntos",
+        body: "Las familias y los curadores del museo confirman nombres, derechos, traducciones, fuentes y contexto.",
+      },
+      {
+        title: "Publicar con permiso",
+        body: "Solo el material expresamente aprobado y vinculado a sus fuentes entra en el archivo público.",
+      },
+    ],
+    spacesEyebrow: "Detrás del archivo público",
+    spacesTitle: "Creado para las personas, no solo para los registros.",
+    spacesLead: "Dos espacios privados conectados ayudan al museo y a las familias a dar forma a los testimonios sin perder el consentimiento, el contexto ni las fuentes.",
+    spaces: [
+      {
+        index: "01",
+        title: "Estudio de escritura con fuentes",
+        body: "Dé forma a historias basadas en testimonios grabados, manteniendo conectadas las citas, los datos, las traducciones y las decisiones de revisión.",
+      },
+      {
+        index: "02",
+        title: "Red de familias y descendientes",
+        body: "Conecte generaciones y mantenga claros el consentimiento, las preferencias de contacto y los vínculos familiares.",
+      },
+    ],
+    footerLine: "La memoria merece cuidado.",
+    collaboration: "Un proyecto de HMMSA, desarrollado en colaboración con Clicksmith.",
+  },
+} satisfies Record<Locale, Record<string, unknown>>;
+
 export function ComingSoon({ locale }: { locale: Locale }) {
+  const content = copy[locale];
+
   return (
-    <main id="main-content" className="coming-soon">
-      <div className="coming-soon-grain" aria-hidden="true" />
-      <header className="coming-soon-header">
-        <div className="coming-soon-brand">
-          <span className="brand-mark">HM</span>
-          <span>
-            <span className="brand-name">{t(locale, "institutionName")}</span>
-            <span className="brand-subtitle">{t(locale, "archiveName")}</span>
-          </span>
-        </div>
-        <nav className="language-switcher" aria-label={t(locale, "languageLabel")}>
-          <Link href="/?lang=en" aria-current={locale === "en"}>EN</Link>
-          <Link href="/?lang=es" aria-current={locale === "es"}>ES</Link>
-        </nav>
-      </header>
-      <div className="coming-soon-content">
-        <div className="coming-soon-rule" />
-        <p className="eyebrow">HMMSA · San Antonio, Texas</p>
-        <h1>{locale === "es" ? "Próximamente" : "Coming soon"}</h1>
-        <p className="coming-soon-lead">
-          {locale === "es"
-            ? "Un nuevo archivo digital bilingüe, creado con cuidado para preservar voces, historias y fuentes aprobadas por el museo."
-            : "A new bilingual digital archive, carefully created to preserve voices, stories, and museum-approved sources."}
-        </p>
-        <p className="collaboration-line">
-          <span>{locale === "es" ? "HMMSA en colaboración con" : "HMMSA in collaboration with"}</span>
-          <strong>Clicksmith</strong>
-        </p>
+    <div className={styles.page} lang={locale}>
+      <div className={styles.previewBar}>
+        <span className={styles.previewStatus}>
+          <span className={styles.previewDot} aria-hidden="true" />
+          {content.preview}
+        </span>
+        <span>{content.previewNote}</span>
       </div>
-      <footer className="coming-soon-footer">
-        <span>{locale === "es" ? "La memoria merece cuidado." : "Memory deserves care."}</span>
-        <Link href={withLocale("/login", locale)}>{locale === "es" ? "Acceso privado" : "Private access"}</Link>
+
+      <header className={styles.header}>
+        <div className={styles.headerInner}>
+          <div className={styles.brand}>
+            <span className={styles.brandMark} aria-hidden="true">HM</span>
+            <span className={styles.brandText}>
+              <span className={styles.brandName}>{t(locale, "institutionName")}</span>
+              <span className={styles.brandSubtitle}>{t(locale, "archiveName")}</span>
+            </span>
+          </div>
+          <div className={styles.headerActions}>
+            <nav className={styles.languages} aria-label={t(locale, "languageLabel")}>
+              <Link
+                href="/?lang=en"
+                hrefLang="en"
+                lang="en"
+                aria-label="English"
+                aria-current={locale === "en" ? "page" : undefined}
+              >
+                EN
+              </Link>
+              <Link
+                href="/?lang=es"
+                hrefLang="es"
+                lang="es"
+                aria-label="Español"
+                aria-current={locale === "es" ? "page" : undefined}
+              >
+                ES
+              </Link>
+            </nav>
+            <Link className={styles.headerSignIn} href={withLocale("/login", locale)}>
+              {content.signIn}
+            </Link>
+          </div>
+        </div>
+      </header>
+
+      <main id="main-content" tabIndex={-1}>
+        <section className={styles.hero} aria-labelledby="archive-introduction">
+          <div className={styles.heroInner}>
+            <div className={styles.introduction}>
+              <p className={styles.eyebrow}>{content.eyebrow}</p>
+              <h1 id="archive-introduction">{content.headline}</h1>
+              <p className={styles.lead}>{content.lead}</p>
+              <div className={styles.actions}>
+                <a className={styles.primaryAction} href="#archive-process">
+                  {content.learnMore}
+                  <span aria-hidden="true">↓</span>
+                </a>
+                <Link className={styles.secondaryAction} href={withLocale("/login", locale)}>
+                  {content.signIn}
+                </Link>
+              </div>
+              <p className={styles.trustLine}>
+                <span className={styles.trustMark} aria-hidden="true">✓</span>
+                {content.trust}
+              </p>
+            </div>
+
+            <aside className={styles.collection} aria-label={content.collectionLabel}>
+              <div className={styles.collectionRings} aria-hidden="true" />
+              <div className={styles.collectionIndex} aria-hidden="true">01</div>
+              <div className={styles.collectionContent}>
+                <p>{content.collectionLabel}</p>
+                <h2>{content.collectionTitle}</h2>
+                <div className={styles.voiceLine} aria-hidden="true">
+                  {[18, 34, 52, 28, 70, 44, 84, 38, 62, 30, 48, 22].map((height, index) => (
+                    <span key={index} style={{ height }} />
+                  ))}
+                </div>
+                <small>{content.collectionNote}</small>
+              </div>
+            </aside>
+          </div>
+        </section>
+
+        <section id="archive-process" className={styles.process} aria-labelledby="process-title">
+          <div className={styles.sectionInner}>
+            <div className={styles.sectionHeading}>
+              <div>
+                <p className={styles.eyebrow}>{content.processEyebrow}</p>
+                <h2 id="process-title">{content.processTitle}</h2>
+              </div>
+              <p>{content.processLead}</p>
+            </div>
+            <div className={styles.processGrid}>
+              {content.steps.map((step, index) => (
+                <article className={styles.processCard} key={step.title}>
+                  <span className={styles.cardIndex}>{String(index + 1).padStart(2, "0")}</span>
+                  <h3>{step.title}</h3>
+                  <p>{step.body}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className={styles.spaces} aria-labelledby="spaces-title">
+          <div className={styles.sectionInner}>
+            <div className={styles.spacesIntro}>
+              <p className={styles.eyebrow}>{content.spacesEyebrow}</p>
+              <h2 id="spaces-title">{content.spacesTitle}</h2>
+              <p>{content.spacesLead}</p>
+            </div>
+            <div className={styles.spacesGrid}>
+              {content.spaces.map((space) => (
+                <article className={styles.spaceCard} key={space.title}>
+                  <span>{space.index}</span>
+                  <div>
+                    <h3>{space.title}</h3>
+                    <p>{space.body}</p>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer className={styles.footer}>
+        <div className={styles.footerInner}>
+          <strong>{content.footerLine}</strong>
+          <span>{content.collaboration}</span>
+        </div>
       </footer>
-    </main>
+    </div>
   );
 }

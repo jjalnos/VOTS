@@ -9,6 +9,7 @@ import {
   developmentAuthEnabled,
 } from "@/lib/auth/dev-auth";
 import type { SessionPayload } from "@/lib/auth/session-token";
+import { staffMfaRequired } from "@/lib/auth/mfa";
 
 export type AuthProvider = "development" | "database" | "unconfigured";
 
@@ -59,13 +60,14 @@ export async function resolveConfiguredSessionActor(payload: SessionPayload): Pr
     });
   }
   if (provider === "development") {
+    const isStaff = payload.roles.some((role) => role === "admin" || role === "curator");
     return {
       userId: payload.userId,
       email: payload.email,
       displayName: payload.displayName,
       roles: payload.roles,
       familyId: payload.familyId,
-      mfaVerified: payload.mfaVerified,
+      mfaVerified: isStaff && !staffMfaRequired() ? true : payload.mfaVerified,
     };
   }
   return null;

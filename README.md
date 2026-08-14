@@ -14,18 +14,18 @@ Requirements: Node.js 20.9 or newer and npm.
 Development accounts exist only when `DEV_AUTH_ENABLED=true` outside production:
 
 - `family@archive.local` / `family-demo`
-- `curator@archive.local` / `curator-demo` / MFA `000000`
-- `admin@archive.local` / `admin-demo` / MFA `000000`
+- `curator@archive.local` / `curator-demo`
+- `admin@archive.local` / `admin-demo`
 
-These fixtures are intentionally rejected in production. The database identity adapter stores versioned scrypt password hashes, reloads active roles and accepted family membership on every request, and refuses staff access unless the configured MFA hook verifies the submitted code. Production still requires museum-controlled enrollment, invitations, password reset, and account-recovery workflows.
+These fixtures are intentionally rejected in production. MFA is temporarily disabled when `STAFF_MFA_REQUIRED` is unset or `false`; set it to `true` to restore the development code `000000` and the database verification hook. The database identity adapter stores versioned scrypt password hashes and reloads active roles and accepted family membership on every request. Production still requires museum-controlled MFA enrollment, invitations, password reset, and account-recovery workflows.
 
 ## PostgreSQL and production identity
 
 Set `DATA_ADAPTER=postgres` to route public catalog, curator workspace, family workspace, access listing, exports, and private-upload metadata through PostgreSQL. The adapter applies the publication filters at both query and domain-policy layers; it never falls back to mock data after PostgreSQL is explicitly selected.
 
-Set `AUTH_PROVIDER=database`, `DEV_AUTH_ENABLED=false`, and a random `AUTH_SESSION_SECRET` of at least 32 characters. Family accounts authenticate with their stored scrypt hash and exactly one accepted, non-revoked family membership. Admin and curator accounts additionally require `mfa_required=true`, an opaque `mfa_provider_reference`, and an HTTPS verification service configured with `MFA_PROVIDER=webhook` and `MFA_VERIFY_URL`.
+Set `AUTH_PROVIDER=database`, `DEV_AUTH_ENABLED=false`, and a random `AUTH_SESSION_SECRET` of at least 32 characters. Family accounts authenticate with their stored scrypt hash and exactly one accepted, non-revoked family membership. The staging preview currently uses `STAFF_MFA_REQUIRED=false`, so admin and curator accounts use password authentication while role checks remain active. Before production, set `STAFF_MFA_REQUIRED=true`; staff accounts must then have `mfa_required=true`, an opaque `mfa_provider_reference`, and an HTTPS verification service configured with `MFA_PROVIDER=webhook` and `MFA_VERIFY_URL`.
 
-The one-time `npm run auth:bootstrap-admin` command creates the first MFA-required administrator only when no administrator exists. It requires the explicit `BOOTSTRAP_CONFIRM=CREATE_INITIAL_ADMIN` guard and transient bootstrap variables documented in [Cloudways staging/production setup](docs/CLOUDWAYS.md). Build the command and review it locally; run it only in an approved maintenance window.
+The one-time `npm run auth:bootstrap-admin` command creates the first administrator only when no administrator exists. When `STAFF_MFA_REQUIRED=true`, it also requires the administrator's opaque MFA reference. It always requires the explicit `BOOTSTRAP_CONFIRM=CREATE_INITIAL_ADMIN` guard and transient bootstrap variables documented in [Cloudways staging/production setup](docs/CLOUDWAYS.md). Build the command and review it locally; run it only in an approved maintenance window.
 
 ## Safety architecture
 

@@ -8,7 +8,7 @@ import {
 } from "@/db/schema";
 import type { Actor } from "@/lib/auth/policy";
 import type { Role } from "@/lib/domain/types";
-import { verifyStaffMfa } from "@/lib/auth/mfa";
+import { staffMfaRequired, verifyStaffMfa } from "@/lib/auth/mfa";
 import { hashPassword, verifyPasswordAsync } from "@/lib/auth/password";
 
 export type AuthenticationResult =
@@ -36,7 +36,8 @@ export interface DatabaseIdentity {
 export function actorFromDatabaseIdentity(identity: DatabaseIdentity, mfaVerified: boolean): Actor | null {
   if (!identity.active || !identity.roles.length) return null;
   const isStaff = identity.roles.some((role) => role === "admin" || role === "curator");
-  if (isStaff && (!identity.mfaRequired || !mfaVerified)) return null;
+  const enforceStaffMfa = isStaff && staffMfaRequired();
+  if (enforceStaffMfa && (!identity.mfaRequired || !mfaVerified)) return null;
   const isFamily = identity.roles.includes("family");
   if (isFamily && identity.activeFamilyIds.length !== 1) return null;
   return {
@@ -45,7 +46,7 @@ export function actorFromDatabaseIdentity(identity: DatabaseIdentity, mfaVerifie
     displayName: identity.displayName,
     roles: identity.roles,
     familyId: isFamily ? identity.activeFamilyIds[0] : undefined,
-    mfaVerified: isStaff ? mfaVerified : true,
+    mfaVerified: isStaff ? (!enforceStaffMfa || mfaVerified) : true,
   };
 }
 
@@ -100,8 +101,9 @@ export async function authenticateDatabaseUser(input: {
       return { status: "invalid" };
     }
     const isStaff = identity.roles.some((role) => role === "admin" || role === "curator");
+    const enforceStaffMfa = isStaff && staffMfaRequired();
     let mfaVerified = !isStaff;
-    if (isStaff) {
+    if (enforceStaffMfa) {
       if (!identity.mfaRequired || !identity.mfaProviderReference) return { status: "invalid" };
       const mfaResult = await verifyStaffMfa({
         userId: identity.id,
@@ -126,7 +128,7 @@ export async function authenticateDatabaseUser(input: {
         action: "auth.login_succeeded",
         entityType: "user",
         entityId: identity.id,
-        metadata: { mfaVerified, provider: "database" },
+        metadata: { mfaVerified, mfaEnforced: enforceStaffMfa, provider: "database" },
         occurredAt: now,
       });
     });

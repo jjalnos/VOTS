@@ -4,6 +4,7 @@ import { authenticateConfiguredUser } from "@/lib/auth/provider";
 import { SESSION_COOKIE, sessionSecret } from "@/lib/auth/server-session";
 import { signSession } from "@/lib/auth/session-token";
 import { hasTrustedOrigin } from "@/lib/http/origin";
+import { staffMfaRequired } from "@/lib/auth/mfa";
 
 const loginSchema = z.object({
   email: z.string().email().max(320),
@@ -32,7 +33,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Production identity provider is not configured." }, { status: 503 });
   }
   const issuedAt = Date.now();
-  const token = signSession({ ...actor, issuedAt, expiresAt: issuedAt + 8 * 60 * 60 * 1000 }, secret);
+  const isStaff = actor.roles.some((role) => role === "admin" || role === "curator");
+  const sessionActor = isStaff && !staffMfaRequired()
+    ? { ...actor, mfaVerified: false }
+    : actor;
+  const token = signSession({ ...sessionActor, issuedAt, expiresAt: issuedAt + 8 * 60 * 60 * 1000 }, secret);
   const destination = actor.roles.includes("admin")
     ? "/admin/access"
     : actor.roles.includes("curator")

@@ -6,7 +6,7 @@
 - **Curator:** survivor/family records, archive review, internal-AI suggestions, explicit external research, translation review, approved Markdown export, and publication.
 - **Family contributor:** email/password access to exactly one invited family group; contribution only. Upload does not grant publication rights.
 
-Staff actions require a session with `mfaVerified=true`. The development fixture is unavailable in production. With `AUTH_PROVIDER=database`, passwords use a versioned scrypt format, active roles and accepted family membership are reloaded from PostgreSQL on every request, and staff authentication calls an HTTPS MFA verification hook using an opaque enrollment reference. Missing or failed MFA configuration denies access.
+Staff actions require an authorization actor with `mfaVerified=true`. During the temporary staging bypass (`STAFF_MFA_REQUIRED=false`), the server satisfies that policy only after successful password authentication and records that MFA was not enforced. Bypass sessions carry a false MFA claim, so setting `STAFF_MFA_REQUIRED=true` rejects them on their next request. With enforcement enabled, database staff authentication requires an HTTPS MFA verification hook using an opaque enrollment reference; missing or failed MFA configuration denies access.
 
 ## Publication boundary
 

@@ -189,7 +189,14 @@
   position: absolute;
   z-index: 0;
   inset: 0 0 0 47%;
-  background: url("/hmmsa-museum-history.webp") center / cover no-repeat;
+  background:
+    linear-gradient(
+      180deg,
+      transparent 42%,
+      rgba(23, 42, 45, 0.05) 62%,
+      rgba(23, 42, 45, 0.42) 100%
+    ),
+    url("/hmmsa-museum-history.webp") center / cover no-repeat;
   filter: grayscale(1) sepia(0.22) contrast(0.92);
   opacity: 0.62;
   -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 40%);
@@ -316,15 +323,7 @@
   content: "";
   position: absolute;
   z-index: -1;
-  inset: -5rem -7rem -7rem -9rem;
-  background: linear-gradient(
-    180deg,
-    transparent 12%,
-    rgba(23, 42, 45, 0.12) 36%,
-    rgba(23, 42, 45, 0.48) 57%,
-    rgba(23, 42, 45, 0.94) 82%
-  );
-  filter: blur(24px);
+  display: none;
   pointer-events: none;
 }
 
@@ -570,6 +569,7 @@
 
   .heroInner::after {
     inset: 43% 0 0;
+    background: url("/hmmsa-museum-history.webp") center / cover no-repeat;
     -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 38%);
     mask-image: linear-gradient(180deg, transparent 0%, #000 38%);
   }
@@ -581,6 +581,7 @@
   }
 
   .collection::before {
+    display: block;
     inset: -1.25rem;
     background: linear-gradient(
       180deg,

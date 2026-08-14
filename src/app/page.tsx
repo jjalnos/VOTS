@@ -2,15 +2,15 @@ import Link from "next/link";
 import { ComingSoon } from "@/components/coming-soon";
 import { PublicShell } from "@/components/public-shell";
 import { StatusPill } from "@/components/status-pill";
-import { getPublicCatalog } from "@/lib/data/public-catalog";
 import { localeFrom, t, withLocale } from "@/lib/i18n";
+import { getArchiveRepository } from "@/lib/repository";
 
 export default async function Home({ searchParams }: PageProps<"/">) {
   const locale = localeFrom((await searchParams).lang);
   if (process.env.NEXT_PUBLIC_COMING_SOON !== "false") {
     return <ComingSoon locale={locale} />;
   }
-  const catalog = getPublicCatalog(locale);
+  const catalog = await getArchiveRepository().publicCatalog(locale);
   const profile = catalog.survivors[0];
 
   return (

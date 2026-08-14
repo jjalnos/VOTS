@@ -3,6 +3,7 @@ import { z } from "zod";
 import { can } from "@/lib/auth/policy";
 import { getActor } from "@/lib/auth/server-session";
 import { getInternalArchiveAIProvider } from "@/lib/ai/provider";
+import { hasTrustedOrigin } from "@/lib/http/origin";
 
 const schema = z.object({
   sourceText: z.string().min(1).max(30_000),
@@ -11,6 +12,7 @@ const schema = z.object({
 });
 
 export async function POST(request: Request) {
+  if (!hasTrustedOrigin(request)) return NextResponse.json({ error: "Cross-site AI requests are not accepted." }, { status: 403 });
   const actor = await getActor();
   if (!actor || !can(actor, "review_content")) return NextResponse.json({ error: "Curator access required." }, { status: actor ? 403 : 401 });
   const parsed = schema.safeParse(await request.json().catch(() => null));

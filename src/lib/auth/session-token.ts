@@ -1,5 +1,6 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import type { Actor } from "@/lib/auth/policy";
+import { ROLES } from "@/lib/domain/types";
 
 export interface SessionPayload extends Actor {
   issuedAt: number;
@@ -34,7 +35,18 @@ export function verifySession(
 
   try {
     const payload = JSON.parse(Buffer.from(encoded, "base64url").toString("utf8")) as SessionPayload;
-    if (!Array.isArray(payload.roles) || payload.expiresAt <= now || payload.issuedAt > now + 60_000) {
+    if (
+      typeof payload.userId !== "string" ||
+      typeof payload.email !== "string" ||
+      typeof payload.displayName !== "string" ||
+      typeof payload.mfaVerified !== "boolean" ||
+      !Array.isArray(payload.roles) ||
+      !payload.roles.every((role) => ROLES.includes(role)) ||
+      typeof payload.issuedAt !== "number" ||
+      typeof payload.expiresAt !== "number" ||
+      payload.expiresAt <= now ||
+      payload.issuedAt > now + 60_000
+    ) {
       return null;
     }
     return payload;

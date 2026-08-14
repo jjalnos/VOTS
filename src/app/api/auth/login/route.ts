@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { authenticateDevelopmentUser } from "@/lib/auth/dev-auth";
+import { authenticateConfiguredUser } from "@/lib/auth/provider";
 import { SESSION_COOKIE, sessionSecret } from "@/lib/auth/server-session";
 import { signSession } from "@/lib/auth/session-token";
+import { hasTrustedOrigin } from "@/lib/http/origin";
 
 const loginSchema = z.object({
   email: z.string().email().max(320),
@@ -11,18 +12,21 @@ const loginSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  if (!hasTrustedOrigin(request)) {
+    return NextResponse.json({ error: "Cross-site sign-in requests are not accepted." }, { status: 403 });
+  }
   const parsed = loginSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid sign-in request." }, { status: 400 });
   }
-  const actor = authenticateDevelopmentUser(
-    parsed.data.email,
-    parsed.data.password,
-    parsed.data.mfaCode,
-  );
-  if (!actor) {
+  const authentication = await authenticateConfiguredUser(parsed.data);
+  if (authentication.status === "unavailable") {
+    return NextResponse.json({ error: "The identity provider is not available." }, { status: 503 });
+  }
+  if (authentication.status !== "authenticated") {
     return NextResponse.json({ error: "Sign-in failed." }, { status: 401 });
   }
+  const actor = authentication.actor;
   const secret = sessionSecret();
   if (!secret) {
     return NextResponse.json({ error: "Production identity provider is not configured." }, { status: 503 });

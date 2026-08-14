@@ -12,7 +12,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate"
+    "db:migrate": "drizzle-kit migrate",
+    "auth:bootstrap-admin": "tsx scripts/bootstrap-admin.ts"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.1",
@@ -29,6 +30,7 @@
     "drizzle-kit": "^0.31.8",
     "eslint": "^9",
     "eslint-config-next": "16.3.1",
+    "tsx": "^4.23.12",
     "typescript": "^5",
     "vitest": "^4.0.18"
   }

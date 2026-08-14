@@ -3,6 +3,7 @@ import { z } from "zod";
 import { can } from "@/lib/auth/policy";
 import { getActor } from "@/lib/auth/server-session";
 import { getExternalResearchProvider } from "@/lib/ai/provider";
+import { hasTrustedOrigin } from "@/lib/http/origin";
 
 const researchSchema = z.object({
   query: z.string().trim().min(10).max(800),
@@ -19,6 +20,7 @@ const museumCandidateDomains = [
 ];
 
 export async function POST(request: Request) {
+  if (!hasTrustedOrigin(request)) return NextResponse.json({ error: "Cross-site research requests are not accepted." }, { status: 403 });
   const actor = await getActor();
   if (!actor) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
   if (!can(actor, "run_external_research")) return NextResponse.json({ error: "Curator MFA and permission are required." }, { status: 403 });

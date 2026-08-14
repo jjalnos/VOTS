@@ -52,25 +52,30 @@ export function answerFromPublishedCatalog(
       text: `${record.displayName[locale]} ${record.summary[locale]}`,
       href: `/profiles/${record.slug}?lang=${locale}`,
       label: record.displayName[locale],
+      sourceIds: catalog.releases
+        .filter((release) => release.entityType === "survivor" && release.entityId === record.id)
+        .flatMap((release) => release.sourceIds),
     })),
     ...catalog.stories.map((story) => ({
       id: story.id,
       text: `${story.title[locale]} ${story.dek[locale]} ${story.body[locale]}`,
       href: `/stories?lang=${locale}#${story.slug}`,
       label: story.title[locale],
+      sourceIds: story.sourceIds,
     })),
     ...catalog.timelineEvents.map((event) => ({
       id: event.id,
       text: `${event.dateLabel[locale]} ${event.title[locale]} ${event.description[locale]}`,
       href: `/timeline?lang=${locale}#${event.id}`,
       label: event.title[locale],
+      sourceIds: event.sourceIds,
     })),
   ];
   const selected = candidates
     .map((candidate) => ({ ...candidate, score: overlapScore(candidate.text, queryTerms) }))
     .sort((left, right) => right.score - left.score)
     .find((candidate) => queryTerms.length > 0 && candidate.score >= 2);
-  const approvedSource = catalog.sources[0];
+  const approvedSource = catalog.sources.find((source) => selected?.sourceIds.includes(source.id));
 
   if (!selected || !approvedSource) {
     return {

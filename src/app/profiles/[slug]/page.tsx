@@ -3,19 +3,15 @@ import { notFound } from "next/navigation";
 import { PageBanner } from "@/components/page-banner";
 import { PublicShell } from "@/components/public-shell";
 import { StatusPill } from "@/components/status-pill";
-import { getPublicCatalog } from "@/lib/data/public-catalog";
 import { localeFrom, t } from "@/lib/i18n";
+import { getArchiveRepository } from "@/lib/repository";
 
 export const metadata: Metadata = { title: "Published profile / Perfil publicado" };
-
-export function generateStaticParams() {
-  return getPublicCatalog("en").survivors.map((survivor) => ({ slug: survivor.slug }));
-}
 
 export default async function ProfilePage({ params, searchParams }: PageProps<"/profiles/[slug]">) {
   const locale = localeFrom((await searchParams).lang);
   const { slug } = await params;
-  const catalog = getPublicCatalog(locale);
+  const catalog = await getArchiveRepository().publicCatalog(locale);
   const survivor = catalog.survivors.find((candidate) => candidate.slug === slug);
   if (!survivor) notFound();
   const items = catalog.archiveItems.filter((item) => item.survivorId === survivor.id);

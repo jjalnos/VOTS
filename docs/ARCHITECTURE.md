@@ -6,15 +6,15 @@
 - **Curator:** survivor/family records, archive review, internal-AI suggestions, explicit external research, translation review, approved Markdown export, and publication.
 - **Family contributor:** email/password access to exactly one invited family group; contribution only. Upload does not grant publication rights.
 
-Staff actions require a session with `mfaVerified=true`. The local MFA verifier is an explicit development fixture. A production identity provider must replace it before staging acceptance.
+Staff actions require a session with `mfaVerified=true`. The development fixture is unavailable in production. With `AUTH_PROVIDER=database`, passwords use a versioned scrypt format, active roles and accepted family membership are reloaded from PostgreSQL on every request, and staff authentication calls an HTTPS MFA verification hook using an opaque enrollment reference. Missing or failed MFA configuration denies access.
 
 ## Publication boundary
 
-Public pages call `buildPublicCatalog`. Inclusion requires all of the following: approved record state, a locale-specific `public_release` with `status=published` and a publication timestamp, approved source references, and public visibility for archive items. Public chat receives only that catalog. Withdrawal changes the release status; originals remain private.
+Public pages call the configured repository and then `buildPublicCatalog`. Inclusion requires all of the following: approved record state, a locale-specific `public_release` with `status=published` and a publication timestamp, approved sources attached to that exact release, and public visibility for archive items. Releases for ineligible entities and unrelated sources are removed before public chat receives the catalog. Withdrawal changes the release status; originals remain private.
 
 ## Data and storage
 
-The Drizzle PostgreSQL schema models users, roles, families, memberships, survivors, relationships, archive items, file versions, extracted facts, sources, stories, timeline events, review decisions, public releases, chat sessions, audit events, and background jobs. Runtime development uses a mock repository; PostgreSQL wiring is present but production repository queries and migration execution are a deployment phase.
+The Drizzle PostgreSQL schema models users, roles, families, memberships, survivors, relationships, archive items, file versions, extracted facts, sources, stories, timeline events, review decisions, public releases, chat sessions, audit events, and background jobs. `ArchiveRepository` has mock and PostgreSQL implementations. The PostgreSQL implementation powers public, curator, family, admin, export, and upload-metadata reads/writes, with upload records, file versions, and audit events committed in one database transaction. Migration execution remains a controlled deployment operation.
 
 Original media uses `OriginalMediaStorage`. `LocalMockMediaStorage` is the only implementation and is disabled in production. A future Google Drive adapter may store originals temporarily without changing archive/file metadata. No Google credential or Drive call exists in this repository.
 
@@ -26,4 +26,4 @@ Original media uses `OriginalMediaStorage`. `LocalMockMediaStorage` is the only 
 
 ## Production gates
 
-Before any real content enters staging: complete the PostgreSQL repository, run reviewed migrations, integrate production identity/MFA, configure rate limits and CSRF protection for write endpoints, add malware scanning and larger-file streaming, define Google Drive retention/migration policy, persist audit events/jobs, complete museum legal/privacy review, and conduct an accessibility/security assessment.
+Before any real content enters staging: run reviewed migrations and the controlled initial-admin bootstrap, connect the museum MFA verification service, implement audited invitation/password-reset administration, add distributed rate limits and defense-in-depth CSRF tokens beyond the existing strict cookie/origin checks, add malware scanning and larger-file streaming, replace local mock media storage, persist the background queue, complete museum legal/privacy review, and conduct an accessibility/security assessment.

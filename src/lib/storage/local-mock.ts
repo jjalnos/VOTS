@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from "node:crypto";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { FileVersion } from "@/lib/domain/types";
 import type { OriginalMediaStorage, StoreOriginalInput } from "@/lib/storage/types";
@@ -50,6 +50,20 @@ export class LocalMockMediaStorage implements OriginalMediaStorage {
       throw new Error("The requested file does not belong to the local mock provider.");
     }
     return `local-private://${fileVersion.storageKey}`;
+  }
+
+  async deleteOriginal(fileVersion: FileVersion): Promise<void> {
+    if (fileVersion.storageProvider !== this.provider) {
+      throw new Error("The requested file does not belong to the local mock provider.");
+    }
+    const root = path.resolve(this.rootDirectory);
+    const storagePath = path.resolve(root, fileVersion.storageKey);
+    if (!storagePath.startsWith(`${root}${path.sep}`)) {
+      throw new Error("Invalid archive item storage path.");
+    }
+    await unlink(storagePath).catch((error: NodeJS.ErrnoException) => {
+      if (error.code !== "ENOENT") throw error;
+    });
   }
 }
 

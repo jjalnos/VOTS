@@ -14,4 +14,10 @@ describe("session signing", () => {
     expect(verifySession(`${token}x`, "test-secret", 2_000)).toBeNull();
     expect(verifySession(token, "test-secret", 11_000)).toBeNull();
   });
+
+  it("rejects a signed payload containing an unknown role", () => {
+    const malformed = { ...payload, roles: ["superuser"] } as unknown as SessionPayload;
+    const token = signSession(malformed, "test-secret");
+    expect(verifySession(token, "test-secret", 2_000)).toBeNull();
+  });
 });

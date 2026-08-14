@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { UploadForm } from "@/components/upload-form";
 import { WorkspaceShell } from "@/components/workspace-shell";
 import { requireFamilyAction } from "@/lib/auth/server-session";
-import { seedArchiveItems, seedFamilies } from "@/lib/data/seed";
 import { localeFrom } from "@/lib/i18n";
+import { getArchiveRepository } from "@/lib/repository";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Family contribution / Contribución familiar", robots: { index: false, follow: false } };
@@ -11,8 +11,9 @@ export const metadata: Metadata = { title: "Family contribution / Contribución 
 export default async function FamilyPage({ searchParams }: PageProps<"/family">) {
   const locale = localeFrom((await searchParams).lang);
   const actor = await requireFamilyAction("view_family_workspace", "/family");
-  const family = seedFamilies.find((record) => record.id === actor.familyId);
-  const items = seedArchiveItems.filter((item) => item.familyId === actor.familyId);
+  const workspace = await getArchiveRepository().familyWorkspace(actor);
+  const family = workspace?.family;
+  const items = workspace?.archiveItems ?? [];
   return (
     <WorkspaceShell actor={actor} locale={locale} path="/family" title={locale === "es" ? "Contribución familiar" : "Family contribution"} description={locale === "es" ? `Acceso limitado al grupo invitado: ${family?.name ?? actor.familyId}.` : `Access is limited to the invited group: ${family?.name ?? actor.familyId}.`}>
       <section className="section"><div className="content-wrap workspace-shell">

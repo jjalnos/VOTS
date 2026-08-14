@@ -25,3 +25,11 @@ export function getDatabase(): ArchiveDatabase {
   databaseGlobal.hmmsaDatabase = database;
   return database;
 }
+
+export async function closeDatabase(): Promise<void> {
+  if (databaseGlobal.hmmsaSqlClient) {
+    await databaseGlobal.hmmsaSqlClient.end({ timeout: 5 });
+  }
+  delete databaseGlobal.hmmsaSqlClient;
+  delete databaseGlobal.hmmsaDatabase;
+}

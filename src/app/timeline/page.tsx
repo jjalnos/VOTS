@@ -2,14 +2,14 @@ import type { Metadata } from "next";
 import { PageBanner } from "@/components/page-banner";
 import { PublicShell } from "@/components/public-shell";
 import { StatusPill } from "@/components/status-pill";
-import { getPublicCatalog } from "@/lib/data/public-catalog";
 import { localeFrom, t } from "@/lib/i18n";
+import { getArchiveRepository } from "@/lib/repository";
 
 export const metadata: Metadata = { title: "Timeline / Línea de tiempo" };
 
 export default async function TimelinePage({ searchParams }: PageProps<"/timeline">) {
   const locale = localeFrom((await searchParams).lang);
-  const catalog = getPublicCatalog(locale);
+  const catalog = await getArchiveRepository().publicCatalog(locale);
   return (
     <PublicShell locale={locale} path="/timeline">
       <PageBanner

@@ -12,6 +12,7 @@ export interface OriginalMediaStorage {
   readonly provider: FileVersion["storageProvider"];
   storeOriginal(input: StoreOriginalInput): Promise<FileVersion>;
   privateReadReference(fileVersion: FileVersion): Promise<string>;
+  deleteOriginal(fileVersion: FileVersion): Promise<void>;
 }
 
 export interface GoogleDriveStorageConfiguration {

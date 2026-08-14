@@ -3,8 +3,8 @@ import type { Metadata } from "next";
 import { PageBanner } from "@/components/page-banner";
 import { PublicShell } from "@/components/public-shell";
 import { StatusPill } from "@/components/status-pill";
-import { getPublicCatalog } from "@/lib/data/public-catalog";
 import { localeFrom, t, withLocale } from "@/lib/i18n";
+import { getArchiveRepository } from "@/lib/repository";
 
 export const metadata: Metadata = { title: "Survivor directory / Directorio" };
 
@@ -12,7 +12,7 @@ export default async function DirectoryPage({ searchParams }: PageProps<"/direct
   const params = await searchParams;
   const locale = localeFrom(params.lang);
   const query = typeof params.q === "string" ? params.q.trim() : "";
-  const catalog = getPublicCatalog(locale);
+  const catalog = await getArchiveRepository().publicCatalog(locale);
   const records = catalog.survivors.filter((survivor) =>
     `${survivor.displayName[locale]} ${survivor.summary[locale]}`
       .toLocaleLowerCase()

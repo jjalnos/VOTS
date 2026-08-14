@@ -94,7 +94,7 @@ export interface ExtractedFact {
   confidence?: number;
   sourceLocator: string;
   status: SuggestionStatus;
-  generatedBy: "human" | "mock_ai" | "openai";
+  generatedBy: "human" | "mock_ai" | "local_ai" | "openai";
   reviewedBy?: string;
   reviewedAt?: string;
   createdAt: string;

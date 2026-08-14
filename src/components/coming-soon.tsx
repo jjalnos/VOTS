@@ -7,7 +7,7 @@ const copy = {
   en: {
     preview: "Private staging preview",
     previewNote: "Demonstration content only",
-    eyebrow: "Bilingual digital archive · San Antonio",
+    eyebrow: "Bilingual digital archive · Coming soon",
     headline: "So a voice is not lost between generations.",
     lead: "Shape testimony into a family record without separating a memory from the person who entrusted it to us.",
     learnMore: "How the archive is being built",
@@ -55,7 +55,7 @@ const copy = {
   es: {
     preview: "Vista previa privada",
     previewNote: "Solo contenido de demostración",
-    eyebrow: "Archivo digital bilingüe · San Antonio",
+    eyebrow: "Archivo digital bilingüe · Próximamente",
     headline: "Para que una voz no se pierda entre generaciones.",
     lead: "Damos forma al testimonio como registro familiar sin separar un recuerdo de la persona que nos lo confió.",
     learnMore: "Cómo se está creando el archivo",

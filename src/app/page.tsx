@@ -3,14 +3,20 @@ import { ComingSoon } from "@/components/coming-soon";
 import { PublicShell } from "@/components/public-shell";
 import { StatusPill } from "@/components/status-pill";
 import { localeFrom, t, withLocale } from "@/lib/i18n";
+import { selectFeaturedRecords } from "@/lib/publication/featured-records";
 import { getArchiveRepository } from "@/lib/repository";
 
 export default async function Home({ searchParams }: PageProps<"/">) {
   const locale = localeFrom((await searchParams).lang);
-  if (process.env.NEXT_PUBLIC_COMING_SOON !== "false") {
-    return <ComingSoon locale={locale} />;
-  }
   const catalog = await getArchiveRepository().publicCatalog(locale);
+  if (process.env.NEXT_PUBLIC_COMING_SOON !== "false") {
+    return (
+      <ComingSoon
+        locale={locale}
+        featuredRecords={selectFeaturedRecords(catalog, locale)}
+      />
+    );
+  }
   const profile = catalog.survivors[0];
 
   return (

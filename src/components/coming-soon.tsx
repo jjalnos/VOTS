@@ -2,6 +2,7 @@ import Link from "next/link";
 import styles from "./coming-soon.module.css";
 import type { Locale } from "@/lib/domain/types";
 import { t, withLocale } from "@/lib/i18n";
+import type { FeaturedRecord } from "@/lib/publication/featured-records";
 
 const copy = {
   en: {
@@ -17,6 +18,15 @@ const copy = {
     collectionTitle: "From generation to generation.",
     collectionNote: "One testimony. Four generations. A record still growing.",
     imageCredit: "Family photograph supplied for this project preview",
+    recordsEyebrow: "A first look at the archive",
+    recordsTitle: "Begin with the source.",
+    recordsLead: "Two concise demonstration records show how a public story can remain connected to the testimony and museum source that support it.",
+    recordKinds: {
+      "sam-cohen": "Recorded testimony",
+      "stephan-jalnos": "A story shared by a descendant",
+    },
+    viewRecord: "View sourced record",
+    viewSource: "Original source",
     processEyebrow: "A careful path to publication",
     processTitle: "Care is part of the archive.",
     processLead: "Every contribution moves through a documented, human review before it can become part of the public record.",
@@ -65,6 +75,15 @@ const copy = {
     collectionTitle: "De generación en generación.",
     collectionNote: "Un testimonio. Cuatro generaciones. Un registro que sigue creciendo.",
     imageCredit: "Fotografía familiar proporcionada para esta vista previa del proyecto",
+    recordsEyebrow: "Una primera mirada al archivo",
+    recordsTitle: "Comenzar con la fuente.",
+    recordsLead: "Dos registros breves de demostración muestran cómo una historia pública puede permanecer vinculada al testimonio y a la fuente del museo que la respaldan.",
+    recordKinds: {
+      "sam-cohen": "Testimonio grabado",
+      "stephan-jalnos": "Una historia compartida por un descendiente",
+    },
+    viewRecord: "Ver registro con fuentes",
+    viewSource: "Fuente original",
     processEyebrow: "Un camino cuidadoso hacia la publicación",
     processTitle: "El cuidado forma parte del archivo.",
     processLead: "Cada contribución pasa por una revisión humana documentada antes de formar parte del registro público.",
@@ -102,7 +121,13 @@ const copy = {
   },
 } satisfies Record<Locale, Record<string, unknown>>;
 
-export function ComingSoon({ locale }: { locale: Locale }) {
+export function ComingSoon({
+  locale,
+  featuredRecords,
+}: {
+  locale: Locale;
+  featuredRecords: FeaturedRecord[];
+}) {
   const content = copy[locale];
 
   return (
@@ -184,6 +209,38 @@ export function ComingSoon({ locale }: { locale: Locale }) {
             </aside>
           </div>
         </section>
+
+        {featuredRecords.length ? (
+          <section className={styles.records} aria-labelledby="featured-records-title">
+            <div className={styles.sectionInner}>
+              <div className={styles.recordsHeader}>
+                <div>
+                  <p className={styles.eyebrow}>{content.recordsEyebrow}</p>
+                  <h2 id="featured-records-title">{content.recordsTitle}</h2>
+                </div>
+                <p>{content.recordsLead}</p>
+              </div>
+              <div className={styles.recordsGrid}>
+                {featuredRecords.map((record) => (
+                  <article className={styles.recordPreview} key={record.slug}>
+                    <p className={styles.recordKind}>{content.recordKinds[record.slug]}</p>
+                    <h3>{record.name}</h3>
+                    <p className={styles.recordSummary}>{record.summary}</p>
+                    <p className={styles.recordCitation}>{record.citation}</p>
+                    <div className={styles.recordLinks}>
+                      <Link href={withLocale(`/profiles/${record.slug}`, locale)}>
+                        {content.viewRecord} <span aria-hidden="true">→</span>
+                      </Link>
+                      <a href={record.sourceUrl} target="_blank" rel="noreferrer">
+                        {content.viewSource} <span aria-hidden="true">↗</span>
+                      </a>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </div>
+          </section>
+        ) : null}
 
         <section id="archive-process" className={styles.process} aria-labelledby="process-title">
           <div className={styles.sectionInner}>

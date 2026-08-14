@@ -119,8 +119,8 @@ export default async function Home({ searchParams }: PageProps<"/">) {
 
       <section className="section compact">
         <div className="content-wrap metric-grid" aria-label={locale === "es" ? "Estado de demostración" : "Demonstration status"}>
-          <div className="metric"><strong>{catalog.survivors.length}</strong>{locale === "es" ? "perfil de demostración publicado" : "published demonstration profile"}</div>
-          <div className="metric"><strong>{catalog.sources.length}</strong>{locale === "es" ? "fuente aprobada" : "approved source"}</div>
+          <div className="metric"><strong>{catalog.survivors.length}</strong>{locale === "es" ? "perfiles de demostración publicados" : "published demonstration profiles"}</div>
+          <div className="metric"><strong>{catalog.sources.length}</strong>{locale === "es" ? "fuentes aprobadas" : "approved sources"}</div>
           <div className="metric"><strong>0</strong>{locale === "es" ? "cargas privadas expuestas" : "private uploads exposed"}</div>
         </div>
       </section>

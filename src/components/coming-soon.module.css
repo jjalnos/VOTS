@@ -196,7 +196,7 @@
       rgba(23, 42, 45, 0.05) 62%,
       rgba(23, 42, 45, 0.42) 100%
     ),
-    url("/hmmsa-museum-history.webp") center / cover no-repeat;
+    url("/generation-to-generation-family.png") center top / cover no-repeat;
   filter: grayscale(1) sepia(0.22) contrast(0.92);
   opacity: 0.62;
   -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 40%);

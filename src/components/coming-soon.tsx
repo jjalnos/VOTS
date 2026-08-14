@@ -175,9 +175,6 @@ export function ComingSoon({ locale }: { locale: Locale }) {
             </div>
 
             <aside className={styles.collection} aria-label={content.collectionLabel}>
-              <div className={styles.collectionIndex} aria-hidden="true">
-                <span>01</span><span>02</span><span>03</span><span>04</span>
-              </div>
               <div className={styles.collectionContent}>
                 <p lang="he" dir="rtl">לְדוֹר וָדוֹר</p>
                 <h2>{content.collectionTitle}</h2>

@@ -36,13 +36,17 @@ function configurationFromEnvironment(): InitialCuratorConfiguration | null {
   return { email, displayName, password, mfaProviderReference };
 }
 
-function passwordRotationRequested(): boolean {
+function passwordRotationRequestId(): string | null {
   const confirmation = process.env.BOOTSTRAP_ROTATE_PASSWORD_CONFIRM?.trim();
-  if (!confirmation) return false;
+  if (!confirmation) return null;
   if (confirmation !== INITIAL_CURATOR_PASSWORD_ROTATION_CONFIRMATION) {
     throw new Error("The controlled initial-curator password rotation confirmation is invalid.");
   }
-  return true;
+  const operationId = process.env.BOOTSTRAP_ROTATION_ID?.trim() ?? "";
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(operationId)) {
+    throw new Error("The controlled initial-curator password rotation needs a unique UUID operation ID.");
+  }
+  return operationId;
 }
 
 /**
@@ -54,7 +58,7 @@ function passwordRotationRequested(): boolean {
 export async function ensureInitialCuratorFromEnvironment(): Promise<InitialCuratorBootstrapStatus> {
   const configuration = configurationFromEnvironment();
   if (!configuration) return "disabled";
-  const rotatePassword = passwordRotationRequested();
+  const rotationId = passwordRotationRequestId();
   const db = getDatabase();
   return db.transaction(async (transaction) => {
     const existingUsers = await transaction
@@ -73,29 +77,47 @@ export async function ensureInitialCuratorFromEnvironment(): Promise<InitialCura
       if (!names.has("admin") || !names.has("curator")) {
         throw new Error("The existing bootstrap identity does not have the expected roles.");
       }
-      if (rotatePassword && !verifyPassword(configuration.password, matching.passwordHash)) {
+      if (rotationId) {
+        const alreadyCurrent = verifyPassword(configuration.password, matching.passwordHash);
         const now = new Date();
-        const [updated] = await transaction
-          .update(users)
-          .set({ passwordHash: hashPassword(configuration.password), updatedAt: now })
-          .where(eq(users.id, matching.id))
-          .returning({ id: users.id });
-        if (!updated) throw new Error("Initial curator password rotation did not update an identity.");
-        await transaction.insert(auditEvents).values({
+        const [claimed] = await transaction.insert(auditEvents).values({
+          id: rotationId,
           actorUserId: null,
           action: "identity.initial_curator_password_rotated",
           entityType: "user",
           entityId: matching.id,
           metadata: {
             method: "startup-controlled-password-rotation",
+            outcome: alreadyCurrent ? "already-current" : "rotated",
           },
           occurredAt: now,
-        });
+        }).onConflictDoNothing({ target: auditEvents.id }).returning({ id: auditEvents.id });
+        if (!claimed) {
+          const [existingRotation] = await transaction
+            .select({ action: auditEvents.action, entityId: auditEvents.entityId })
+            .from(auditEvents)
+            .where(eq(auditEvents.id, rotationId))
+            .limit(1);
+          if (
+            existingRotation?.action === "identity.initial_curator_password_rotated" &&
+            existingRotation.entityId === matching.id
+          ) {
+            return "already-present";
+          }
+          throw new Error("The initial-curator password rotation operation ID is already in use.");
+        }
+        if (alreadyCurrent) return "already-present";
+        const [updated] = await transaction
+          .update(users)
+          .set({ passwordHash: hashPassword(configuration.password), updatedAt: now })
+          .where(eq(users.id, matching.id))
+          .returning({ id: users.id });
+        if (!updated) throw new Error("Initial curator password rotation did not update an identity.");
         return "password-rotated";
       }
       return "already-present";
     }
-    if (rotatePassword) {
+    if (rotationId) {
       throw new Error("Initial-curator password rotation refused because the configured identity does not exist.");
     }
     if (existingUsers.length) {

@@ -60,16 +60,16 @@ describe("Cloudways startup safety", () => {
   it("requires an explicit, audited one-time confirmation before rotating Robin's password", () => {
     const bootstrap = readFileSync("src/lib/auth/bootstrap-curator.ts", "utf8");
     expect(bootstrap).toContain("ROTATE_INITIAL_ROBIN_CURATOR_PASSWORD");
-    expect(bootstrap).toContain(
-      "if (rotatePassword && !verifyPassword(configuration.password, matching.passwordHash))",
-    );
+    expect(bootstrap).toContain("BOOTSTRAP_ROTATION_ID");
+    expect(bootstrap).toContain("id: rotationId");
+    expect(bootstrap).toContain("onConflictDoNothing({ target: auditEvents.id })");
     expect(bootstrap).toContain('action: "identity.initial_curator_password_rotated"');
     expect(bootstrap).toContain("actorUserId: null");
     expect(bootstrap).toContain(
       "Initial-curator password rotation refused because the configured identity does not exist.",
     );
     expect(bootstrap.indexOf('!names.has("admin")')).toBeLessThan(
-      bootstrap.indexOf("if (rotatePassword && !verifyPassword"),
+      bootstrap.indexOf("if (rotationId)"),
     );
   });
 });

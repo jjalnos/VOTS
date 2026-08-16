@@ -12,12 +12,12 @@ export function PublicShell({
   children: React.ReactNode;
 }) {
   return (
-    <>
+    <div lang={locale}>
       <SiteHeader locale={locale} path={path} />
       <main id="main-content" className="page-main">
         {children}
       </main>
       <SiteFooter locale={locale} />
-    </>
+    </div>
   );
 }

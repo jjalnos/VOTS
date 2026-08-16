@@ -2,7 +2,15 @@ import Link from "next/link";
 import type { Locale } from "@/lib/domain/types";
 import { t, withLocale } from "@/lib/i18n";
 
-export function SiteHeader({ locale, path = "/" }: { locale: Locale; path?: string }) {
+export function SiteHeader({
+  locale,
+  path = "/",
+  signedIn = false,
+}: {
+  locale: Locale;
+  path?: string;
+  signedIn?: boolean;
+}) {
   const navigation = [
     [t(locale, "navHome"), "/"],
     [t(locale, "navDirectory"), "/directory"],
@@ -18,12 +26,24 @@ export function SiteHeader({ locale, path = "/" }: { locale: Locale; path?: stri
           <span>{t(locale, "curatorReviewed")}</span>
           <div className="utility-links">
             <Link href={withLocale("/family", locale)}>{t(locale, "navContribute")}</Link>
-            <Link href={withLocale("/login", locale)}>{t(locale, "signIn")}</Link>
+            {signedIn ? null : (
+              <Link href={withLocale("/login", locale)}>{t(locale, "signIn")}</Link>
+            )}
             <nav className="language-switcher" aria-label={t(locale, "languageLabel")}>
-              <Link href={withLocale(path, "en")} aria-current={locale === "en"}>
+              <Link
+                href={withLocale(path, "en")}
+                lang="en"
+                hrefLang="en"
+                aria-current={locale === "en" ? "page" : undefined}
+              >
                 EN
               </Link>
-              <Link href={withLocale(path, "es")} aria-current={locale === "es"}>
+              <Link
+                href={withLocale(path, "es")}
+                lang="es"
+                hrefLang="es"
+                aria-current={locale === "es" ? "page" : undefined}
+              >
                 ES
               </Link>
             </nav>

@@ -21,24 +21,28 @@ export function WorkspaceShell({
   description: string;
   children: React.ReactNode;
 }) {
-  const links: string[][] = actor.roles.includes("curator")
-    ? [
-        [locale === "es" ? "Archivo de Robin" : "Robin’s archive", "/demo/robin/archive"],
-        [locale === "es" ? "Estudio" : "Studio", "/demo/robin/studio"],
-        [locale === "es" ? "Revisar" : "Review", "/curator/review"],
-        [locale === "es" ? "Investigación pagada" : "Paid research", "/curator/research"],
-        [locale === "es" ? "Publicar" : "Publish", "/curator/publish"],
-      ]
-    : actor.roles.includes("admin")
-      ? []
-      : [[locale === "es" ? "Contribución familiar" : "Family contribution", "/family"]];
+  const links: string[][] = [];
+  if (actor.roles.includes("curator")) {
+    links.push(
+      [locale === "es" ? "Sobrevivientes" : "Survivors", "/curator/survivors"],
+      [locale === "es" ? "Ingreso al archivo" : "Archive intake", "/demo/robin/archive"],
+      [locale === "es" ? "Estudio" : "Studio", "/demo/robin/studio"],
+      [locale === "es" ? "Registro de cargas" : "Upload register", "/curator/archive"],
+      [locale === "es" ? "Revisar" : "Review", "/curator/review"],
+      [locale === "es" ? "Investigación pagada" : "Paid research", "/curator/research"],
+      [locale === "es" ? "Publicar" : "Publish", "/curator/publish"],
+    );
+  }
+  if (actor.roles.includes("family")) {
+    links.push([locale === "es" ? "Contribución familiar" : "Family contribution", "/family"]);
+  }
   if (actor.roles.includes("admin")) {
     links.push([locale === "es" ? "Acceso y políticas" : "Access & policy", "/admin/access"]);
   }
 
   return (
-    <>
-      <SiteHeader locale={locale} path={path} />
+    <div lang={locale}>
+      <SiteHeader locale={locale} path={path} signedIn />
       <div className="workspace-banner">
         <div className="content-wrap">
           <div className="workspace-bar">
@@ -60,6 +64,6 @@ export function WorkspaceShell({
         {children}
       </main>
       <SiteFooter locale={locale} />
-    </>
+    </div>
   );
 }

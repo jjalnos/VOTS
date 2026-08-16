@@ -26,7 +26,8 @@ export async function runApplicationStartup(): Promise<void> {
       ssl: process.env.DATABASE_SSL === "require" ? "require" : false,
       prepare: false,
       connect_timeout: 10,
-      idle_timeout: 20,
+      idle_timeout: 0,
+      max_lifetime: 0,
     });
     // Drizzle needs the root Sql object (including its parser options). With a
     // one-connection pool, the session lock and migration use that same session.

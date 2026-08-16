@@ -47,6 +47,8 @@ describe("Cloudways startup safety", () => {
     );
     expect(startup).not.toContain(".reserve()");
     expect(startup).toContain("drizzle(migrationSql, { schema })");
+    expect(startup).toContain("idle_timeout: 0");
+    expect(startup).toContain("max_lifetime: 0");
     expect(startup).toContain(
       "await migrationSql`SELECT pg_advisory_lock(hashtext('vots-application-startup-v1'))`",
     );

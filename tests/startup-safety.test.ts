@@ -45,5 +45,13 @@ describe("Cloudways startup safety", () => {
     expect(startup.indexOf("await migrate(")).toBeLessThan(
       startup.indexOf("await ensureInitialCuratorFromEnvironment()"),
     );
+    expect(startup).not.toContain(".reserve()");
+    expect(startup).toContain("drizzle(migrationSql, { schema })");
+    expect(startup).toContain(
+      "await migrationSql`SELECT pg_advisory_lock(hashtext('vots-application-startup-v1'))`",
+    );
+    expect(startup).toContain(
+      "await migrationSql`SELECT pg_advisory_unlock(hashtext('vots-application-startup-v1'))`",
+    );
   });
 });

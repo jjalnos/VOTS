@@ -28,18 +28,18 @@ export async function runApplicationStartup(): Promise<void> {
       connect_timeout: 10,
       idle_timeout: 20,
     });
-    const connection = await migrationSql.reserve();
+    // Drizzle needs the root Sql object (including its parser options). With a
+    // one-connection pool, the session lock and migration use that same session.
     try {
-      await connection`SELECT pg_advisory_lock(hashtext('vots-application-startup-v1'))`;
-      const migrationDatabase = drizzle(connection, { schema });
+      await migrationSql`SELECT pg_advisory_lock(hashtext('vots-application-startup-v1'))`;
+      const migrationDatabase = drizzle(migrationSql, { schema });
       await migrate(migrationDatabase, {
         migrationsFolder: path.join(process.cwd(), "drizzle"),
       });
       await ensureInitialCuratorFromEnvironment();
     } finally {
-      await connection`SELECT pg_advisory_unlock(hashtext('vots-application-startup-v1'))`
+      await migrationSql`SELECT pg_advisory_unlock(hashtext('vots-application-startup-v1'))`
         .catch(() => undefined);
-      connection.release();
       await migrationSql.end({ timeout: 5 });
     }
   })().catch((error) => {

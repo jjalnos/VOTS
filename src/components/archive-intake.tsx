@@ -649,24 +649,21 @@ function ArchiveLibrary({ revision }: { revision: number }) {
 
   useEffect(() => {
     const controller = new AbortController();
-    const frame = window.requestAnimationFrame(() => {
-      setStatus("loading");
-      setError("");
-      setErrorStatus(undefined);
-      void getDemoArchiveLibrary(filters, controller.signal)
-        .then((result) => {
-          setPage(result);
-          setStatus("ready");
-        })
-        .catch((caught: unknown) => {
-          if (caught instanceof DOMException && caught.name === "AbortError") return;
-          setError(caught instanceof Error ? caught.message : "The private library is unavailable.");
-          setErrorStatus(demoArchiveErrorStatus(caught));
-          setStatus("error");
-        });
-    });
+    setStatus("loading");
+    setError("");
+    setErrorStatus(undefined);
+    void getDemoArchiveLibrary(filters, controller.signal)
+      .then((result) => {
+        setPage(result);
+        setStatus("ready");
+      })
+      .catch((caught: unknown) => {
+        if (caught instanceof DOMException && caught.name === "AbortError") return;
+        setError(caught instanceof Error ? caught.message : "The private library is unavailable.");
+        setErrorStatus(demoArchiveErrorStatus(caught));
+        setStatus("error");
+      });
     return () => {
-      window.cancelAnimationFrame(frame);
       controller.abort();
     };
   }, [filters, revision, retrySequence]);

@@ -5,8 +5,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   DEMO_ARCHIVE_ACCEPT,
   DEMO_ARCHIVE_MAX_FILES,
+  DEMO_ARCHIVE_MAX_FILE_BYTES,
   clearDemoArchiveText,
   demoArchiveErrorStatus,
+  demoArchiveRetryAfterSeconds,
   formatArchiveBytes,
   getDemoArchiveLibrary,
   uploadDemoArchiveFile,
@@ -20,7 +22,7 @@ import {
 import { ArchiveAssistant } from "./archive-assistant";
 import styles from "./archive-intake.module.css";
 
-type QueueStatus = "validated" | "uploading" | "saved" | "error";
+type QueueStatus = "validated" | "uploading" | "saved" | "duplicate" | "error";
 
 interface QueueItem {
   id: string;
@@ -69,6 +71,34 @@ const mediaLabels: Record<DemoArchiveMediaType, string> = {
   audio: "Audio",
   video: "Video",
 };
+
+const statusLabels: Record<string, string> = {
+  "needs-review": "Needs review",
+  processing: "Processing",
+  ready: "Ready",
+  "approved-private": "Approved · private",
+};
+
+const consentLabels: Record<string, string> = {
+  permission: "Permission documented or expected",
+  owned: "Museum or family owns the original",
+  documented_restriction: "Documented restrictions apply",
+  review_required: "Rights review required",
+};
+
+const languageLabels: Record<string, string> = {
+  en: "English",
+  es: "Spanish",
+  yi: "Yiddish",
+  he: "Hebrew",
+  pl: "Polish",
+  de: "German",
+  other: "Other / mixed",
+};
+
+function statusLabel(value: string): string {
+  return statusLabels[value] ?? archiveProcessLabel(value);
+}
 
 function titleFromFilename(filename: string): string {
   const withoutExtension = filename.replace(/\.[^.]+$/, "");
@@ -119,6 +149,7 @@ export function ArchiveIntake() {
   const [queueMessages, setQueueMessages] = useState<string[]>([]);
   const [batchStatus, setBatchStatus] = useState<"idle" | "uploading" | "complete">("idle");
   const [uploadAuthRequired, setUploadAuthRequired] = useState(false);
+  const [rateLimitNotice, setRateLimitNotice] = useState("");
   const [libraryRevision, setLibraryRevision] = useState(0);
 
   function updateMetadata<Key extends keyof IntakeMetadata>(key: Key, value: IntakeMetadata[Key]) {
@@ -196,9 +227,12 @@ export function ArchiveIntake() {
     if (!metadataReady || !filesReady || batchStatus === "uploading") return;
     setBatchStatus("uploading");
     setUploadAuthRequired(false);
+    setRateLimitNotice("");
     const eligible = queue.filter((item) => item.status === "validated" || item.status === "error");
     let savedCount = 0;
+    let stopped = false;
     for (const item of eligible) {
+      if (stopped) break;
       if (item.title.trim().length < 3) {
         setQueue((current) => current.map((entry) =>
           entry.id === item.id
@@ -212,30 +246,74 @@ export function ArchiveIntake() {
           ? { ...entry, status: "uploading", progress: 1, error: undefined }
           : entry,
       ));
-      try {
-        await uploadDemoArchiveFile(item.file, queueMetadata(item), (progress) => {
+      let attemptId = item.id;
+      let retriedConflict = false;
+      while (true) {
+        try {
+          await uploadDemoArchiveFile(
+            item.file,
+            { ...queueMetadata(item), clientId: attemptId },
+            (progress) => {
+              setQueue((current) => current.map((entry) =>
+                entry.id === item.id ? { ...entry, progress } : entry,
+              ));
+            },
+          );
+          savedCount += 1;
           setQueue((current) => current.map((entry) =>
-            entry.id === item.id ? { ...entry, progress } : entry,
+            entry.id === item.id ? { ...entry, status: "saved", progress: 100 } : entry,
           ));
-        });
-        savedCount += 1;
-        setQueue((current) => current.map((entry) =>
-          entry.id === item.id ? { ...entry, status: "saved", progress: 100 } : entry,
-        ));
-      } catch (error) {
-        const requiresSignIn = demoArchiveErrorStatus(error) === 401;
-        if (requiresSignIn) setUploadAuthRequired(true);
-        setQueue((current) => current.map((entry) =>
-          entry.id === item.id
-            ? {
-                ...entry,
-                status: "error",
-                progress: 0,
-                error: error instanceof Error ? error.message : "The archive could not save this file.",
-              }
-            : entry,
-        ));
-        if (requiresSignIn) break;
+        } catch (error) {
+          const errorStatus = demoArchiveErrorStatus(error);
+          const message =
+            error instanceof Error ? error.message : "The archive could not save this file.";
+          if (errorStatus === 409 && /retry key/i.test(message) && !retriedConflict) {
+            retriedConflict = true;
+            attemptId = crypto.randomUUID();
+            continue;
+          }
+          if (errorStatus === 409) {
+            setQueue((current) => current.map((entry) =>
+              entry.id === item.id
+                ? { ...entry, status: "duplicate", progress: 100, error: undefined }
+                : entry,
+            ));
+            break;
+          }
+          if (errorStatus === 401) {
+            setUploadAuthRequired(true);
+            stopped = true;
+            setQueue((current) => current.map((entry) =>
+              entry.id === item.id
+                ? { ...entry, status: "validated", progress: 0, error: undefined }
+                : entry,
+            ));
+            break;
+          }
+          if (errorStatus === 429) {
+            const retryAfter = demoArchiveRetryAfterSeconds(error);
+            const minutes = retryAfter ? Math.max(1, Math.ceil(retryAfter / 60)) : null;
+            setRateLimitNotice(
+              minutes
+                ? `The archive is pacing uploads. It accepts more originals in about ${minutes} minute${minutes === 1 ? "" : "s"} — your queue is untouched.`
+                : "The archive is pacing uploads. Wait a few minutes and save the batch again — your queue is untouched.",
+            );
+            stopped = true;
+            setQueue((current) => current.map((entry) =>
+              entry.id === item.id
+                ? { ...entry, status: "validated", progress: 0, error: undefined }
+                : entry,
+            ));
+            break;
+          }
+          setQueue((current) => current.map((entry) =>
+            entry.id === item.id
+              ? { ...entry, status: "error", progress: 0, error: message }
+              : entry,
+          ));
+          break;
+        }
+        break;
       }
     }
     setBatchStatus("complete");
@@ -245,12 +323,12 @@ export function ArchiveIntake() {
   const counts = useMemo(() => ({
     queued: queue.filter((item) => item.status === "validated").length,
     uploading: queue.filter((item) => item.status === "uploading").length,
-    saved: queue.filter((item) => item.status === "saved").length,
+    saved: queue.filter((item) => item.status === "saved" || item.status === "duplicate").length,
     errors: queue.filter((item) => item.status === "error").length,
   }), [queue]);
 
   return (
-    <main className={styles.archiveShell} id="main-content">
+    <div className={styles.archiveShell}>
       <div className={styles.privateBanner}>
         <strong>Authenticated archive workspace</strong>
         <span>Encrypted PostgreSQL demo</span>
@@ -277,6 +355,7 @@ export function ArchiveIntake() {
         </div>
       </header>
 
+      <main id="main-content">
       <section className={styles.hero} aria-labelledby="archive-title">
         <div>
           <p>Archive intake & private library</p>
@@ -293,7 +372,7 @@ export function ArchiveIntake() {
             rights, and curatorial review.
           </blockquote>
           <dl>
-            <div><dt>Batch capacity</dt><dd>6 files</dd></div>
+            <div><dt>Batch capacity</dt><dd>{DEMO_ARCHIVE_MAX_FILES} files</dd></div>
             <div><dt>Accepted media</dt><dd>4 families</dd></div>
             <div><dt>Default visibility</dt><dd>Private</dd></div>
           </dl>
@@ -410,7 +489,9 @@ export function ArchiveIntake() {
               onDragEnter={(event) => { event.preventDefault(); setDropActive(true); }}
               onDragOver={(event) => { event.preventDefault(); setDropActive(true); }}
               onDragLeave={(event) => {
-                if (event.currentTarget === event.target) setDropActive(false);
+                if (!event.currentTarget.contains(event.relatedTarget as Node)) {
+                  setDropActive(false);
+                }
               }}
               onDrop={(event) => {
                 event.preventDefault();
@@ -431,7 +512,10 @@ export function ArchiveIntake() {
               />
               <span className={styles.dropIndex} aria-hidden="true">ORIGINALS</span>
               <h3>Drop the family record here.</h3>
-              <p>Documents, photographs, audio, and video · up to 8 MB each</p>
+              <p>
+                Documents, photographs, audio, and video · up to{" "}
+                {formatArchiveBytes(DEMO_ARCHIVE_MAX_FILE_BYTES)} each
+              </p>
               <button type="button" onClick={() => inputRef.current?.click()}>Choose files</button>
               <small>Nothing leaves this browser until Robin starts the private upload.</small>
             </div>
@@ -477,13 +561,14 @@ export function ArchiveIntake() {
                       {item.status === "validated" ? "Validated" : null}
                       {item.status === "uploading" ? `Saving ${item.progress}%` : null}
                       {item.status === "saved" ? "Saved privately" : null}
+                      {item.status === "duplicate" ? "Already archived — see the library below" : null}
                       {item.status === "error" ? "Needs attention" : null}
                     </strong>
                     {item.error ? <small>{item.error}</small> : null}
                   </div>
                   {item.status !== "uploading" ? (
                     <button type="button" onClick={() => removeQueueItem(item.id)}>
-                      {item.status === "saved" ? "Clear" : "Remove"}
+                      {item.status === "saved" || item.status === "duplicate" ? "Clear" : "Remove"}
                     </button>
                   ) : null}
                 </article>
@@ -499,9 +584,23 @@ export function ArchiveIntake() {
               <div className={styles.authNotice} role="alert">
                 <div>
                   <strong>Archive sign-in required</strong>
-                  <span>Your queue is still here. Sign in, return to this desk, and retry the same originals without creating duplicates.</span>
+                  <span>
+                    Sign in from the tab that opens, then come back here and save the batch
+                    again. Your queue lives only on this page — keep it open while you sign in.
+                  </span>
                 </div>
-                <Link href="/login?returnTo=/demo/robin/archive">Sign in to continue</Link>
+                <a href="/login?returnTo=/demo/robin/archive" target="_blank" rel="noopener">
+                  Sign in in a new tab
+                </a>
+              </div>
+            ) : null}
+
+            {rateLimitNotice ? (
+              <div className={styles.authNotice} role="status">
+                <div>
+                  <strong>The archive is pacing uploads</strong>
+                  <span>{rateLimitNotice}</span>
+                </div>
               </div>
             ) : null}
 
@@ -527,13 +626,14 @@ export function ArchiveIntake() {
         <p>Move from private originals to source review, book organization, citations, and a grounded museum guide—without losing provenance.</p>
         <Link href="/demo/robin/studio">Continue in Survivor Studio <span aria-hidden="true">→</span></Link>
       </section>
+      </main>
 
       <footer className={styles.footer}>
         <Link href="/demo/robin">Robin’s main workspace</Link>
         <p>Authenticated encrypted PostgreSQL demo · every original begins quarantined · limited text review is not antivirus · no public publication action</p>
         <span>HMMSA Survivor Studio</span>
       </footer>
-    </main>
+    </div>
   );
 }
 
@@ -678,10 +778,11 @@ function ArchiveLibrary({ revision }: { revision: number }) {
             <h3>{errorStatus === 401 ? "Sign in to open Robin’s encrypted private catalog." : "The intake desk is safe; the catalog connection needs another try."}</h3>
             <span>{error}</span>
             {errorStatus === 401 ? (
-              <Link href="/login?returnTo=/demo/robin/archive">Sign in and return here</Link>
-            ) : (
-              <button type="button" onClick={() => setRetrySequence((sequence) => sequence + 1)}>Try the library again</button>
-            )}
+              <a href="/login?returnTo=/demo/robin/archive" target="_blank" rel="noopener">
+                Sign in in a new tab
+              </a>
+            ) : null}
+            <button type="button" onClick={() => setRetrySequence((sequence) => sequence + 1)}>Try the library again</button>
           </div>
         ) : null}
 
@@ -707,7 +808,7 @@ function ArchiveLibrary({ revision }: { revision: number }) {
                   <div><dt>Received</dt><dd>{formatArchiveDate(record.uploadedAt)}</dd></div>
                   <div><dt>Source</dt><dd>{record.sourceContributor}</dd></div>
                 </dl>
-                <span className={styles.recordStatus}>{record.status}</span>
+                <span className={styles.recordStatus}>{statusLabel(record.status)}</span>
                 <button type="button" onClick={() => setSelectedRecord(record)}>Open private record</button>
               </article>
             ))}
@@ -796,15 +897,15 @@ function RecordDialog({
         <article className={styles.recordDetails}>
           <p>{record.survivorName} · {mediaLabels[record.mediaType]}</p>
           <h2 id="record-dialog-title">{record.title}</h2>
-          <span className={styles.recordStatus}>{record.status}</span>
+          <span className={styles.recordStatus}>{statusLabel(record.status)}</span>
           <dl>
             <div><dt>Original file</dt><dd>{record.originalFilename}</dd></div>
             <div><dt>File size</dt><dd>{formatArchiveBytes(record.fileSize)}</dd></div>
             <div><dt>Source / contributor</dt><dd>{record.sourceContributor}</dd></div>
-            <div><dt>Original language</dt><dd>{record.originalLanguage}</dd></div>
+            <div><dt>Original language</dt><dd>{languageLabels[record.originalLanguage] ?? record.originalLanguage}</dd></div>
             <div><dt>Historical date</dt><dd>{record.historicalDate || "Not recorded"}</dd></div>
             <div><dt>Received</dt><dd>{formatArchiveDate(record.uploadedAt)}</dd></div>
-            <div><dt>Rights basis</dt><dd>{record.consentRights}</dd></div>
+            <div><dt>Rights basis</dt><dd>{consentLabels[record.consentRights] ?? record.consentRights}</dd></div>
             <div><dt>Visibility</dt><dd>Private · not published</dd></div>
             <div>
               <dt>Safety review</dt>

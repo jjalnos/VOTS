@@ -302,10 +302,15 @@ export function reviewLimitedArchiveText(
   if (/\u0000|[\u0001-\u0008\u000b\u000c\u000e-\u001f\u007f-\u009f]/u.test(text)) {
     return { ok: false, reason: "control-characters" };
   }
-  if (/[\u061c\u200e\u200f\u202a-\u202e\u2066-\u2069]/u.test(text)) {
+  // Benign directional marks (ALM/LRM/RLM) are routine in real Hebrew and
+  // Yiddish text; strip them rather than reject the testimony that carries
+  // them. Embedding/override/isolate controls remain rejected; they are the
+  // Trojan-Source reordering vectors.
+  const normalized = text.replace(/[\u061c\u200e\u200f]/gu, "");
+  if (/[\u202a-\u202e\u2066-\u2069]/u.test(normalized)) {
     return { ok: false, reason: "bidi-controls" };
   }
-  return { ok: true, text };
+  return { ok: true, text: normalized };
 }
 
 export function parseDemoArchiveMetadata(value: FormDataEntryValue | null):

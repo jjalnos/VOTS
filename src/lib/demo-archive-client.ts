@@ -85,16 +85,22 @@ export interface DemoArchiveFileValidation {
 
 export class DemoArchiveApiError extends Error {
   readonly status: number;
+  readonly retryAfterSeconds?: number;
 
-  constructor(message: string, status: number) {
+  constructor(message: string, status: number, retryAfterSeconds?: number) {
     super(message);
     this.name = "DemoArchiveApiError";
     this.status = status;
+    this.retryAfterSeconds = retryAfterSeconds;
   }
 }
 
 export function demoArchiveErrorStatus(value: unknown): number | undefined {
   return value instanceof DemoArchiveApiError ? value.status : undefined;
+}
+
+export function demoArchiveRetryAfterSeconds(value: unknown): number | undefined {
+  return value instanceof DemoArchiveApiError ? value.retryAfterSeconds : undefined;
 }
 
 export const DEMO_ARCHIVE_MAX_FILES = 6;
@@ -388,7 +394,18 @@ export function uploadDemoArchiveFile(
         const fallback = request.status === 401
           ? "Sign in with an authorized archive account before saving private originals."
           : "The private upload could not be saved.";
-        reject(new DemoArchiveApiError(responseError(payload, fallback), request.status));
+        const retryAfterHeader = Number(request.getResponseHeader("Retry-After"));
+        const retryAfterSeconds =
+          Number.isFinite(retryAfterHeader) && retryAfterHeader > 0
+            ? retryAfterHeader
+            : undefined;
+        reject(
+          new DemoArchiveApiError(
+            responseError(payload, fallback),
+            request.status,
+            retryAfterSeconds,
+          ),
+        );
         return;
       }
       const result = uploadedRecordFromUnknown(payload);

@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import {
   askDemoArchiveAssistant,
@@ -163,15 +162,24 @@ export function ArchiveAssistant() {
                 className={styles.message}
                 data-role={message.role}
                 data-confidence={message.result?.confidence}
+                data-error={message.errorStatus ? "true" : undefined}
               >
                 <div className={styles.messageLabel}>
-                  <span>{message.role === "assistant" ? "Archive Assistant" : "Robin"}</span>
+                  <span>
+                    {message.role === "assistant"
+                      ? message.errorStatus
+                        ? "Assistant unavailable"
+                        : "Archive Assistant"
+                      : "Robin"}
+                  </span>
                   {message.result ? <small>{sourceLabel(message.result)}</small> : null}
                 </div>
                 <div className={styles.bubble}>
                   <p>{message.content}</p>
                   {message.errorStatus === 401 ? (
-                    <Link href="/login?returnTo=/demo/robin/archive">Sign in and return to the archive</Link>
+                    <a href="/login?returnTo=/demo/robin/archive" target="_blank" rel="noopener">
+                      Sign in in a new tab, then ask again
+                    </a>
                   ) : null}
                   {message.result?.citations.length ? (
                     <ol className={styles.citations} aria-label="Private archive citations">

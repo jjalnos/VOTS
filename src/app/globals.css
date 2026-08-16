@@ -388,7 +388,8 @@ button.button {
 
 .card {
   min-width: 0;
-  padding: clamp(1.3rem, 3vw, 2rem);
+  --card-pad: clamp(1.3rem, 3vw, 2rem);
+  padding: var(--card-pad);
   background: var(--white);
   border: 1px solid var(--linen);
   border-radius: 2px;
@@ -413,7 +414,7 @@ button.button {
   min-height: 190px;
   display: grid;
   place-items: center;
-  margin: -2rem -2rem 1.6rem;
+  margin: calc(var(--card-pad, 2rem) * -1) calc(var(--card-pad, 2rem) * -1) 1.6rem;
   color: #eadbc3;
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.04), transparent),
@@ -925,11 +926,11 @@ button.button {
   }
 
   .card {
-    padding: 1.2rem;
+    --card-pad: 1.2rem;
   }
 
   .record-placeholder {
-    margin: -1.2rem -1.2rem 1.4rem;
+    margin-bottom: 1.4rem;
   }
 
   .button,

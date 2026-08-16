@@ -338,6 +338,16 @@
   border-left: 4px solid var(--archive-gold);
 }
 
+.message[data-error="true"] .bubble {
+  background: #f6e6e2;
+  border-color: #d9b6a8;
+  border-left: 4px solid var(--archive-red, #8e1c18);
+}
+
+.message[data-error="true"] .messageLabel span {
+  color: var(--archive-red, #8e1c18);
+}
+
 .bubble > p {
   margin: 0;
   white-space: pre-wrap;

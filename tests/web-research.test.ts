@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GET, handleDemoResearchPost } from "@/app/api/demo/research/route";
-import { resetDemoResearchRateLimitForTests } from "@/lib/research/demo-research-rate-limit";
+import {
+  demoResearchClientKey,
+  resetDemoResearchRateLimitForTests,
+} from "@/lib/research/demo-research-rate-limit";
 import {
   fetchSafePublicPage,
   isPublicResearchAddress,
@@ -302,5 +305,44 @@ describe("demo research API contract", () => {
     expect(payload.status).toBe("suggested");
     expect(payload.requiresCuratorApproval).toBe(true);
     expect(payload.claims).toHaveLength(4);
+  });
+
+  it("rejects declared and streamed bodies over 4 KiB", async () => {
+    const headers = {
+      Origin: "https://archive.example",
+      "Content-Type": "application/json",
+    };
+    const declared = await handleDemoResearchPost(
+      new Request("https://archive.example/api/demo/research", {
+        method: "POST",
+        headers: {
+          ...headers,
+          "Content-Length": "4097",
+          "X-Real-IP": "198.51.100.40",
+        },
+        body: "{}",
+      }),
+    );
+    const streamed = await handleDemoResearchPost(
+      new Request("https://archive.example/api/demo/research", {
+        method: "POST",
+        headers: {
+          ...headers,
+          "X-Real-IP": "198.51.100.41",
+        },
+        body: "x".repeat(4_097),
+      }),
+    );
+
+    expect(declared.status).toBe(413);
+    expect(streamed.status).toBe(413);
+  });
+
+  it("uses the validated final forwarding hop for the client bucket", () => {
+    expect(demoResearchClientKey(new Request("https://archive.example", {
+      headers: {
+        "X-Forwarded-For": "203.0.113.201, 198.51.100.42",
+      },
+    }))).toBe("198.51.100.42");
   });
 });

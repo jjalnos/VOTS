@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { hasTrustedOrigin } from "@/lib/http/origin";
+import { readBoundedJson } from "@/lib/http/request";
 import {
   checkSurvivorStudioRateLimit,
   survivorStudioClientKey,
@@ -11,35 +12,6 @@ export const SURVIVOR_STUDIO_NO_STORE_HEADERS = {
 };
 
 const SURVIVOR_STUDIO_MAX_BODY_BYTES = 12_000;
-
-async function readLimitedBody(
-  request: Request,
-): Promise<{ ok: true; text: string } | { ok: false }> {
-  if (!request.body) return { ok: true, text: "" };
-  const reader = request.body.getReader();
-  const decoder = new TextDecoder();
-  let byteLength = 0;
-  let text = "";
-
-  try {
-    while (true) {
-      const chunk = await reader.read();
-      if (chunk.done) break;
-      byteLength += chunk.value.byteLength;
-      if (byteLength > SURVIVOR_STUDIO_MAX_BODY_BYTES) {
-        await reader.cancel().catch(() => undefined);
-        return { ok: false };
-      }
-      text += decoder.decode(chunk.value, { stream: true });
-    }
-    text += decoder.decode();
-    return { ok: true, text };
-  } catch {
-    return { ok: true, text: "" };
-  } finally {
-    reader.releaseLock();
-  }
-}
 
 export async function prepareSurvivorStudioPost(
   request: Request,
@@ -78,11 +50,8 @@ export async function prepareSurvivorStudioPost(
     };
   }
 
-  const declaredLength = Number(request.headers.get("content-length"));
-  if (
-    Number.isFinite(declaredLength) &&
-    declaredLength > SURVIVOR_STUDIO_MAX_BODY_BYTES
-  ) {
+  const body = await readBoundedJson(request, SURVIVOR_STUDIO_MAX_BODY_BYTES);
+  if (!body.ok && body.reason === "too-large") {
     return {
       ok: false,
       response: NextResponse.json(
@@ -91,23 +60,9 @@ export async function prepareSurvivorStudioPost(
       ),
     };
   }
-
-  const body = await readLimitedBody(request);
-  if (!body.ok) {
-    return {
-      ok: false,
-      response: NextResponse.json(
-        { error: "The Survivor Studio request is too large." },
-        { status: 413, headers: SURVIVOR_STUDIO_NO_STORE_HEADERS },
-      ),
-    };
-  }
-
-  let parsedBody: unknown;
-  try {
-    parsedBody = JSON.parse(body.text);
-  } catch {
-    parsedBody = null;
-  }
-  return { ok: true, body: parsedBody, remaining: rateLimit.remaining };
+  return {
+    ok: true,
+    body: body.ok ? body.value : null,
+    remaining: rateLimit.remaining,
+  };
 }

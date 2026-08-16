@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { can } from "@/lib/auth/policy";
 import { getActor } from "@/lib/auth/server-session";
-import { getInternalArchiveAIProvider } from "@/lib/ai/provider";
+import { runInternalArchiveTask } from "@/lib/ai/internal-provider";
 import { hasTrustedOrigin } from "@/lib/http/origin";
 
 const schema = z.object({
@@ -11,18 +11,28 @@ const schema = z.object({
   content: z.string().max(30_000).optional(),
   curatorPrompt: z.string().max(1_000).optional(),
 });
+const noStoreHeaders = { "Cache-Control": "no-store" };
 
 export async function POST(request: Request) {
-  if (!hasTrustedOrigin(request)) return NextResponse.json({ error: "Cross-site AI requests are not accepted." }, { status: 403 });
+  if (!hasTrustedOrigin(request)) return NextResponse.json({ error: "Cross-site AI requests are not accepted." }, { status: 403, headers: noStoreHeaders });
   const actor = await getActor();
-  if (!actor || !can(actor, "review_content")) return NextResponse.json({ error: "Curator access required." }, { status: actor ? 403 : 401 });
+  if (!actor || !can(actor, "review_content")) return NextResponse.json({ error: "Curator access required." }, { status: actor ? 403 : 401, headers: noStoreHeaders });
   const parsed = schema.safeParse(await request.json().catch(() => null));
-  if (!parsed.success) return NextResponse.json({ error: "Invalid extraction request." }, { status: 400 });
-  const provider = getInternalArchiveAIProvider();
+  if (!parsed.success) return NextResponse.json({ error: "Invalid extraction request." }, { status: 400, headers: noStoreHeaders });
   try {
-    const suggestions = await provider.suggestExtraction(parsed.data);
-    return NextResponse.json({ provider: provider.name, suggestions, publicationStatus: "not_published" });
+    const result = await runInternalArchiveTask((provider) =>
+      provider.suggestExtraction(parsed.data),
+    );
+    return NextResponse.json(
+      {
+        provider: result.provider,
+        suggestions: result.result,
+        publicationStatus: "not_published",
+        aiUsage: result.usage,
+      },
+      { headers: noStoreHeaders },
+    );
   } catch {
-    return NextResponse.json({ error: "Internal AI is unavailable and no suggestion was created." }, { status: 503 });
+    return NextResponse.json({ error: "Internal AI is unavailable and no suggestion was created." }, { status: 503, headers: noStoreHeaders });
   }
 }

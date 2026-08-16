@@ -8,6 +8,7 @@ import type {
   TranslationRequest,
   TranslationSuggestion,
 } from "@/lib/ai/types";
+import { assertSafeInternalAIEndpoint } from "@/lib/ai/internal-endpoint";
 
 interface ChatCompletionPayload {
   choices?: Array<{ message?: { content?: string } }>;
@@ -23,6 +24,9 @@ export class LocalOpenAICompatibleProvider implements InternalArchiveAIProvider 
   ) {}
 
   private async complete(system: string, user: string): Promise<string> {
+    // Validate again at the network boundary so direct construction cannot
+    // bypass the internal/external provider factory separation.
+    assertSafeInternalAIEndpoint(this.baseUrl);
     const response = await fetch(`${this.baseUrl.replace(/\/$/, "")}/v1/chat/completions`, {
       method: "POST",
       headers: {
@@ -38,7 +42,11 @@ export class LocalOpenAICompatibleProvider implements InternalArchiveAIProvider 
         ],
       }),
       cache: "no-store",
+      redirect: "manual",
     });
+    if (response.status >= 300 && response.status < 400) {
+      throw new Error("Internal AI endpoint redirects are not accepted.");
+    }
     if (!response.ok) throw new Error(`Internal AI endpoint returned ${response.status}.`);
     const payload = (await response.json()) as ChatCompletionPayload;
     const content = payload.choices?.[0]?.message?.content?.trim();

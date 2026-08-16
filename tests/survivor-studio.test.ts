@@ -393,7 +393,7 @@ describe("Survivor Studio API safety and contracts", () => {
 
   it("uses the proxy-appended final forwarding hop for a rate-limit key", () => {
     const request = new Request("https://archive.example/api/demo/studio/persona", {
-      headers: { "X-Forwarded-For": "spoofed-client, 198.18.0.44" },
+      headers: { "X-Forwarded-For": "203.0.113.244, 198.18.0.44" },
     });
     expect(survivorStudioClientKey(request, "persona")).toBe(
       "persona:198.18.0.44",
@@ -436,7 +436,7 @@ describe("Survivor Studio API safety and contracts", () => {
           headers: {
             Origin: "https://archive.example",
             "Content-Type": "application/json",
-            "X-Forwarded-For": "spoofed, 198.18.0.61",
+            "X-Forwarded-For": `203.0.113.${attempt + 1}, 198.18.0.61`,
           },
           body: JSON.stringify({
             institutionId: "hmmsa",

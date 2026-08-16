@@ -25,6 +25,28 @@ export async function getActor(): Promise<Actor | null> {
   return resolveConfiguredSessionActor(payload);
 }
 
+function requestCookie(request: Request, name: string): string | undefined {
+  const header = request.headers.get("cookie");
+  if (!header) return undefined;
+  for (const part of header.split(";")) {
+    const [key, ...value] = part.trim().split("=");
+    if (key !== name) continue;
+    try {
+      return decodeURIComponent(value.join("="));
+    } catch {
+      return undefined;
+    }
+  }
+  return undefined;
+}
+
+export async function getActorFromRequest(request: Request): Promise<Actor | null> {
+  const token = requestCookie(request, SESSION_COOKIE);
+  const payload = verifySession(token, sessionSecret());
+  if (!payload) return null;
+  return resolveConfiguredSessionActor(payload);
+}
+
 export async function requireAction(
   action: Action,
   returnTo: string,

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { hasTrustedOrigin } from "@/lib/http/origin";
+import { readBoundedJson } from "@/lib/http/request";
 import {
   checkDemoResearchRateLimit,
   demoResearchClientKey,
@@ -17,6 +18,7 @@ import {
 export const runtime = "nodejs";
 
 const noStoreHeaders = { "Cache-Control": "no-store" };
+const MAX_BODY_BYTES = 4 * 1024;
 const requestSchema = z
   .object({
     survivorName: z.enum(APPROVED_RESEARCH_SURVIVORS),
@@ -72,15 +74,15 @@ export async function handleDemoResearchPost(
     );
   }
 
-  const declaredLength = Number(request.headers.get("content-length"));
-  if (Number.isFinite(declaredLength) && declaredLength > 4_096) {
+  const json = await readBoundedJson(request, MAX_BODY_BYTES);
+  if (!json.ok && json.reason === "too-large") {
     return NextResponse.json(
       { error: "The research request is too large." },
       { status: 413, headers: noStoreHeaders },
     );
   }
 
-  const parsed = requestSchema.safeParse(await request.json().catch(() => null));
+  const parsed = requestSchema.safeParse(json.ok ? json.value : null);
   if (!parsed.success) {
     return NextResponse.json(
       {

@@ -1,0 +1,237 @@
+.dialog {
+  width: min(calc(100% - 2rem), 720px);
+  max-height: min(92vh, 860px);
+  padding: 0;
+  overflow: auto;
+  color: #211f1c;
+  background: #fcf8ef;
+  border: 0;
+  border-radius: 0;
+  box-shadow: 0 34px 110px rgba(18, 13, 11, 0.58);
+  font-family: "Avenir Next", Avenir, "Segoe UI", Helvetica, Arial, sans-serif;
+}
+
+.dialog::backdrop {
+  background: rgba(24, 18, 16, 0.82);
+  backdrop-filter: blur(5px);
+}
+
+.dialog *,
+.dialog *::before,
+.dialog *::after {
+  box-sizing: border-box;
+}
+
+.topbar {
+  display: flex;
+  min-height: 54px;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.65rem 1.25rem;
+  color: #fff9ef;
+  background: #211f1c;
+}
+
+.topbar > span {
+  display: grid;
+  width: 29px;
+  height: 32px;
+  place-items: center;
+  color: #351113;
+  background: #e5ca93;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.topbar p {
+  margin: 0;
+  color: #e5ca93;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.body {
+  padding: clamp(1.5rem, 4vw, 3rem);
+}
+
+.kicker {
+  margin: 0 0 0.65rem;
+  color: #651f22;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.body h2 {
+  max-width: 610px;
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2.2rem, 6vw, 4.2rem);
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  line-height: 0.98;
+}
+
+.introduction {
+  max-width: 600px;
+  margin: 1rem 0 1.5rem;
+  color: #5a534b;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+.costFacts {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid #d8cab6;
+}
+
+.costFacts li {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: 0.8rem;
+  align-items: start;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid #d8cab6;
+}
+
+.costFacts li span {
+  color: #b1843f;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.72rem;
+}
+
+.costFacts li strong {
+  font-size: 0.77rem;
+  font-weight: 690;
+  line-height: 1.5;
+}
+
+.queryPreview {
+  margin-top: 1.3rem;
+  padding: 1rem 1.1rem;
+  color: #fff9ef;
+  background: #304a5b;
+}
+
+.queryPreview > span {
+  display: block;
+  color: #e5ca93;
+  font-size: 0.56rem;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.queryPreview blockquote {
+  max-height: 120px;
+  margin: 0.55rem 0;
+  overflow: auto;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.queryPreview p {
+  margin: 0;
+  color: #cfdadd;
+  font-size: 0.59rem;
+  line-height: 1.5;
+}
+
+.everyTime {
+  display: grid;
+  grid-template-columns: 26px 1fr;
+  gap: 0.6rem;
+  margin: 1rem 0 0;
+  padding: 0.75rem 0.85rem;
+  color: #5a534b;
+  background: #eee3d3;
+  font-size: 0.61rem;
+  font-weight: 680;
+  line-height: 1.5;
+}
+
+.everyTime span {
+  color: #651f22;
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.55fr) minmax(240px, 1.45fr);
+  gap: 0.7rem;
+  padding: 1rem clamp(1rem, 4vw, 3rem) 1.25rem;
+  background: #f1e7d6;
+  border-top: 1px solid #d8cab6;
+}
+
+.actions button {
+  min-height: 52px;
+  padding: 0.65rem 1rem;
+  border: 0;
+  border-radius: 0;
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.actions button:first-child {
+  color: #651f22;
+  background: transparent;
+  border: 1px solid rgba(101, 31, 34, 0.35);
+}
+
+.actions button:last-child {
+  color: #fff9ef;
+  background: #651f22;
+}
+
+.actions button:last-child span {
+  margin-left: 0.45rem;
+}
+
+.actions button:focus-visible {
+  outline: 3px solid #b1843f;
+  outline-offset: 3px;
+}
+
+@media (max-width: 560px) {
+  .dialog {
+    width: calc(100% - 0.75rem);
+    max-height: 96vh;
+  }
+
+  .body {
+    padding: 1.25rem;
+  }
+
+  .body h2 {
+    font-size: 2.45rem;
+  }
+
+  .actions {
+    grid-template-columns: 1fr;
+    padding: 0.85rem;
+  }
+
+  .actions button:first-child {
+    order: 2;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dialog::backdrop {
+    backdrop-filter: none;
+  }
+}

@@ -1,0 +1,56 @@
+.shell {
+  min-width: 0;
+}
+
+.paidNotice {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: 0.8rem;
+  padding: 1rem;
+  color: #fff9ef;
+  background: #304a5b;
+}
+
+.paidNotice > span {
+  display: grid;
+  width: 36px;
+  height: 40px;
+  place-items: center;
+  color: #351113;
+  background: #e5ca93;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.paidNotice strong,
+.paidNotice p {
+  display: block;
+}
+
+.paidNotice strong {
+  color: #e5ca93;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.94rem;
+  font-weight: 500;
+}
+
+.paidNotice p {
+  margin: 0.25rem 0 0;
+  color: #dbe3e4;
+  font-size: 0.72rem;
+  line-height: 1.55;
+}
+
+.internalNote {
+  margin: -0.2rem 0 0;
+  color: #5a534b;
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+
+.internalNote a {
+  color: #651f22;
+  font-weight: 760;
+  text-underline-offset: 0.2rem;
+}

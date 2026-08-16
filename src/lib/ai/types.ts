@@ -1,5 +1,8 @@
 import type { Locale } from "@/lib/domain/types";
 
+export const EXTERNAL_RESEARCH_COST_ACKNOWLEDGEMENT =
+  "CLICKSMITH_PAYS_OPENAI_FEES" as const;
+
 export interface ExtractionRequest {
   archiveItemId: string;
   locale: Locale;
@@ -20,6 +23,10 @@ export interface ResearchRequest {
   locale: Locale;
   allowedDomains: string[];
   initiatedByUserId: string;
+  /** Defense in depth: external providers reject calls without an explicit curator confirmation. */
+  curatorConfirmed: true;
+  /** Must be supplied afresh by the client after the curator accepts this request's paid-call notice. */
+  costAcknowledgement: typeof EXTERNAL_RESEARCH_COST_ACKNOWLEDGEMENT;
 }
 
 export interface MatchRequest {
@@ -67,6 +74,13 @@ export interface ResearchSuggestion {
   status: "suggested";
   requiresCuratorApproval: true;
   safetyNotice: string;
+  providerUsage?: ExternalProviderUsage;
+}
+
+export interface ExternalProviderUsage {
+  inputTokens: number;
+  outputTokens: number;
+  totalTokens: number;
 }
 
 export interface InternalArchiveAIProvider {
@@ -80,4 +94,12 @@ export interface InternalArchiveAIProvider {
 export interface ExternalResearchProvider {
   readonly name: "mock" | "openai";
   research(request: ResearchRequest): Promise<ResearchSuggestion>;
+}
+
+export interface InternalAIUsageMetadata {
+  scope: "internal-archive";
+  mode: "self-hosted-local" | "deterministic-grounded-fallback";
+  status: "completed" | "fallback" | "not-needed";
+  externalProviderCalled: false;
+  externalBillableUsage: "none";
 }

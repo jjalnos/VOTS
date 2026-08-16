@@ -1,0 +1,49 @@
+import { readFileSync } from "node:fs";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { runApplicationStartup } from "@/lib/startup";
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
+
+describe("Cloudways startup safety", () => {
+  it("does nothing without the explicit migration switch", async () => {
+    vi.stubEnv("DATABASE_AUTO_MIGRATE", "false");
+    vi.stubEnv("BOOTSTRAP_CONFIRM", "");
+
+    await expect(runApplicationStartup()).resolves.toBeUndefined();
+  });
+
+  it("refuses bootstrap when checked-in migration startup is disabled", async () => {
+    vi.stubEnv("DATABASE_AUTO_MIGRATE", "false");
+    vi.stubEnv("BOOTSTRAP_CONFIRM", "CREATE_INITIAL_ROBIN_CURATOR");
+
+    await expect(runApplicationStartup()).rejects.toThrow(/migrations must be enabled/i);
+  });
+
+  it("journals encrypted archive and paid-usage schema before bootstrap", () => {
+    const journal = JSON.parse(readFileSync("drizzle/meta/_journal.json", "utf8")) as {
+      entries: Array<{ tag: string }>;
+    };
+    expect(journal.entries.map((entry) => entry.tag)).toEqual([
+      "0000_premium_khan",
+      "0001_encrypted_robin_archive",
+      "0002_external_ai_usage_governance",
+      "0003_auth_login_rate_limits",
+    ]);
+
+    const archiveMigration = readFileSync(
+      "drizzle/0001_encrypted_robin_archive.sql",
+      "utf8",
+    );
+    expect(archiveMigration).toContain('"ciphertext" bytea NOT NULL');
+    expect(archiveMigration).toContain('octet_length("nonce") = 12');
+    expect(archiveMigration).toContain('"workspace_id" uuid NOT NULL REFERENCES "users"');
+    expect(archiveMigration).toContain("'quarantined'");
+
+    const startup = readFileSync("src/lib/startup.ts", "utf8");
+    expect(startup.indexOf("await migrate(")).toBeLessThan(
+      startup.indexOf("await ensureInitialCuratorFromEnvironment()"),
+    );
+  });
+});

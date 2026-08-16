@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import type { InternalArchiveAIProvider } from "@/lib/ai/types";
 import { getPublicCatalog } from "@/lib/data/public-catalog";
 import {
@@ -6,10 +6,17 @@ import {
   buildArchiveOnlyDemoReply,
   demoAgentRequestSchema,
 } from "@/lib/demo-agent";
-import { resetDemoAgentRateLimitForTests } from "@/lib/demo-agent-rate-limit";
+import {
+  demoAgentClientKey,
+  resetDemoAgentRateLimitForTests,
+} from "@/lib/demo-agent-rate-limit";
 import { POST } from "@/app/api/demo/agent/route";
 
 const catalog = getPublicCatalog("en");
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
 
 describe("Robin demo agent", () => {
   it("grounds Sam Cohen answers in the approved public catalog and interview", async () => {
@@ -88,6 +95,7 @@ describe("Robin demo agent", () => {
   });
 
   it("uses a bounded local provider and falls back when it fails", async () => {
+    vi.stubEnv("LOCAL_AI_ALLOWED_HOSTS", "127.0.0.1");
     const answerPublishedChat = vi
       .fn()
       .mockResolvedValueOnce("Sam's approved profile describes his survival and later life.")
@@ -161,11 +169,49 @@ describe("Robin demo agent", () => {
     expect(response.status).toBe(200);
     expect(response.headers.get("cache-control")).toBe("no-store");
     expect(Object.keys(payload).sort()).toEqual([
+      "aiUsage",
       "answer",
       "citations",
       "mode",
       "suggestions",
     ]);
+    expect(payload.aiUsage).toMatchObject({
+      scope: "internal-archive",
+      externalProviderCalled: false,
+      externalBillableUsage: "none",
+    });
+  });
+
+  it("rejects declared and streamed bodies over 4 KiB", async () => {
+    resetDemoAgentRateLimitForTests();
+    const declared = await POST(new Request("http://localhost/api/demo/agent", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Content-Length": "4097",
+        "X-Real-IP": "198.51.100.20",
+      },
+      body: "{}",
+    }));
+    const streamed = await POST(new Request("http://localhost/api/demo/agent", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Real-IP": "198.51.100.21",
+      },
+      body: "x".repeat(4_097),
+    }));
+
+    expect(declared.status).toBe(413);
+    expect(streamed.status).toBe(413);
+  });
+
+  it("uses the proxy-authored address rather than a spoofed first forwarding hop", () => {
+    expect(demoAgentClientKey(new Request("http://localhost/api/demo/agent", {
+      headers: {
+        "X-Forwarded-For": "203.0.113.200, 198.51.100.30",
+      },
+    }))).toBe("198.51.100.30");
   });
 
   it("validates the public endpoint contract", () => {

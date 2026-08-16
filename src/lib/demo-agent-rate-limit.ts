@@ -1,3 +1,5 @@
+import { trustedProxyClientAddress } from "@/lib/http/request";
+
 const WINDOW_MILLISECONDS = 60_000;
 const REQUESTS_PER_WINDOW = 40;
 const MAX_TRACKED_CLIENTS = 5_000;
@@ -53,8 +55,7 @@ export function checkDemoAgentRateLimit(
 }
 
 export function demoAgentClientKey(request: Request): string {
-  const forwardedFor = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
-  return forwardedFor || request.headers.get("x-real-ip")?.trim() || "unknown";
+  return trustedProxyClientAddress(request);
 }
 
 export function resetDemoAgentRateLimitForTests(): void {

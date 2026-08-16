@@ -1,6 +1,13 @@
 import { z } from "zod";
-import { getInternalArchiveAIProvider } from "@/lib/ai/provider";
-import type { InternalArchiveAIProvider } from "@/lib/ai/types";
+import { isSafeInternalAIEndpoint } from "@/lib/ai/internal-endpoint";
+import {
+  getInternalArchiveAIProvider,
+  internalAIUsage,
+} from "@/lib/ai/internal-provider";
+import type {
+  InternalAIUsageMetadata,
+  InternalArchiveAIProvider,
+} from "@/lib/ai/types";
 import type { PublicCatalog, Source, Survivor } from "@/lib/domain/types";
 import { getArchiveRepository } from "@/lib/repository";
 
@@ -34,6 +41,7 @@ export interface DemoAgentResponse {
   citations: DemoAgentCitation[];
   mode: "archive-only" | "local-model";
   suggestions: string[];
+  aiUsage: InternalAIUsageMetadata;
 }
 
 type PersonKey = "sam" | "stephan";
@@ -297,16 +305,6 @@ function publishedContext(catalog: PublicCatalog, focus: PersonKey[]): string {
   );
 }
 
-function pointsAtExternalOpenAI(baseUrl: string | undefined): boolean {
-  if (!baseUrl) return false;
-  try {
-    const hostname = new URL(baseUrl).hostname.toLocaleLowerCase("en");
-    return hostname === "openai.com" || hostname.endsWith(".openai.com");
-  } catch {
-    return true;
-  }
-}
-
 function safeLocalAnswer(answer: string): string | null {
   const value = answer.trim();
   if (!value || value.length > MAX_LOCAL_ANSWER_CHARACTERS) return null;
@@ -336,13 +334,14 @@ export async function answerDemoAgent(
     citations: grounded.citations,
     mode: "archive-only",
     suggestions: grounded.suggestions,
+    aiUsage: internalAIUsage("mock", "completed"),
   };
 
   const provider = (dependencies.getProvider ?? getInternalArchiveAIProvider)();
   const configuredBaseUrl = dependencies.localBaseUrl ?? process.env.LOCAL_AI_BASE_URL;
   if (
     provider.name !== "local_openai_compatible" ||
-    pointsAtExternalOpenAI(configuredBaseUrl)
+    !isSafeInternalAIEndpoint(configuredBaseUrl)
   ) {
     return fallback;
   }
@@ -357,13 +356,22 @@ export async function answerDemoAgent(
     );
     // For gaps and live-research questions, preserve the archive's exact
     // uncertainty/review wording even when a local model is available.
-    if (!modelAnswer || grounded.requiresArchiveWording) return fallback;
+    if (!modelAnswer) {
+      return { ...fallback, aiUsage: internalAIUsage("mock", "fallback") };
+    }
+    if (grounded.requiresArchiveWording) {
+      return {
+        ...fallback,
+        aiUsage: internalAIUsage("local_openai_compatible", "completed"),
+      };
+    }
     return {
       ...fallback,
       answer: modelAnswer,
       mode: "local-model",
+      aiUsage: internalAIUsage("local_openai_compatible", "completed"),
     };
   } catch {
-    return fallback;
+    return { ...fallback, aiUsage: internalAIUsage("mock", "fallback") };
   }
 }

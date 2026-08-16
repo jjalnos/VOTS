@@ -9,6 +9,13 @@ const databaseGlobal = globalThis as typeof globalThis & {
   hmmsaSqlClient?: ReturnType<typeof postgres>;
 };
 
+function databasePoolSize(): number {
+  const configured = Number(process.env.DATABASE_POOL_MAX ?? "2");
+  return Number.isSafeInteger(configured) && configured >= 1 && configured <= 8
+    ? configured
+    : 2;
+}
+
 export function getDatabase(): ArchiveDatabase {
   if (databaseGlobal.hmmsaDatabase) return databaseGlobal.hmmsaDatabase;
   const databaseUrl = process.env.DATABASE_URL;
@@ -16,7 +23,7 @@ export function getDatabase(): ArchiveDatabase {
     throw new Error("DATABASE_URL is required when DATA_ADAPTER=postgres.");
   }
   const sqlClient = postgres(databaseUrl, {
-    max: Number(process.env.DATABASE_POOL_MAX ?? "10"),
+    max: databasePoolSize(),
     ssl: process.env.DATABASE_SSL === "require" ? "require" : false,
     prepare: false,
   });

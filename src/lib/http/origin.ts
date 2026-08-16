@@ -21,8 +21,8 @@ function matchesSecureProxyHost(origin: URL, rawHost: string | null): boolean {
 
 export function trustedRequestOrigins(request: Request): Set<string> {
   const origins = new Set<string>();
-  addOrigin(origins, request.url);
   addOrigin(origins, process.env.NEXT_PUBLIC_SITE_URL);
+  if (process.env.NODE_ENV !== "production") addOrigin(origins, request.url);
   return origins;
 }
 
@@ -32,6 +32,8 @@ export function hasTrustedOrigin(request: Request): boolean {
   try {
     const suppliedOrigin = new URL(supplied);
     if (trustedRequestOrigins(request).has(suppliedOrigin.origin)) return true;
+
+    if (process.env.NODE_ENV === "production") return false;
 
     // Managed reverse proxies commonly expose an internal request URL to
     // Next.js while preserving the visitor-facing host in forwarded headers.

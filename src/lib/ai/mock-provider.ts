@@ -1,18 +1,15 @@
 import type {
-  ExternalResearchProvider,
   ExtractionRequest,
   ExtractionSuggestion,
   InternalArchiveAIProvider,
   MatchRequest,
   MatchSuggestion,
   PublishedChatRequest,
-  ResearchRequest,
-  ResearchSuggestion,
   TranslationRequest,
   TranslationSuggestion,
 } from "@/lib/ai/types";
 
-export class MockArchiveAIProvider implements InternalArchiveAIProvider, ExternalResearchProvider {
+export class MockArchiveAIProvider implements InternalArchiveAIProvider {
   readonly name = "mock" as const;
 
   async suggestExtraction(request: ExtractionRequest): Promise<ExtractionSuggestion[]> {
@@ -50,22 +47,5 @@ export class MockArchiveAIProvider implements InternalArchiveAIProvider, Externa
 
   async answerPublishedChat(request: PublishedChatRequest): Promise<string> {
     return request.publishedContext;
-  }
-
-  async research(request: ResearchRequest): Promise<ResearchSuggestion> {
-    return {
-      summary:
-        request.locale === "es"
-          ? `La investigación externa está desactivada. Solicitud registrada para revisión: ${request.query}`
-          : `External research is disabled. Request recorded for review: ${request.query}`,
-      sources: [],
-      provider: "mock",
-      status: "suggested",
-      requiresCuratorApproval: true,
-      safetyNotice:
-        request.locale === "es"
-          ? "No se realizó ninguna búsqueda externa ni se envió contenido privado."
-          : "No external search ran and no private content was sent.",
-    };
   }
 }

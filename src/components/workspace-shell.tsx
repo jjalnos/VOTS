@@ -21,17 +21,20 @@ export function WorkspaceShell({
   description: string;
   children: React.ReactNode;
 }) {
-  const links = actor.roles.includes("curator")
+  const links: string[][] = actor.roles.includes("curator")
     ? [
-        [locale === "es" ? "Archivo" : "Archive", "/curator/archive"],
-        [locale === "es" ? "Cargar" : "Upload", "/curator/upload"],
+        [locale === "es" ? "Archivo de Robin" : "Robin’s archive", "/demo/robin/archive"],
+        [locale === "es" ? "Estudio" : "Studio", "/demo/robin/studio"],
         [locale === "es" ? "Revisar" : "Review", "/curator/review"],
-        [locale === "es" ? "Investigar" : "Research", "/curator/research"],
+        [locale === "es" ? "Investigación pagada" : "Paid research", "/curator/research"],
         [locale === "es" ? "Publicar" : "Publish", "/curator/publish"],
       ]
     : actor.roles.includes("admin")
-      ? [[locale === "es" ? "Acceso y políticas" : "Access & policy", "/admin/access"]]
+      ? []
       : [[locale === "es" ? "Contribución familiar" : "Family contribution", "/family"]];
+  if (actor.roles.includes("admin")) {
+    links.push([locale === "es" ? "Acceso y políticas" : "Access & policy", "/admin/access"]);
+  }
 
   return (
     <>

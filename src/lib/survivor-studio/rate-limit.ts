@@ -1,3 +1,5 @@
+import { trustedProxyClientAddress } from "@/lib/http/request";
+
 const WINDOW_MILLISECONDS = 60_000;
 const REQUESTS_PER_WINDOW = 30;
 const MAX_TRACKED_CLIENTS = 5_000;
@@ -22,17 +24,7 @@ function pruneExpired(now: number): void {
 }
 
 export function survivorStudioClientKey(request: Request, endpoint: string): string {
-  // Cloudways terminates public traffic at its managed proxy. Use the final
-  // forwarded hop so a caller-supplied first X-Forwarded-For value cannot mint
-  // a new bucket on every request when the proxy appends the real peer address.
-  const forwardedFor = request.headers
-    .get("x-forwarded-for")
-    ?.split(",")
-    .map((part) => part.trim())
-    .filter(Boolean)
-    .at(-1);
-  const address = forwardedFor || request.headers.get("x-real-ip")?.trim() || "unknown";
-  return `${endpoint}:${address}`.slice(0, 200);
+  return `${endpoint}:${trustedProxyClientAddress(request)}`.slice(0, 200);
 }
 
 export function checkSurvivorStudioRateLimit(

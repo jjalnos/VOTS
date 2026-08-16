@@ -1,0 +1,153 @@
+.editor {
+  padding: 1.4rem 1.5rem 1.5rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.header h3 {
+  font-family: var(--serif);
+  font-size: 1.2rem;
+  color: var(--wine-deep);
+  margin: 0;
+}
+
+.cancel {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--wine-soft);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.9rem 1rem;
+}
+
+.field,
+.fieldSmall,
+.fieldWide {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.field {
+  grid-column: span 2;
+}
+
+.fieldSmall {
+  grid-column: span 1;
+}
+
+.fieldWide {
+  grid-column: span 4;
+}
+
+.editor label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.editor input:not([type="checkbox"]),
+.editor select,
+.editor textarea {
+  font: inherit;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--linen);
+  border-radius: 8px;
+  background: var(--white);
+  color: var(--ink);
+}
+
+.editor input:focus-visible,
+.editor select:focus-visible,
+.editor textarea:focus-visible,
+.save:focus-visible,
+.cancel:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.hint {
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  margin: 0;
+}
+
+.deceased {
+  flex-direction: row;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.9rem;
+  letter-spacing: normal;
+  text-transform: none;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.deceased input {
+  width: 1.05rem;
+  height: 1.05rem;
+  accent-color: var(--wine);
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1.2rem;
+}
+
+.save {
+  font: inherit;
+  font-weight: 600;
+  padding: 0.6rem 1.3rem;
+  border: 1px solid var(--wine);
+  border-radius: 8px;
+  background: var(--wine);
+  color: var(--paper-light);
+  cursor: pointer;
+}
+
+.save:hover:not(:disabled) {
+  background: var(--wine-deep);
+}
+
+.save:disabled {
+  opacity: 0.65;
+  cursor: default;
+}
+
+.status {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--success);
+}
+
+.error {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--danger);
+}
+
+@media (max-width: 720px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .field,
+  .fieldSmall,
+  .fieldWide {
+    grid-column: span 1;
+  }
+}

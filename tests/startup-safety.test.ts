@@ -30,6 +30,7 @@ describe("Cloudways startup safety", () => {
       "0001_encrypted_robin_archive",
       "0002_external_ai_usage_governance",
       "0003_auth_login_rate_limits",
+      "0004_survivor_registry",
     ]);
 
     const archiveMigration = readFileSync(

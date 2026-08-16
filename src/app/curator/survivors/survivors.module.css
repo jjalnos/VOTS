@@ -1,0 +1,359 @@
+.section {
+  padding: 3rem 0 4.5rem;
+}
+
+.introduction {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.introduction > div:first-child {
+  max-width: 34rem;
+}
+
+.introduction h2 {
+  font-family: var(--serif);
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
+  margin: 0.35rem 0 0.6rem;
+  color: var(--wine-deep);
+  text-wrap: balance;
+}
+
+.introduction p {
+  margin: 0 0 0.5rem;
+  color: var(--ink-soft);
+}
+
+.kicker {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin: 0;
+}
+
+.sourceNote {
+  font-size: 0.85rem;
+}
+
+.totals {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(5.5rem, auto));
+  gap: 0.75rem;
+  align-content: start;
+  margin: 0;
+}
+
+.totals > div {
+  background: var(--paper-light);
+  border: 1px solid var(--linen);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+}
+
+.totals dt {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.totals dd {
+  margin: 0.15rem 0 0;
+  font-family: var(--serif);
+  font-size: 1.55rem;
+  color: var(--wine);
+  font-variant-numeric: tabular-nums;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.85rem;
+}
+
+.searchField,
+.selectField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.searchField label,
+.selectField label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.searchField input,
+.selectField select {
+  font: inherit;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--linen);
+  border-radius: 8px;
+  background: var(--white);
+  color: var(--ink);
+  min-width: 13rem;
+}
+
+.selectField select {
+  min-width: 11rem;
+}
+
+.searchField input:focus-visible,
+.selectField select:focus-visible,
+.applyButton:focus-visible,
+.addButton:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.applyButton {
+  font: inherit;
+  font-weight: 600;
+  padding: 0.55rem 1.1rem;
+  border: 1px solid var(--wine);
+  border-radius: 8px;
+  background: var(--wine);
+  color: var(--paper-light);
+  cursor: pointer;
+}
+
+.applyButton:hover {
+  background: var(--wine-deep);
+}
+
+.clearLink {
+  font-size: 0.9rem;
+  color: var(--wine-soft);
+  align-self: center;
+}
+
+.addButton {
+  display: inline-block;
+  font-weight: 600;
+  padding: 0.6rem 1.2rem;
+  border: 1px solid var(--gold);
+  border-radius: 8px;
+  background: var(--paper-light);
+  color: var(--wine-deep);
+  text-decoration: none;
+}
+
+.addButton:hover {
+  background: var(--linen);
+}
+
+.familyBanner {
+  background: var(--linen);
+  border-radius: 8px;
+  padding: 0.6rem 1rem;
+  font-size: 0.92rem;
+  color: var(--ink);
+  margin: 0 0 1rem;
+}
+
+.familyBanner a {
+  color: var(--wine-soft);
+  margin-left: 0.4rem;
+}
+
+.tableWrap {
+  overflow-x: auto;
+  border: 1px solid var(--linen);
+  border-radius: 12px;
+  background: var(--white);
+  box-shadow: var(--shadow);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.93rem;
+}
+
+.table thead th {
+  text-align: left;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  background: var(--paper-light);
+  border-bottom: 1px solid var(--linen);
+  padding: 0.7rem 0.9rem;
+  white-space: nowrap;
+}
+
+.table tbody td {
+  padding: 0.68rem 0.9rem;
+  border-bottom: 1px solid var(--linen);
+  vertical-align: top;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.row:hover td {
+  background: var(--paper-light);
+}
+
+.name {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.zal {
+  margin-inline-start: 0.45rem;
+  font-size: 0.85em;
+  color: var(--wine-soft);
+}
+
+.generation {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.18rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid var(--linen);
+  background: var(--paper-light);
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.generation[data-generation="survivor"] {
+  border-color: var(--wine-soft);
+  background: var(--wine);
+  color: var(--paper-light);
+}
+
+.generation[data-generation="survivor-spouse"] {
+  border-color: var(--wine-soft);
+  color: var(--wine-deep);
+}
+
+.familyLink {
+  color: var(--wine-soft);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.contact {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  max-width: 14rem;
+  overflow-wrap: anywhere;
+}
+
+.muted {
+  color: var(--linen);
+}
+
+.rowAction a {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--wine-soft);
+}
+
+.editorRow td {
+  background: var(--paper-light);
+  padding: 0;
+}
+
+.editorCard {
+  border: 1px solid var(--linen);
+  border-radius: 12px;
+  background: var(--paper-light);
+  margin-bottom: 1.25rem;
+  box-shadow: var(--shadow);
+}
+
+.empty {
+  border: 1px dashed var(--linen);
+  border-radius: 12px;
+  background: var(--paper-light);
+  text-align: center;
+  padding: 3rem 1.5rem;
+}
+
+.empty h3 {
+  font-family: var(--serif);
+  color: var(--wine-deep);
+  margin: 0 0 0.4rem;
+}
+
+.empty p {
+  color: var(--ink-soft);
+  margin: 0 0 1rem;
+}
+
+.tableFooter {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.zalLegend {
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  margin: 0;
+  max-width: 30rem;
+}
+
+.pagination {
+  display: flex;
+  gap: 1rem;
+  align-items: baseline;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.pagination a {
+  color: var(--wine-soft);
+  font-weight: 600;
+}
+
+@media (max-width: 720px) {
+  .totals {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .searchField input {
+    min-width: 100%;
+  }
+
+  .filters,
+  .searchField,
+  .selectField {
+    width: 100%;
+  }
+
+  .applyButton,
+  .addButton {
+    width: 100%;
+    text-align: center;
+  }
+}

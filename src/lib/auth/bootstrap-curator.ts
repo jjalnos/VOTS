@@ -2,13 +2,16 @@ import { eq } from "drizzle-orm";
 import { getDatabase } from "@/db/client";
 import { auditEvents, userRoles, users } from "@/db/schema";
 import { staffMfaRequired } from "@/lib/auth/mfa";
-import { hashPassword } from "@/lib/auth/password";
+import { hashPassword, verifyPassword } from "@/lib/auth/password";
 
 export const INITIAL_CURATOR_CONFIRMATION = "CREATE_INITIAL_ROBIN_CURATOR";
+export const INITIAL_CURATOR_PASSWORD_ROTATION_CONFIRMATION =
+  "ROTATE_INITIAL_ROBIN_CURATOR_PASSWORD";
 
 export type InitialCuratorBootstrapStatus =
   | "disabled"
   | "created"
+  | "password-rotated"
   | "already-present";
 
 interface InitialCuratorConfiguration {
@@ -33,6 +36,15 @@ function configurationFromEnvironment(): InitialCuratorConfiguration | null {
   return { email, displayName, password, mfaProviderReference };
 }
 
+function passwordRotationRequested(): boolean {
+  const confirmation = process.env.BOOTSTRAP_ROTATE_PASSWORD_CONFIRM?.trim();
+  if (!confirmation) return false;
+  if (confirmation !== INITIAL_CURATOR_PASSWORD_ROTATION_CONFIRMATION) {
+    throw new Error("The controlled initial-curator password rotation confirmation is invalid.");
+  }
+  return true;
+}
+
 /**
  * Creates exactly one initial, dual-role owner for an empty deployment. The
  * bootstrap variables can safely remain configured across a restart: once the
@@ -42,11 +54,11 @@ function configurationFromEnvironment(): InitialCuratorConfiguration | null {
 export async function ensureInitialCuratorFromEnvironment(): Promise<InitialCuratorBootstrapStatus> {
   const configuration = configurationFromEnvironment();
   if (!configuration) return "disabled";
-  const passwordHash = hashPassword(configuration.password);
+  const rotatePassword = passwordRotationRequested();
   const db = getDatabase();
   return db.transaction(async (transaction) => {
     const existingUsers = await transaction
-      .select({ id: users.id, email: users.email })
+      .select({ id: users.id, email: users.email, passwordHash: users.passwordHash })
       .from(users)
       .limit(2);
     const matching = existingUsers.find(
@@ -61,13 +73,37 @@ export async function ensureInitialCuratorFromEnvironment(): Promise<InitialCura
       if (!names.has("admin") || !names.has("curator")) {
         throw new Error("The existing bootstrap identity does not have the expected roles.");
       }
+      if (rotatePassword && !verifyPassword(configuration.password, matching.passwordHash)) {
+        const now = new Date();
+        const [updated] = await transaction
+          .update(users)
+          .set({ passwordHash: hashPassword(configuration.password), updatedAt: now })
+          .where(eq(users.id, matching.id))
+          .returning({ id: users.id });
+        if (!updated) throw new Error("Initial curator password rotation did not update an identity.");
+        await transaction.insert(auditEvents).values({
+          actorUserId: null,
+          action: "identity.initial_curator_password_rotated",
+          entityType: "user",
+          entityId: matching.id,
+          metadata: {
+            method: "startup-controlled-password-rotation",
+          },
+          occurredAt: now,
+        });
+        return "password-rotated";
+      }
       return "already-present";
+    }
+    if (rotatePassword) {
+      throw new Error("Initial-curator password rotation refused because the configured identity does not exist.");
     }
     if (existingUsers.length) {
       throw new Error("Initial-curator bootstrap refused because the identity database is not empty.");
     }
 
     const now = new Date();
+    const passwordHash = hashPassword(configuration.password);
     const [created] = await transaction
       .insert(users)
       .values({

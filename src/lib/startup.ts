@@ -39,7 +39,18 @@ export async function runApplicationStartup(): Promise<void> {
         migrationsFolder: path.join(process.cwd(), "drizzle"),
       });
       await ensureInitialCuratorFromEnvironment();
-      await ensureDemonstrationViewerFromEnvironment();
+      // The demonstration account is a convenience, not part of the archive's
+      // identity. A mistake in its configuration must never stop the archive
+      // itself from starting, so this failure is reported and stepped over.
+      // The curator bootstrap above stays fatal.
+      try {
+        await ensureDemonstrationViewerFromEnvironment();
+      } catch (error) {
+        console.error(
+          "The demonstration viewer bootstrap was skipped:",
+          error instanceof Error ? error.message : error,
+        );
+      }
     } finally {
       await migrationSql`SELECT pg_advisory_unlock(hashtext('vots-application-startup-v1'))`
         .catch(() => undefined);

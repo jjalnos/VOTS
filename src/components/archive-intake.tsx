@@ -647,14 +647,18 @@ function ArchiveLibrary({ revision }: { revision: number }) {
   const [selectedRecord, setSelectedRecord] = useState<DemoArchiveRecord | null>(null);
   const [retrySequence, setRetrySequence] = useState(0);
 
+  // The fetch only reports through its callbacks. Anything that starts a new
+  // request puts the ledger into its loading state itself, so this effect never
+  // has to set state synchronously — an earlier version deferred that work into
+  // requestAnimationFrame, which never runs in a background tab and left the
+  // ledger loading forever.
   useEffect(() => {
     const controller = new AbortController();
-    setStatus("loading");
-    setError("");
-    setErrorStatus(undefined);
     void getDemoArchiveLibrary(filters, controller.signal)
       .then((result) => {
         setPage(result);
+        setError("");
+        setErrorStatus(undefined);
         setStatus("ready");
       })
       .catch((caught: unknown) => {
@@ -670,10 +674,12 @@ function ArchiveLibrary({ revision }: { revision: number }) {
 
   function applyFilters(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setStatus("loading");
     setFilters({ ...draftFilters, page: 1 });
   }
 
   function changePage(nextPage: number) {
+    setStatus("loading");
     setFilters((current) => ({ ...current, page: nextPage }));
   }
 
@@ -779,7 +785,15 @@ function ArchiveLibrary({ revision }: { revision: number }) {
                 Sign in in a new tab
               </a>
             ) : null}
-            <button type="button" onClick={() => setRetrySequence((sequence) => sequence + 1)}>Try the library again</button>
+            <button
+              type="button"
+              onClick={() => {
+                setStatus("loading");
+                setRetrySequence((sequence) => sequence + 1);
+              }}
+            >
+              Try the library again
+            </button>
           </div>
         ) : null}
 

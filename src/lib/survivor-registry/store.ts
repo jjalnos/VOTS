@@ -8,16 +8,29 @@ import {
   type RegistryPersonInput,
 } from "@/lib/survivor-registry/types";
 
+export interface RegistryImportResult {
+  created: number;
+  updated: number;
+  unchanged: number;
+}
+
 export interface SurvivorRegistryStore {
   readonly mode: "postgres" | "memory-dev";
   list(input: RegistryListInput): Promise<RegistryListResult>;
   get(id: string): Promise<RegistryPerson | undefined>;
+  all(): Promise<RegistryPerson[]>;
   create(input: RegistryPersonInput, actorUserId: string): Promise<RegistryPerson>;
   update(
     id: string,
     input: RegistryPersonInput,
     actorUserId: string,
   ): Promise<RegistryPerson | undefined>;
+  /**
+   * Applies a reviewed workbook upload. Records are added or corrected in
+   * place; nothing is deleted, so a curator's own entries and notes survive
+   * every import.
+   */
+  applyImport(people: RegistryPerson[]): Promise<RegistryImportResult>;
 }
 
 export class SurvivorRegistryUnavailableError extends Error {
@@ -131,6 +144,40 @@ export function filterAndPageRegistry(
   };
 }
 
+const IMPORT_COMPARED_FIELDS = [
+  "firstName",
+  "lastName",
+  "title",
+  "generation",
+  "generationRaw",
+  "familyThread",
+  "familyKey",
+  "countryOfOrigin",
+  "dateOfBirth",
+  "dateOfDeath",
+  "address",
+  "city",
+  "state",
+  "zip",
+  "email",
+  "phone",
+  "deceased",
+  "deceasedSource",
+] as const;
+
+export function registryPersonChanged(
+  current: RegistryPerson,
+  next: RegistryPerson,
+): boolean {
+  for (const field of IMPORT_COMPARED_FIELDS) {
+    if (String(current[field] ?? "") !== String(next[field] ?? "")) return true;
+  }
+  return (
+    current.camps.join("|") !== next.camps.join("|") ||
+    current.fateNotes.join("|") !== next.fateNotes.join("|")
+  );
+}
+
 export function buildRegistryPerson(
   input: RegistryPersonInput,
   existing?: RegistryPerson,
@@ -166,6 +213,13 @@ export function createMemorySurvivorRegistryStore(): SurvivorRegistryStore {
       const person = people.get(id);
       return person ? { ...person, camps: [...person.camps], fateNotes: [...person.fateNotes] } : undefined;
     },
+    async all() {
+      return [...people.values()].map((person) => ({
+        ...person,
+        camps: [...person.camps],
+        fateNotes: [...person.fateNotes],
+      }));
+    },
     async create(input) {
       const person = buildRegistryPerson(input);
       people.set(person.id, person);
@@ -177,6 +231,22 @@ export function createMemorySurvivorRegistryStore(): SurvivorRegistryStore {
       const person = buildRegistryPerson(input, existing);
       people.set(id, person);
       return person;
+    },
+    async applyImport(incoming) {
+      let created = 0;
+      let updated = 0;
+      let unchanged = 0;
+      for (const person of incoming) {
+        const existing = people.get(person.id);
+        if (!existing) created += 1;
+        else if (registryPersonChanged(existing, person)) updated += 1;
+        else {
+          unchanged += 1;
+          continue;
+        }
+        people.set(person.id, person);
+      }
+      return { created, updated, unchanged };
     },
   };
 }

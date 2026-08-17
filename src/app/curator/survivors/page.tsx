@@ -3,6 +3,7 @@ import { Fragment } from "react";
 import Link from "next/link";
 import { WorkspaceShell } from "@/components/workspace-shell";
 import { RegistryPersonEditor } from "@/components/registry-person-editor";
+import { RegistryWorkbookImport } from "@/components/registry-workbook-import";
 import { requireAction } from "@/lib/auth/server-session";
 import type { Locale } from "@/lib/domain/types";
 import { localeFrom } from "@/lib/i18n";
@@ -363,6 +364,8 @@ export default async function SurvivorRegistryPage({
               </Link>
             </p>
           ) : null}
+
+          <RegistryWorkbookImport locale={locale} />
 
           {adding ? (
             <div className={styles.editorCard}>

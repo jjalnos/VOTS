@@ -1,0 +1,293 @@
+.panel {
+  border: 1px solid var(--linen);
+  border-radius: 12px;
+  background: var(--paper-light);
+  padding: 1.5rem 1.6rem 1.6rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow);
+}
+
+.header h3 {
+  font-family: var(--serif);
+  font-size: 1.3rem;
+  color: var(--wine-deep);
+  margin: 0.3rem 0 0.45rem;
+  text-wrap: balance;
+}
+
+.kicker {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin: 0;
+}
+
+.intro {
+  margin: 0;
+  color: var(--ink-soft);
+  max-width: 56ch;
+}
+
+.picker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.8rem;
+  margin-top: 1.1rem;
+}
+
+.fileInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.fileButton {
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 0.6rem 1.15rem;
+  border: 1px solid var(--gold);
+  border-radius: 8px;
+  background: var(--white);
+  color: var(--wine-deep);
+  cursor: pointer;
+}
+
+.fileButton:hover {
+  background: var(--linen);
+}
+
+.fileInput:focus-visible + .filename,
+.fileInput:focus-visible ~ .fileButton {
+  outline: 3px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.filename {
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+  overflow-wrap: anywhere;
+  flex: 1 1 12rem;
+}
+
+.primary,
+.secondary {
+  font: inherit;
+  font-weight: 600;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.primary {
+  border: 1px solid var(--wine);
+  background: var(--wine);
+  color: var(--paper-light);
+}
+
+.primary:hover:not(:disabled) {
+  background: var(--wine-deep);
+}
+
+.primary:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.secondary {
+  border: 1px solid var(--linen);
+  background: var(--white);
+  color: var(--ink);
+}
+
+.secondary:hover {
+  background: var(--linen);
+}
+
+.primary:focus-visible,
+.secondary:focus-visible,
+.fileButton:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.safety {
+  margin: 0.9rem 0 0;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  border-left: 3px solid var(--sage);
+  padding-left: 0.75rem;
+  max-width: 60ch;
+}
+
+.error {
+  margin: 0.9rem 0 0;
+  font-size: 0.92rem;
+  color: var(--danger);
+}
+
+.applied {
+  margin-top: 1.2rem;
+  padding: 1rem 1.15rem;
+  border: 1px solid var(--sage);
+  border-left: 4px solid var(--success);
+  border-radius: 8px;
+  background: var(--white);
+}
+
+.applied strong {
+  display: block;
+  font-family: var(--serif);
+  font-size: 1.05rem;
+  color: var(--success);
+  margin-bottom: 0.3rem;
+}
+
+.applied p {
+  margin: 0 0 0.8rem;
+  font-size: 0.95rem;
+}
+
+.preview {
+  margin-top: 1.3rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--linen);
+}
+
+.preview h4 {
+  font-family: var(--serif);
+  font-size: 1.1rem;
+  color: var(--wine-deep);
+  margin: 0 0 0.9rem;
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
+  gap: 0.7rem;
+  margin: 0 0 0.8rem;
+}
+
+.summary > div {
+  background: var(--white);
+  border: 1px solid var(--linen);
+  border-radius: 8px;
+  padding: 0.65rem 0.8rem;
+}
+
+.summary dt {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.summary dd {
+  margin: 0.15rem 0 0;
+  font-family: var(--serif);
+  font-size: 1.4rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.new dd {
+  color: var(--success);
+}
+
+.updated dd {
+  color: var(--gold);
+}
+
+.note {
+  margin: 0 0 1rem;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  max-width: 60ch;
+}
+
+.sample {
+  margin-bottom: 1rem;
+}
+
+.sample h5 {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin: 0 0 0.4rem;
+}
+
+.sample ul,
+.sheets ul,
+.warnings ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.92rem;
+}
+
+.sample li,
+.sheets li,
+.warnings li {
+  margin-bottom: 0.25rem;
+}
+
+.fields {
+  color: var(--ink-soft);
+  font-size: 0.86rem;
+}
+
+.more {
+  color: var(--ink-soft);
+  list-style: none;
+  margin-left: -1.1rem;
+}
+
+.sheets,
+.warnings {
+  margin-bottom: 1rem;
+  font-size: 0.92rem;
+}
+
+.sheets summary,
+.warnings summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--wine-soft);
+  margin-bottom: 0.4rem;
+}
+
+.sheets summary:focus-visible,
+.warnings summary:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin-top: 1.2rem;
+}
+
+@media (max-width: 720px) {
+  .picker {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .fileButton,
+  .primary,
+  .secondary {
+    width: 100%;
+    text-align: center;
+  }
+}

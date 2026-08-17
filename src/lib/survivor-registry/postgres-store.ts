@@ -2,6 +2,7 @@ import postgres from "postgres";
 import {
   buildRegistryPerson,
   filterAndPageRegistry,
+  registryPersonChanged,
   seedRegistryPeople,
   type SurvivorRegistryStore,
 } from "@/lib/survivor-registry/store";
@@ -130,6 +131,12 @@ export function createPostgresSurvivorRegistryStore(): SurvivorRegistryStore {
       `;
       return rows.length ? personFromRow(rows[0]) : undefined;
     },
+    async all() {
+      const sql = sqlClient();
+      await initialize(sql);
+      const rows = await sql<Row[]>`SELECT * FROM ${sql(REGISTRY_TABLE)}`;
+      return rows.map(personFromRow);
+    },
     async create(input) {
       const sql = sqlClient();
       await initialize(sql);
@@ -171,6 +178,56 @@ export function createPostgresSurvivorRegistryStore(): SurvivorRegistryStore {
         WHERE id = ${id}
       `;
       return person;
+    },
+    async applyImport(incoming) {
+      const sql = sqlClient();
+      await initialize(sql);
+      let created = 0;
+      let updated = 0;
+      let unchanged = 0;
+      await sql.begin(async (transaction) => {
+        const rows = await transaction<Row[]>`SELECT * FROM ${transaction(REGISTRY_TABLE)}`;
+        const existing = new Map(rows.map((row) => [String(row.id), personFromRow(row)]));
+        for (const person of incoming) {
+          const current = existing.get(person.id);
+          if (!current) {
+            await insertPerson(transaction as unknown as Sql, person);
+            created += 1;
+            continue;
+          }
+          if (!registryPersonChanged(current, person)) {
+            unchanged += 1;
+            continue;
+          }
+          await transaction`
+            UPDATE ${transaction(REGISTRY_TABLE)} SET
+              first_name = ${person.firstName},
+              last_name = ${person.lastName},
+              title = ${person.title},
+              generation = ${person.generation},
+              generation_raw = ${person.generationRaw},
+              family_thread = ${person.familyThread},
+              family_key = ${person.familyKey},
+              country_of_origin = ${person.countryOfOrigin},
+              date_of_birth = ${person.dateOfBirth},
+              date_of_death = ${person.dateOfDeath},
+              camps = ${transaction.json(person.camps)},
+              fate_notes = ${transaction.json(person.fateNotes)},
+              address = ${person.address},
+              city = ${person.city},
+              state = ${person.state},
+              zip = ${person.zip},
+              email = ${person.email},
+              phone = ${person.phone},
+              deceased = ${person.deceased},
+              deceased_source = ${person.deceasedSource},
+              updated_at = ${person.updatedAt}
+            WHERE id = ${person.id}
+          `;
+          updated += 1;
+        }
+      });
+      return { created, updated, unchanged };
     },
   };
 }

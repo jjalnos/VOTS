@@ -4,6 +4,7 @@ import { getActorFromRequest } from "@/lib/auth/server-session";
 import { hasTrustedOrigin } from "@/lib/http/origin";
 import {
   getSurvivorRegistryStore,
+  redactRegistryContact,
   SurvivorRegistryUnavailableError,
 } from "@/lib/survivor-registry/store";
 import {
@@ -26,8 +27,8 @@ type CuratorAuthorization =
 async function authorizedCurator(request: Request): Promise<CuratorAuthorization> {
   const actor = await getActorFromRequest(request);
   if (!actor) return { error: "Authentication required.", status: 401 };
-  if (!can(actor, "view_archive_workspace")) {
-    return { error: "Curator registry access is required.", status: 403 };
+  if (!can(actor, "view_survivor_registry")) {
+    return { error: "Registry access is required.", status: 403 };
   }
   return { actor };
 }
@@ -48,8 +49,12 @@ export async function GET(request: Request) {
   try {
     const store = await getSurvivorRegistryStore();
     const result = await store.list(parseRegistryListInput(new URL(request.url)));
+    // Read-only accounts see the shape of the record, never contact details.
+    const items = can(authorization.actor, "create_record")
+      ? result.items
+      : result.items.map(redactRegistryContact);
     return NextResponse.json(
-      { ...result, storage: store.mode },
+      { ...result, items, storage: store.mode },
       { headers: NO_STORE_HEADERS },
     );
   } catch (error) {

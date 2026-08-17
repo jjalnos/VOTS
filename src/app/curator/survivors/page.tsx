@@ -5,6 +5,8 @@ import { WorkspaceShell } from "@/components/workspace-shell";
 import { RegistryPersonEditor } from "@/components/registry-person-editor";
 import { RegistryWorkbookImport } from "@/components/registry-workbook-import";
 import { requireAction } from "@/lib/auth/server-session";
+import { can } from "@/lib/auth/policy";
+import { redactRegistryContact } from "@/lib/survivor-registry/store";
 import type { Locale } from "@/lib/domain/types";
 import { localeFrom } from "@/lib/i18n";
 import { getSurvivorRegistryStore } from "@/lib/survivor-registry/store";
@@ -232,10 +234,14 @@ export default async function SurvivorRegistryPage({
   const params = await searchParams;
   const locale = localeFrom(params.lang);
   const copy = copyFor(locale);
-  const actor = await requireAction("view_archive_workspace", "/curator/survivors");
+  const actor = await requireAction("view_survivor_registry", "/curator/survivors");
+  const canEdit = can(actor, "create_record");
   const input = listInputFrom(params);
   const store = await getSurvivorRegistryStore();
-  const result = await store.list(input);
+  const listed = await store.list(input);
+  const result = canEdit
+    ? listed
+    : { ...listed, items: listed.items.map(redactRegistryContact) };
 
   const expandedPersonId = typeof params.person === "string" ? params.person : "";
   const adding = params.add === "1";
@@ -348,12 +354,14 @@ export default async function SurvivorRegistryPage({
                 </Link>
               ) : null}
             </form>
-            <Link
-              className={styles.addButton}
-              href={registryHref(input, locale, {}, { add: true })}
-            >
-              {copy.addPerson}
-            </Link>
+            {canEdit ? (
+              <Link
+                className={styles.addButton}
+                href={registryHref(input, locale, {}, { add: true })}
+              >
+                {copy.addPerson}
+              </Link>
+            ) : null}
           </div>
 
           {input.family !== "all" ? (
@@ -365,9 +373,9 @@ export default async function SurvivorRegistryPage({
             </p>
           ) : null}
 
-          <RegistryWorkbookImport locale={locale} />
+          {canEdit ? <RegistryWorkbookImport locale={locale} /> : null}
 
-          {adding ? (
+          {adding && canEdit ? (
             <div className={styles.editorCard}>
               <RegistryPersonEditor
                 locale={locale}
@@ -440,15 +448,17 @@ export default async function SurvivorRegistryPage({
                           {contactSummary(person) || <span className={styles.muted}>—</span>}
                         </td>
                         <td className={styles.rowAction}>
-                          <Link
-                            href={registryHref(input, locale, {}, { person: person.id })}
-                            aria-label={`${copy.edit}: ${person.firstName} ${person.lastName}`}
-                          >
-                            {copy.edit}
-                          </Link>
+                          {canEdit ? (
+                            <Link
+                              href={registryHref(input, locale, {}, { person: person.id })}
+                              aria-label={`${copy.edit}: ${person.firstName} ${person.lastName}`}
+                            >
+                              {copy.edit}
+                            </Link>
+                          ) : null}
                         </td>
                       </tr>
-                      {expandedPerson?.id === person.id ? (
+                      {canEdit && expandedPerson?.id === person.id ? (
                         <tr className={styles.editorRow}>
                           <td colSpan={7}>
                             <RegistryPersonEditor
@@ -466,7 +476,7 @@ export default async function SurvivorRegistryPage({
             </div>
           )}
 
-          {expandedPerson && !result.items.some((person) => person.id === expandedPerson.id) ? (
+          {canEdit && expandedPerson && !result.items.some((person) => person.id === expandedPerson.id) ? (
             <div className={styles.editorCard}>
               <RegistryPersonEditor
                 locale={locale}

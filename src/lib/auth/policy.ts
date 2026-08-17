@@ -11,7 +11,8 @@ export type Action =
   | "export_research_packet"
   | "contribute_upload"
   | "view_family_workspace"
-  | "view_archive_workspace";
+  | "view_archive_workspace"
+  | "view_survivor_registry";
 
 export interface Actor {
   userId: string;
@@ -26,6 +27,7 @@ const permissions: Record<Role, ReadonlySet<Action>> = {
   admin: new Set(["manage_access", "manage_policy", "view_audit"]),
   curator: new Set([
     "create_record",
+    "view_survivor_registry",
     "review_content",
     "run_external_research",
     "publish_content",
@@ -33,6 +35,10 @@ const permissions: Record<Role, ReadonlySet<Action>> = {
     "view_archive_workspace",
   ]),
   family: new Set(["contribute_upload", "view_family_workspace"]),
+  // A shared, read-only account for showing the registry. It cannot reach the
+  // private archive workspace, and it never sees living people's contact
+  // details — see redactRegistryContact.
+  viewer: new Set(["view_survivor_registry"]),
 };
 
 const mfaActions = new Set<Action>([

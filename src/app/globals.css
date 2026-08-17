@@ -83,10 +83,11 @@ textarea {
 }
 
 .utility-bar {
-  color: var(--white);
-  background: var(--ink);
-  font-size: 0.76rem;
-  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+  background: var(--paper-light);
+  border-bottom: 1px solid var(--linen);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
@@ -115,21 +116,26 @@ textarea {
 
 .language-switcher a {
   min-width: 42px;
-  padding: 0.35rem 0.5rem;
-  text-align: center;
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.3rem 0.5rem;
   text-decoration: none;
-  border: 1px solid rgba(255, 255, 255, 0.35);
+  border: 1px solid var(--linen);
+  border-radius: 4px;
 }
 
-.language-switcher a[aria-current="true"] {
-  color: var(--ink);
-  background: var(--paper);
+.language-switcher a[aria-current="page"] {
+  color: var(--wine-deep);
+  background: var(--linen);
+  border-color: var(--gold);
 }
 
 .site-header {
-  color: var(--white);
-  background: var(--wine);
-  border-bottom: 4px solid var(--gold);
+  color: var(--ink);
+  background: var(--paper-light);
+  border-bottom: 1px solid var(--linen);
 }
 
 .header-inner {
@@ -149,19 +155,21 @@ textarea {
 
 .brand-mark {
   display: grid;
-  width: 54px;
-  height: 54px;
+  width: 52px;
+  height: 52px;
   flex: 0 0 auto;
   place-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.55);
+  color: var(--wine);
+  border: 1px solid var(--gold);
   font-family: var(--serif);
-  font-size: 1.2rem;
+  font-size: 1.15rem;
   letter-spacing: -0.08em;
 }
 
 .brand-name {
   display: block;
   max-width: 680px;
+  color: var(--wine-deep);
   font-family: var(--serif);
   font-size: clamp(1.1rem, 2vw, 1.45rem);
   line-height: 1.18;
@@ -170,7 +178,7 @@ textarea {
 .brand-subtitle {
   display: block;
   margin-top: 0.22rem;
-  color: #eadbc3;
+  color: var(--gold);
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.15em;
@@ -747,83 +755,6 @@ button.button {
   border: 0;
 }
 
-.coming-soon {
-  position: relative;
-  min-height: 100vh;
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-  overflow: hidden;
-  color: var(--white);
-  background:
-    radial-gradient(circle at 78% 28%, rgba(170, 122, 42, 0.28), transparent 24%),
-    linear-gradient(135deg, var(--wine-deep), var(--wine) 55%, #671612);
-}
-
-.coming-soon-grain {
-  position: absolute;
-  inset: 0 0 0 68%;
-  opacity: 0.16;
-  background:
-    repeating-linear-gradient(90deg, transparent 0 34px, #fff 34px 35px),
-    repeating-linear-gradient(0deg, transparent 0 34px, #fff 34px 35px);
-  pointer-events: none;
-}
-
-.coming-soon-header,
-.coming-soon-content,
-.coming-soon-footer {
-  position: relative;
-  z-index: 1;
-  width: min(calc(100% - 3rem), 1320px);
-  margin-inline: auto;
-}
-
-.coming-soon-header {
-  min-height: 120px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 2rem;
-  padding-block: 1.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.25);
-}
-
-.coming-soon-brand {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.coming-soon-content {
-  display: flex;
-  max-width: 1320px;
-  flex-direction: column;
-  justify-content: center;
-  align-items: flex-start;
-  padding-block: clamp(4rem, 12vw, 10rem);
-}
-
-.coming-soon-content h1 {
-  max-width: none;
-  margin-bottom: 1.5rem;
-  font-size: clamp(4rem, 13vw, 10rem);
-  line-height: 0.88;
-}
-
-.coming-soon-rule {
-  width: clamp(80px, 12vw, 180px);
-  height: 5px;
-  margin-bottom: 2rem;
-  background: var(--gold);
-}
-
-.coming-soon-lead {
-  max-width: 780px;
-  color: #f3e5d2;
-  font-family: var(--serif);
-  font-size: clamp(1.2rem, 2.6vw, 1.8rem);
-}
-
 .collaboration-line {
   display: flex;
   flex-wrap: wrap;
@@ -841,21 +772,6 @@ button.button {
   font-family: var(--serif);
   font-size: 1.35rem;
   font-weight: 500;
-}
-
-.coming-soon-footer {
-  min-height: 90px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  color: #d9c4aa;
-  border-top: 1px solid rgba(255, 255, 255, 0.22);
-  font-size: 0.88rem;
-}
-
-.coming-soon-footer a {
-  color: var(--white);
 }
 
 @media (max-width: 980px) {
@@ -938,20 +854,6 @@ button.button {
     width: 100%;
   }
 
-  .coming-soon-header,
-  .coming-soon-footer {
-    align-items: flex-start;
-    flex-direction: column;
-    justify-content: center;
-  }
-
-  .coming-soon-brand .brand-name {
-    font-size: 1rem;
-  }
-
-  .coming-soon-grain {
-    inset: 60% 0 0 0;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {

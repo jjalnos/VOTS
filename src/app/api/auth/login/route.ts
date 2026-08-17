@@ -70,8 +70,10 @@ export async function POST(request: Request) {
     ? { ...actor, mfaVerified: true }
     : actor;
   const token = signSession({ ...sessionActor, issuedAt, expiresAt: issuedAt + 8 * 60 * 60 * 1000 }, secret);
-  const destination = actor.roles.includes("curator")
-    ? "/demo/robin/archive"
+  // Curators and the read-only demonstration account both start at the
+  // registry: it is the record everything else in the archive hangs from.
+  const destination = actor.roles.includes("curator") || actor.roles.includes("viewer")
+    ? "/curator/survivors"
     : actor.roles.includes("admin")
       ? "/admin/access"
       : "/family";

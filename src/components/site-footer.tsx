@@ -11,8 +11,8 @@ export function SiteFooter({ locale }: { locale: Locale }) {
           <h2>{t(locale, "institutionName")}</h2>
           <p className="footer-note">
             {locale === "es"
-              ? "Base de desarrollo. El logotipo oficial, las fotografías y los registros reales se incorporarán únicamente con aprobación y documentación de derechos."
-              : "Development foundation. Official logo, photography, and real records will be added only with approval and documented rights."}
+              ? "Voces de la Shoá es un comité de voluntarios del Museo Conmemorativo del Holocausto de San Antonio."
+              : "Voices of the Shoah is a volunteer committee of the Holocaust Memorial Museum of San Antonio."}
           </p>
         </div>
         <div>

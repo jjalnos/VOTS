@@ -144,6 +144,16 @@ export function filterAndPageRegistry(
   };
 }
 
+
+/**
+ * Everything a shared, read-only account must not see. The registry lists
+ * living descendants; a credential handed to an audience shows the shape of the
+ * record, never a way to contact the families in it.
+ */
+export function redactRegistryContact(person: RegistryPerson): RegistryPerson {
+  return { ...person, email: "", phone: "", address: "", zip: "", notes: "" };
+}
+
 const IMPORT_COMPARED_FIELDS = [
   "firstName",
   "lastName",

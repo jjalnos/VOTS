@@ -23,7 +23,11 @@ export function SiteHeader({
     <>
       <div className="utility-bar">
         <div className="utility-inner">
-          <span>{t(locale, "curatorReviewed")}</span>
+          <span className="utility-identity">
+            {locale === "es"
+              ? "Voces de la Shoá · un comité de voluntarios de HMMSA"
+              : "Voices of the Shoah · a volunteer committee of HMMSA"}
+          </span>
           <div className="utility-links">
             <Link href={withLocale("/family", locale)}>{t(locale, "navContribute")}</Link>
             {signedIn ? null : (

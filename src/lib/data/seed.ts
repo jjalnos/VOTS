@@ -34,6 +34,16 @@ export const seedUsers: User[] = [
     updatedAt: now,
   },
   {
+    id: "user-viewer-demo",
+    email: "demo@voicesoftheshoah.org",
+    displayName: "Archive demonstration",
+    roles: ["viewer"],
+    mfaRequired: false,
+    active: true,
+    createdAt: now,
+    updatedAt: now,
+  },
+  {
     id: "user-family-demo",
     email: "family@archive.local",
     displayName: "Invited Family Contributor",

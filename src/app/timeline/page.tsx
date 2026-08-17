@@ -23,7 +23,7 @@ export default async function TimelinePage({ searchParams }: PageProps<"/timelin
           <div className="timeline-list" style={{ marginTop: "2rem" }}>
             {catalog.timelineEvents.map((event) => (
               <article className="timeline-entry" id={event.id} key={event.id}>
-                <div className="status-row"><StatusPill>{event.dateLabel[locale]}</StatusPill><StatusPill tone="pending">Demo</StatusPill></div>
+                <div className="status-row"><StatusPill>{event.dateLabel[locale]}</StatusPill></div>
                 <h2>{event.title[locale]}</h2>
                 <p>{event.description[locale]}</p>
                 <ol className="source-list">

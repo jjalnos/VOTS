@@ -32,7 +32,6 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
           <article className="card">
             <div className="status-row">
               <StatusPill>{t(locale, "curatorReviewed")}</StatusPill>
-              <StatusPill tone="pending">Demo</StatusPill>
             </div>
             <p className="notice">{t(locale, "demoNotice")}</p>
             <h2>{locale === "es" ? "Sobre este registro" : "About this record"}</h2>

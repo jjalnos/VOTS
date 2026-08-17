@@ -1,4 +1,4 @@
-export const ROLES = ["admin", "curator", "family"] as const;
+export const ROLES = ["admin", "curator", "family", "viewer"] as const;
 export type Role = (typeof ROLES)[number];
 
 export const LOCALES = ["en", "es"] as const;

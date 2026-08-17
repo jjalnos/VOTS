@@ -7,6 +7,7 @@ const demoPasswords: Record<string, string> = {
   "admin@archive.local": "admin-demo",
   "curator@archive.local": "curator-demo",
   "family@archive.local": "family-demo",
+  "demo@voicesoftheshoah.org": "shoah-archive-demo",
 };
 
 function constantTimePasswordMatch(candidate: string, expected: string, email: string): boolean {

@@ -54,7 +54,6 @@ export default async function DirectoryPage({ searchParams }: PageProps<"/direct
                   <div className="record-placeholder" aria-hidden="true">{String(index + 1).padStart(2, "0")}</div>
                   <div className="status-row">
                     <StatusPill>{t(locale, "curatorReviewed")}</StatusPill>
-                    {record.isDemonstration ? <StatusPill tone="pending">Demo</StatusPill> : null}
                   </div>
                   <h2>{record.displayName[locale]}</h2>
                   <p>{record.summary[locale]}</p>

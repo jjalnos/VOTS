@@ -22,6 +22,9 @@ export function WorkspaceShell({
   children: React.ReactNode;
 }) {
   const links: string[][] = [];
+  if (actor.roles.includes("viewer") && !actor.roles.includes("curator")) {
+    links.push([locale === "es" ? "Sobrevivientes" : "Survivors", "/curator/survivors"]);
+  }
   if (actor.roles.includes("curator")) {
     links.push(
       [locale === "es" ? "Sobrevivientes" : "Survivors", "/curator/survivors"],

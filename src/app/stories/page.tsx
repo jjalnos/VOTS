@@ -21,7 +21,7 @@ export default async function StoriesPage({ searchParams }: PageProps<"/stories"
         <div className="content-wrap">
           {catalog.stories.map((story) => (
             <article className="card" id={story.slug} key={story.id} style={{ marginBottom: "1rem" }}>
-              <div className="status-row"><StatusPill>{t(locale, "curatorReviewed")}</StatusPill><StatusPill tone="pending">Demo</StatusPill></div>
+              <div className="status-row"><StatusPill>{t(locale, "curatorReviewed")}</StatusPill></div>
               <p className="eyebrow">{locale === "es" ? "Historia del archivo" : "Archive story"}</p>
               <h2>{story.title[locale]}</h2>
               <p className="hero-lead" style={{ color: "var(--ink-soft)" }}>{story.dek[locale]}</p>

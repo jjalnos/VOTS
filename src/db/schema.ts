@@ -15,7 +15,7 @@ import {
 } from "drizzle-orm/pg-core";
 import type { LocalizedText } from "@/lib/domain/types";
 
-export const roleName = pgEnum("role_name", ["admin", "curator", "family"]);
+export const roleName = pgEnum("role_name", ["admin", "curator", "family", "viewer"]);
 export const archiveLanguage = pgEnum("archive_language", ["en", "es", "other"]);
 export const reviewStatus = pgEnum("review_status", [
   "pending",

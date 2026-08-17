@@ -4,6 +4,7 @@ import { migrate } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
 import * as schema from "@/db/schema";
 import { ensureInitialCuratorFromEnvironment } from "@/lib/auth/bootstrap-curator";
+import { ensureDemonstrationViewerFromEnvironment } from "@/lib/auth/bootstrap-viewer";
 
 const startupState = globalThis as typeof globalThis & {
   votsApplicationStartup?: Promise<void>;
@@ -38,6 +39,7 @@ export async function runApplicationStartup(): Promise<void> {
         migrationsFolder: path.join(process.cwd(), "drizzle"),
       });
       await ensureInitialCuratorFromEnvironment();
+      await ensureDemonstrationViewerFromEnvironment();
     } finally {
       await migrationSql`SELECT pg_advisory_unlock(hashtext('vots-application-startup-v1'))`
         .catch(() => undefined);

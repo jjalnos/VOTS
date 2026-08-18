@@ -2,6 +2,7 @@ import type { Actor } from "@/lib/auth/policy";
 import type { Locale } from "@/lib/domain/types";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import { workspaceLinksFor } from "@/lib/auth/workspace-links";
 
 export function WorkspaceShell({
   actor,
@@ -18,27 +19,7 @@ export function WorkspaceShell({
   description: string;
   children: React.ReactNode;
 }) {
-  const links: string[][] = [];
-  if (actor.roles.includes("viewer") && !actor.roles.includes("curator")) {
-    links.push([locale === "es" ? "Sobrevivientes" : "Survivors", "/curator/survivors"]);
-  }
-  if (actor.roles.includes("curator")) {
-    links.push(
-      [locale === "es" ? "Sobrevivientes" : "Survivors", "/curator/survivors"],
-      [locale === "es" ? "Ingreso al archivo" : "Archive intake", "/demo/robin/archive"],
-      [locale === "es" ? "Estudio" : "Studio", "/demo/robin/studio"],
-      [locale === "es" ? "Registro de cargas" : "Upload register", "/curator/archive"],
-      [locale === "es" ? "Revisar" : "Review", "/curator/review"],
-      [locale === "es" ? "Investigación pagada" : "Paid research", "/curator/research"],
-      [locale === "es" ? "Publicar" : "Publish", "/curator/publish"],
-    );
-  }
-  if (actor.roles.includes("family")) {
-    links.push([locale === "es" ? "Contribución familiar" : "Family contribution", "/family"]);
-  }
-  if (actor.roles.includes("admin")) {
-    links.push([locale === "es" ? "Acceso y políticas" : "Access & policy", "/admin/access"]);
-  }
+  const links = workspaceLinksFor(actor, locale);
 
   return (
     <div lang={locale}>

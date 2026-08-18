@@ -10,6 +10,7 @@ interface HomeCopy {
   lead: string;
   browse: string;
   signIn: string;
+  openWorkspace: string;
   trust: string;
   collectionLabel: string;
   collectionTitle: string;
@@ -46,6 +47,7 @@ function copyFor(locale: Locale): HomeCopy {
       lead: "Damos forma al testimonio como registro familiar sin separar un recuerdo de la persona que nos lo confió.",
       browse: "Conocer a los sobrevivientes",
       signIn: "Acceso para familias y personal",
+      openWorkspace: "Abrir el espacio privado",
       trust: "Solo se publica material autorizado y revisado por el museo.",
       collectionLabel: "Un registro vivo",
       collectionTitle: "De generación en generación.",
@@ -84,6 +86,7 @@ function copyFor(locale: Locale): HomeCopy {
     lead: "Shape testimony into a family record without separating a memory from the person who entrusted it to us.",
     browse: "Meet the survivors",
     signIn: "Family & staff sign in",
+    openWorkspace: "Open the private workspace",
     trust: "Only permissioned, museum-reviewed material is made public.",
     collectionLabel: "A living record",
     collectionTitle: "From generation to generation.",
@@ -120,9 +123,11 @@ function copyFor(locale: Locale): HomeCopy {
 export function ArchiveHome({
   locale,
   featuredRecords,
+  signedIn = false,
 }: {
   locale: Locale;
   featuredRecords: FeaturedRecord[];
+  signedIn?: boolean;
 }) {
   const content = copyFor(locale);
 
@@ -139,8 +144,11 @@ export function ArchiveHome({
                 {content.browse}
                 <span aria-hidden="true">→</span>
               </Link>
-              <Link className={styles.secondaryAction} href={withLocale("/login", locale)}>
-                {content.signIn}
+              <Link
+                className={styles.secondaryAction}
+                href={withLocale(signedIn ? "/curator/survivors" : "/login", locale)}
+              >
+                {signedIn ? content.openWorkspace : content.signIn}
               </Link>
             </div>
             <p className={styles.trustLine}>

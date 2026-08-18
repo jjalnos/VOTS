@@ -765,6 +765,30 @@ button.button {
   font-size: 0.88rem;
 }
 
+/* A quiet colophon line: present, but never competing with the museum's own
+   name above it. */
+.footer-colophon {
+  border-top: 1px solid rgba(234, 219, 195, 0.18);
+}
+
+.footer-colophon p {
+  margin: 0;
+  padding-block: 1rem;
+  color: #c9b49c;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+}
+
+.footer-colophon a {
+  color: #e4d3bb;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.footer-colophon a:hover {
+  color: var(--white);
+}
+
 .sr-only {
   position: absolute;
   width: 1px;

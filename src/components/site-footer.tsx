@@ -25,6 +25,16 @@ export function SiteFooter({ locale }: { locale: Locale }) {
           <p className="footer-note">{t(locale, "onlyPublished")}</p>
         </div>
       </div>
+      <div className="footer-colophon">
+        <div className="content-wrap">
+          <p>
+            {locale === "es" ? "Donado por " : "Donated by "}
+            <a href="https://clicksmith.net" target="_blank" rel="noreferrer">
+              Clicksmith
+            </a>
+          </p>
+        </div>
+      </div>
     </footer>
   );
 }

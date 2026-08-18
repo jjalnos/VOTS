@@ -8,6 +8,16 @@ import { getArchiveRepository } from "@/lib/repository";
 
 export const metadata: Metadata = { title: "Survivor directory / Directorio" };
 
+/** Initials for the archival plate shown until a rights-cleared photograph exists. */
+function monogram(displayName: string): string {
+  return displayName
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toLocaleUpperCase() ?? "")
+    .join("");
+}
+
 export default async function DirectoryPage({ searchParams }: PageProps<"/directory">) {
   const params = await searchParams;
   const locale = localeFrom(params.lang);
@@ -48,10 +58,15 @@ export default async function DirectoryPage({ searchParams }: PageProps<"/direct
           </form>
           <p className="notice">{t(locale, "onlyPublished")}</p>
           <div className="record-grid" style={{ marginTop: "2rem" }}>
-            {records.map((record, index) => (
+            {records.map((record) => (
               <article className="card record-card" key={record.id}>
                 <div>
-                  <div className="record-placeholder" aria-hidden="true">{String(index + 1).padStart(2, "0")}</div>
+                  <div className="record-placeholder" aria-hidden="true">
+                    <span className="record-monogram">{monogram(record.displayName[locale])}</span>
+                    <span className="record-plate-note">
+                      {locale === "es" ? "Fotografía pendiente de permiso" : "Photograph pending permission"}
+                    </span>
+                  </div>
                   <div className="status-row">
                     <StatusPill>{t(locale, "curatorReviewed")}</StatusPill>
                   </div>

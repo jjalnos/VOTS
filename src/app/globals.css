@@ -638,39 +638,42 @@ button.button {
   border-radius: 50%;
 }
 
-.workspace-banner {
-  color: var(--white);
-  background: var(--ink);
-  border-bottom: 1px solid #3e3935;
-}
-
-.workspace-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding-block: 0.8rem;
-}
-
+/* The private-workspace nav is a second row inside the header, so a signed-in
+   curator gets one masthead instead of a header plus a separate dark strip. */
 .workspace-nav {
   display: flex;
-  overflow-x: auto;
+  flex-wrap: wrap;
   gap: 0.4rem;
-  padding-bottom: 0.7rem;
+  overflow-x: auto;
+  padding-bottom: 0.9rem;
+  margin-top: -0.4rem;
 }
 
 .workspace-nav a {
-  min-height: 44px;
+  min-height: 40px;
   display: inline-flex;
   flex: 0 0 auto;
   align-items: center;
-  padding: 0.55rem 0.8rem;
+  padding: 0.4rem 0.8rem;
+  color: #f4e7d4;
+  font-size: 0.88rem;
   text-decoration: none;
-  border: 1px solid #625b55;
+  border: 1px solid rgba(234, 219, 195, 0.35);
+  border-radius: 3px;
 }
 
 .workspace-nav a:hover {
-  background: #302b28;
+  color: var(--wine-deep);
+  background: var(--gold-light, #ddbd82);
+  border-color: var(--gold);
+}
+
+/* The sign-out control sits with the other utility-bar actions. */
+.utility-links .button.ghost-light {
+  min-height: 30px;
+  padding: 0.2rem 0.75rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
 }
 
 .workspace-shell {
@@ -849,8 +852,7 @@ button.button {
     font-size: 16px;
   }
 
-  .utility-inner,
-  .workspace-bar {
+  .utility-inner {
     align-items: flex-start;
     flex-direction: column;
     padding-block: 0.7rem;
@@ -920,8 +922,7 @@ button.button {
   .utility-bar,
   .site-header,
   .site-footer,
-  .workspace-banner,
-  .button-row,
+    .button-row,
   .button {
     display: none !important;
   }

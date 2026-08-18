@@ -13,6 +13,7 @@
     "test:watch": "vitest",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
+    "seed:catalog": "tsx scripts/seed-public-catalog.ts",
     "auth:bootstrap-admin": "tsx scripts/bootstrap-admin.ts"
   },
   "dependencies": {

@@ -5,6 +5,7 @@ import postgres from "postgres";
 import * as schema from "@/db/schema";
 import { ensureInitialCuratorFromEnvironment } from "@/lib/auth/bootstrap-curator";
 import { ensureDemonstrationViewerFromEnvironment } from "@/lib/auth/bootstrap-viewer";
+import { ensurePublishedCatalogFromEnvironment } from "@/lib/publication/seed-catalog";
 
 const startupState = globalThis as typeof globalThis & {
   votsApplicationStartup?: Promise<void>;
@@ -48,6 +49,17 @@ export async function runApplicationStartup(): Promise<void> {
       } catch (error) {
         console.error(
           "The demonstration viewer bootstrap was skipped:",
+          error instanceof Error ? error.message : error,
+        );
+      }
+      // Publishing the reviewed catalog is likewise optional. A failure here
+      // must leave the archive serving, not stop it from starting.
+      try {
+        const status = await ensurePublishedCatalogFromEnvironment();
+        if (status !== "disabled") console.log(`Public catalog ${status}.`);
+      } catch (error) {
+        console.error(
+          "The public catalog publication was skipped:",
           error instanceof Error ? error.message : error,
         );
       }

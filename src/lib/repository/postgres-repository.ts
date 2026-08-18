@@ -98,6 +98,13 @@ function mapSurvivor(row: SurvivorRow): Survivor {
     originalLanguage: row.originalLanguage,
     reviewStatus: row.reviewStatus,
     isDemonstration: row.isDemonstration,
+    portrait: row.portraitUrl
+      ? {
+          url: row.portraitUrl,
+          credit: row.portraitCredit ?? "",
+          rights: row.portraitRights ?? "",
+        }
+      : undefined,
     createdBy: row.createdBy,
     createdAt: iso(row.createdAt),
     updatedAt: iso(row.updatedAt),

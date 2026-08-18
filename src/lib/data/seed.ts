@@ -108,6 +108,11 @@ export const seedSurvivors: Survivor[] = [
     originalLanguage: "en",
     reviewStatus: "approved",
     isDemonstration: true,
+    portrait: {
+      url: "/generation-to-generation-family.png",
+      credit: "The Jalnos family, four generations",
+      rights: "Family photograph supplied for this project.",
+    },
     createdBy: "user-curator-demo",
     createdAt: now,
     updatedAt: now,

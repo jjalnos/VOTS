@@ -61,12 +61,20 @@ export default async function DirectoryPage({ searchParams }: PageProps<"/direct
             {records.map((record) => (
               <article className="card record-card" key={record.id}>
                 <div>
-                  <div className="record-placeholder" aria-hidden="true">
-                    <span className="record-monogram">{monogram(record.displayName[locale])}</span>
-                    <span className="record-plate-note">
-                      {locale === "es" ? "Fotografía pendiente de permiso" : "Photograph pending permission"}
-                    </span>
-                  </div>
+                  {record.portrait ? (
+                    <figure className="record-portrait">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={record.portrait.url} alt={record.displayName[locale]} />
+                      <figcaption>{record.portrait.credit}</figcaption>
+                    </figure>
+                  ) : (
+                    <div className="record-placeholder" aria-hidden="true">
+                      <span className="record-monogram">{monogram(record.displayName[locale])}</span>
+                      <span className="record-plate-note">
+                        {locale === "es" ? "Fotografía pendiente de permiso" : "Photograph pending permission"}
+                      </span>
+                    </div>
+                  )}
                   <div className="status-row">
                     <StatusPill>{t(locale, "curatorReviewed")}</StatusPill>
                   </div>

@@ -39,9 +39,23 @@ export interface Survivor {
   originalLanguage: Locale | "other";
   reviewStatus: ReviewStatus;
   isDemonstration: boolean;
+  /**
+   * A photograph shown beside the survivor. It is only ever rendered together
+   * with its credit and the permission it was supplied under, so a portrait
+   * cannot appear in the archive without saying where it came from.
+   */
+  portrait?: SurvivorPortrait;
   createdBy: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface SurvivorPortrait {
+  url: string;
+  /** Who the photograph belongs to or came from, shown as a caption. */
+  credit: string;
+  /** The permission it is published under. */
+  rights: string;
 }
 
 export interface Relationship {

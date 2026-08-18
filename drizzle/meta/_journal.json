@@ -43,6 +43,13 @@
       "when": 1786930000000,
       "tag": "0005_viewer_role",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1786940000000,
+      "tag": "0006_survivor_portrait",
+      "breakpoints": true
     }
   ]
 }

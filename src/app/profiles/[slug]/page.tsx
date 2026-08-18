@@ -34,6 +34,16 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
               <StatusPill>{t(locale, "curatorReviewed")}</StatusPill>
             </div>
             <p className="notice">{t(locale, "demoNotice")}</p>
+            {survivor.portrait ? (
+              <figure className="profile-portrait">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={survivor.portrait.url} alt={survivor.displayName[locale]} />
+                <figcaption>
+                  <span>{survivor.portrait.credit}</span>
+                  {survivor.portrait.rights ? <small>{survivor.portrait.rights}</small> : null}
+                </figcaption>
+              </figure>
+            ) : null}
             <h2>{locale === "es" ? "Sobre este registro" : "About this record"}</h2>
             <p>{survivor.summary[locale]}</p>
             <dl>

@@ -120,6 +120,9 @@ export const survivors = pgTable(
     originalLanguage: archiveLanguage("original_language").notNull(),
     reviewStatus: reviewStatus("review_status").default("pending").notNull(),
     isDemonstration: boolean("is_demonstration").default(false).notNull(),
+    portraitUrl: text("portrait_url"),
+    portraitCredit: text("portrait_credit"),
+    portraitRights: text("portrait_rights"),
     createdBy: uuid("created_by")
       .notNull()
       .references(() => users.id, { onDelete: "restrict" }),

@@ -30,6 +30,19 @@ export type CatalogSeedStatus = "disabled" | "published" | "already-present";
 /** Only these survivor records may be published by this routine. */
 export const PUBLISHABLE_SLUGS = new Set(["sam-cohen", "stephan-jalnos"]);
 
+/**
+ * Photographs published beside a survivor, each with the credit and permission
+ * it is published under. Add an entry here only for an image the archive
+ * actually has the right to show.
+ */
+export const PORTRAITS: Record<string, { url: string; credit: string; rights: string }> = {
+  "stephan-jalnos": {
+    url: "/generation-to-generation-family.png",
+    credit: "The Jalnos family, four generations",
+    rights: "Family photograph supplied for this project.",
+  },
+};
+
 /** Anything matching these never goes to a public database. */
 export function isSentinelRecord(value: string): boolean {
   return /private|sentinel|never-public|unapproved/i.test(value);
@@ -128,6 +141,26 @@ export async function ensurePublishedCatalogFromEnvironment(): Promise<CatalogSe
       .returning({ id: survivors.id });
     survivorIdMap.set(fixture.id, created.id);
     console.log(`published survivor: ${fixture.slug}`);
+  }
+
+  // --- portraits ---------------------------------------------------------
+  for (const [slug, portrait] of Object.entries(PORTRAITS)) {
+    if (!PUBLISHABLE_SLUGS.has(slug)) continue;
+    const [row] = await db
+      .select({ id: survivors.id, portraitUrl: survivors.portraitUrl })
+      .from(survivors)
+      .where(eq(survivors.slug, slug))
+      .limit(1);
+    if (!row || row.portraitUrl) continue;
+    await db
+      .update(survivors)
+      .set({
+        portraitUrl: portrait.url,
+        portraitCredit: portrait.credit,
+        portraitRights: portrait.rights,
+      })
+      .where(eq(survivors.id, row.id));
+    console.log(`attached portrait: ${slug}`);
   }
 
   // --- releases ----------------------------------------------------------

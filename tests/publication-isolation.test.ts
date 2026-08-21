@@ -21,23 +21,20 @@ describe("public content isolation", () => {
 
   it("requires a locale-specific release", () => {
     const spanish = getPublicCatalog("es");
+    const english = getPublicCatalog("en");
     expect(spanish.archiveItems).toHaveLength(0);
-    expect(spanish.survivors).toHaveLength(3);
+    // Every survivor carries both locales, so the two catalogs stay in step.
+    expect(spanish.survivors).toHaveLength(english.survivors.length);
+    expect(spanish.survivors.length).toBeGreaterThan(0);
   });
 
   it("returns only sources referenced by an actually published entity", () => {
     const catalog = getPublicCatalog("en");
-    expect(catalog.survivors.map((survivor) => survivor.displayName.en)).toEqual([
-      "Sam Cohen",
-      "Stephan Jalnos",
-      "Susanne Jalnos",
-    ]);
-    expect(catalog.sources.map((source) => source.id)).toEqual([
-      "source-hmmsa-archive-policy",
-      "source-sam-cohen-interview",
-      "source-stephan-jalnos-series",
-      "source-susanne-jalnos-series",
-    ]);
+    // No source may appear unless a published release actually cites it.
+    const citedSourceIds = new Set(catalog.releases.flatMap((release) => release.sourceIds));
+    expect(new Set(catalog.sources.map((source) => source.id))).toEqual(citedSourceIds);
+    expect(catalog.sources.every((source) => source.approvalStatus === "approved")).toBe(true);
+    expect(catalog.survivors.length).toBeGreaterThan(0);
     const publishedIds = new Set([
       ...catalog.survivors,
       ...catalog.archiveItems,

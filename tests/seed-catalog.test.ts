@@ -6,12 +6,18 @@ import {
 import { seedSources, seedStories, seedSurvivors } from "@/lib/data/seed";
 
 describe("public catalog publication guards", () => {
-  it("publishes only the reviewed survivor records", () => {
-    expect([...PUBLISHABLE_SLUGS].sort()).toEqual([
-      "sam-cohen",
-      "stephan-jalnos",
-      "susanne-jalnos",
-    ]);
+  // Asserting the invariant rather than the roster: the list grows every time
+  // the curator publishes someone, and a test that has to be edited for each
+  // new survivor stops guarding anything.
+  it("publishes only survivor records that exist and are reviewed", () => {
+    expect(PUBLISHABLE_SLUGS.size).toBeGreaterThan(0);
+    for (const slug of PUBLISHABLE_SLUGS) {
+      const survivor = seedSurvivors.find((record) => record.slug === slug);
+      expect(survivor, `no seeded survivor for publishable slug "${slug}"`).toBeDefined();
+      expect(survivor!.reviewStatus).toBe("approved");
+      expect(isSentinelRecord(slug)).toBe(false);
+      expect(survivor!.isDemonstration).toBe(false);
+    }
   });
 
   it("refuses every private sentinel fixture", () => {

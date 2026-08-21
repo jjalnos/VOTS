@@ -28,7 +28,23 @@ const CONFIRMATION = CATALOG_SEED_CONFIRMATION;
 export type CatalogSeedStatus = "disabled" | "published" | "already-present";
 
 /** Only these survivor records may be published by this routine. */
-export const PUBLISHABLE_SLUGS = new Set(["sam-cohen", "stephan-jalnos", "susanne-jalnos"]);
+export const PUBLISHABLE_SLUGS = new Set([
+  "sam-cohen",
+  "stephan-jalnos",
+  "susanne-jalnos",
+  "anna-levit",
+  "anna-rado",
+  "david-scharff",
+  "golda-scharff",
+  "george-fodor",
+  "harry-weiss",
+  "ilona-haendel",
+  "nathan-haendel",
+  "mathilde-rosenblatt",
+  "oscar-ehrenberg",
+  "roman-lubetzky",
+  "rose-williams",
+]);
 
 /**
  * Photographs published beside a survivor, each with the credit and permission

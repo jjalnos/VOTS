@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { getDatabase } from "@/db/client";
 import { auditEvents, userRoles, users } from "@/db/schema";
 import { staffMfaRequired } from "@/lib/auth/mfa";
@@ -109,7 +109,11 @@ export async function ensureInitialCuratorFromEnvironment(): Promise<InitialCura
         if (alreadyCurrent) return "already-present";
         const [updated] = await transaction
           .update(users)
-          .set({ passwordHash: hashPassword(configuration.password), updatedAt: now })
+          .set({
+            passwordHash: hashPassword(configuration.password),
+            sessionVersion: sql`${users.sessionVersion} + 1`,
+            updatedAt: now,
+          })
           .where(eq(users.id, matching.id))
           .returning({ id: users.id });
         if (!updated) throw new Error("Initial curator password rotation did not update an identity.");

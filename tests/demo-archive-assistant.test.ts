@@ -68,6 +68,7 @@ function sessionCookie(
     displayName: "Robin",
     roles: ["curator"],
     mfaVerified: true,
+    sessionVersion: 1,
     issuedAt: now - 1_000,
     expiresAt: now + 60_000,
     ...overrides,

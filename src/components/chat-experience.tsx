@@ -29,6 +29,13 @@ type ConnectionState =
 type InputMode = "microphone" | "text";
 type UnknownRecord = Record<string, unknown>;
 
+class PrivateRoomStartError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "PrivateRoomStartError";
+  }
+}
+
 interface CaptionLine {
   id: string;
   role: "user" | "guide";
@@ -914,7 +921,21 @@ export function ChatExperience({ locale }: { locale: Locale }) {
       if (sessionAbortRef.current === controller) sessionAbortRef.current = null;
       const answer = await response.text();
       if (!sessionIsCurrent()) return;
-      if (!response.ok) throw new Error("session-" + response.status);
+      if (!response.ok) {
+        let safeServerMessage: string | undefined;
+        try {
+          const payload = JSON.parse(answer) as unknown;
+          if (isRecord(payload)) safeServerMessage = stringValue(payload.error);
+        } catch {
+          safeServerMessage = undefined;
+        }
+        throw new PrivateRoomStartError(
+          safeServerMessage
+            ?? (es
+              ? "No se pudo iniciar el servicio privado de conversación."
+              : "The private conversation service could not start."),
+        );
+      }
       await peer.setRemoteDescription({ type: "answer", sdp: answer });
       if (!sessionIsCurrent()) return;
       startLockRef.current = false;
@@ -927,9 +948,11 @@ export function ChatExperience({ locale }: { locale: Locale }) {
         setAudioBlocked(false);
         setInputMode(null);
         setConnectionState("error");
-        setErrorMessage(es
-          ? "No se pudo iniciar la sala privada. Actualice la página, confirme su sesión e inténtelo de nuevo."
-          : "The private room could not start. Refresh, confirm your sign-in, and try again.");
+        setErrorMessage(error instanceof PrivateRoomStartError
+          ? error.message
+          : (es
+            ? "No se pudo iniciar la sala privada. Actualice la página, confirme su sesión e inténtelo de nuevo."
+            : "The private room could not start. Refresh, confirm your sign-in, and try again."));
       }
     }
   }, [

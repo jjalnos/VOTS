@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 type ProvisionStatus = "disabled" | "created" | "already-present";
+type RotationStatus = "disabled" | "password-rotated" | "already-current";
 
 const startupMocks = vi.hoisted(() => {
   const migrationSql = Object.assign(vi.fn(async () => []), {
@@ -12,6 +13,9 @@ const startupMocks = vi.hoisted(() => {
     migrate: vi.fn(async () => undefined),
     ensureInitialCurator: vi.fn(async () => undefined),
     ensureAdditionalAdminCurator: vi.fn<() => Promise<ProvisionStatus>>(
+      async () => "disabled",
+    ),
+    ensureOwnerPasswordRotation: vi.fn<() => Promise<RotationStatus>>(
       async () => "disabled",
     ),
     ensureDemonstrationViewer: vi.fn(async () => undefined),
@@ -48,6 +52,11 @@ vi.mock("@/lib/auth/provision-admin-curator", () => ({
     startupMocks.ensureAdditionalAdminCurator,
 }));
 
+vi.mock("@/lib/auth/rotate-susanne-owner-password", () => ({
+  ensureSusanneOwnerPasswordRotationFromEnvironment:
+    startupMocks.ensureOwnerPasswordRotation,
+}));
+
 vi.mock("@/lib/publication/seed-catalog", () => ({
   ensurePublishedCatalogFromEnvironment: startupMocks.ensurePublishedCatalog,
   syncDemonstrationFlagFromCode: startupMocks.syncDemonstrationFlag,
@@ -76,6 +85,7 @@ beforeEach(() => {
   startupMocks.migrate.mockClear();
   startupMocks.ensureInitialCurator.mockReset().mockResolvedValue(undefined);
   startupMocks.ensureAdditionalAdminCurator.mockReset().mockResolvedValue("disabled");
+  startupMocks.ensureOwnerPasswordRotation.mockReset().mockResolvedValue("disabled");
   startupMocks.ensureDemonstrationViewer.mockReset().mockResolvedValue(undefined);
   startupMocks.ensurePublishedCatalog.mockReset().mockResolvedValue("disabled");
   startupMocks.syncPortraits.mockReset().mockResolvedValue(undefined);
@@ -90,6 +100,29 @@ afterEach(() => {
 });
 
 describe("additional administrator/curator startup containment", () => {
+  it("keeps the application starting when owner rotation fails without logging its secret", async () => {
+    const secret = "do-not-log-this-owner-rotation-secret";
+    vi.stubEnv("SUSANNE_OWNER_PASSWORD_ROTATION_CONFIRM", "INVALID");
+    vi.stubEnv("SUSANNE_OWNER_PASSWORD_ROTATION_PASSWORD", secret);
+    startupMocks.ensureOwnerPasswordRotation.mockImplementation(async () => {
+      delete process.env.SUSANNE_OWNER_PASSWORD_ROTATION_PASSWORD;
+      throw new Error(`Malformed rotation configuration contained ${secret}`);
+    });
+    const errorLog = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const { runApplicationStartup } = await import("@/lib/startup");
+
+    await expect(runApplicationStartup()).resolves.toBeUndefined();
+
+    expect(startupMocks.ensureInitialCurator).toHaveBeenCalledOnce();
+    expect(startupMocks.ensureAdditionalAdminCurator).toHaveBeenCalledOnce();
+    expect(process.env.SUSANNE_OWNER_PASSWORD_ROTATION_PASSWORD).toBeUndefined();
+    const loggedText = errorLog.mock.calls.flat().map(String).join(" ");
+    expect(loggedText).toMatch(/rotation was skipped/i);
+    expect(loggedText).toMatch(/protected deployment configuration/i);
+    expect(loggedText).not.toContain(secret);
+    expect(loggedText).not.toContain("Malformed rotation configuration");
+  });
+
   it("keeps the application starting when provisioning configuration is malformed without logging its secret", async () => {
     const secret = "do-not-log-this-provisioning-secret";
     vi.stubEnv("PROVISION_ADMIN_CURATOR_CONFIRM", "INVALID_CONFIRMATION");

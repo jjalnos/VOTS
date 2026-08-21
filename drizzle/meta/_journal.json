@@ -50,6 +50,13 @@
       "when": 1786940000000,
       "tag": "0006_survivor_portrait",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1787349050305,
+      "tag": "0007_auth_session_version",
+      "breakpoints": true
     }
   ]
 }

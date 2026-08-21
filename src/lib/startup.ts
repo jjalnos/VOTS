@@ -6,6 +6,7 @@ import * as schema from "@/db/schema";
 import { ensureInitialCuratorFromEnvironment } from "@/lib/auth/bootstrap-curator";
 import { ensureDemonstrationViewerFromEnvironment } from "@/lib/auth/bootstrap-viewer";
 import { ensureAdditionalAdminCuratorFromEnvironment } from "@/lib/auth/provision-admin-curator";
+import { ensureSusanneOwnerPasswordRotationFromEnvironment } from "@/lib/auth/rotate-susanne-owner-password";
 import {
   ensurePublishedCatalogFromEnvironment,
   syncDemonstrationFlagFromCode,
@@ -20,9 +21,13 @@ const startupState = globalThis as typeof globalThis & {
 /** Runs checked-in database migrations before accepting live application work. */
 export async function runApplicationStartup(): Promise<void> {
   if (process.env.DATABASE_AUTO_MIGRATE !== "true") {
+    if (process.env.SUSANNE_OWNER_PASSWORD_ROTATION_CONFIRM) {
+      delete process.env.SUSANNE_OWNER_PASSWORD_ROTATION_PASSWORD;
+    }
     if (
       process.env.BOOTSTRAP_CONFIRM ||
-      process.env.PROVISION_ADMIN_CURATOR_CONFIRM?.trim()
+      process.env.PROVISION_ADMIN_CURATOR_CONFIRM?.trim() ||
+      process.env.SUSANNE_OWNER_PASSWORD_ROTATION_CONFIRM
     ) {
       throw new Error("Database migrations must be enabled for the controlled bootstrap.");
     }
@@ -48,6 +53,20 @@ export async function runApplicationStartup(): Promise<void> {
       await migrate(migrationDatabase, {
         migrationsFolder: path.join(process.cwd(), "drizzle"),
       });
+      // Password rotation runs before any startup path that can create a user,
+      // so it can only ever update an identity that already existed.
+      try {
+        const status = await ensureSusanneOwnerPasswordRotationFromEnvironment();
+        if (status === "password-rotated") {
+          console.log("Owner password rotation completed.");
+        } else if (status === "already-current") {
+          console.log("Owner password rotation was already completed.");
+        }
+      } catch {
+        console.error(
+          "Owner password rotation was skipped after a validation or execution failure. Review the protected deployment configuration.",
+        );
+      }
       await ensureInitialCuratorFromEnvironment();
       // Additional owners are an exceptional, one-time operator action. Any
       // malformed or unsafe request is reported without preventing the archive

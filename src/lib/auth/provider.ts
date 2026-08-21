@@ -46,7 +46,9 @@ export async function authenticateConfiguredUser(input: {
   if (provider === "database") return authenticateDatabaseUser(input);
   if (provider === "development") {
     const actor = authenticateDevelopmentUser(input.email, input.password, input.mfaCode);
-    return actor ? { status: "authenticated", actor } : { status: "invalid" };
+    return actor
+      ? { status: "authenticated", actor, sessionVersion: 1 }
+      : { status: "invalid" };
   }
   return { status: "unavailable" };
 }
@@ -57,6 +59,7 @@ export async function resolveConfiguredSessionActor(payload: SessionPayload): Pr
     return resolveDatabaseSessionActor({
       userId: payload.userId,
       mfaVerified: payload.mfaVerified,
+      sessionVersion: payload.sessionVersion,
     });
   }
   if (provider === "development") {

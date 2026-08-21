@@ -39,6 +39,7 @@ function sessionCookie(
       displayName: userId,
       roles,
       mfaVerified,
+      sessionVersion: 1,
       issuedAt: now - 1_000,
       expiresAt: now + 60_000,
     },

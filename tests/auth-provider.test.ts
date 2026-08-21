@@ -9,6 +9,7 @@ const identity: DatabaseIdentity = {
   email: "person@example.org",
   displayName: "Archive user",
   passwordHash: null,
+  sessionVersion: 1,
   mfaRequired: false,
   mfaProviderReference: null,
   active: true,
@@ -30,6 +31,11 @@ describe("authentication provider boundaries", () => {
     expect(actorFromDatabaseIdentity(identity, false)?.familyId).toBe(identity.activeFamilyIds[0]);
     expect(actorFromDatabaseIdentity({ ...identity, activeFamilyIds: [] }, false)).toBeNull();
     expect(actorFromDatabaseIdentity({ ...identity, activeFamilyIds: ["one", "two"] }, false)).toBeNull();
+  });
+
+  it("invalidates a session whose version predates credential rotation", () => {
+    expect(actorFromDatabaseIdentity(identity, false, 1)).not.toBeNull();
+    expect(actorFromDatabaseIdentity({ ...identity, sessionVersion: 2 }, false, 1)).toBeNull();
   });
 
   it("requires MFA for every staff identity", () => {
@@ -67,6 +73,7 @@ describe("authentication provider boundaries", () => {
       displayName: "Staff",
       roles: ["curator"],
       mfaVerified: false,
+      sessionVersion: 1,
       issuedAt: 1,
       expiresAt: 2,
     };

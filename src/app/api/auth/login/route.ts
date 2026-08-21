@@ -69,7 +69,12 @@ export async function POST(request: Request) {
   const sessionActor = isStaff && !staffMfaRequired()
     ? { ...actor, mfaVerified: true }
     : actor;
-  const token = signSession({ ...sessionActor, issuedAt, expiresAt: issuedAt + 8 * 60 * 60 * 1000 }, secret);
+  const token = signSession({
+    ...sessionActor,
+    sessionVersion: authentication.sessionVersion,
+    issuedAt,
+    expiresAt: issuedAt + 8 * 60 * 60 * 1000,
+  }, secret);
   // Curators and the read-only demonstration account both start at the
   // registry: it is the record everything else in the archive hangs from.
   const destination = actor.roles.includes("curator") || actor.roles.includes("viewer")

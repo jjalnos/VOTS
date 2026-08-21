@@ -31,6 +31,21 @@ describe("Cloudways startup safety", () => {
     await expect(runApplicationStartup()).rejects.toThrow(/migrations must be enabled/i);
   });
 
+  it("refuses owner password rotation without migrations and clears its plaintext", async () => {
+    vi.stubEnv("DATABASE_AUTO_MIGRATE", "false");
+    vi.stubEnv(
+      "SUSANNE_OWNER_PASSWORD_ROTATION_CONFIRM",
+      "ROTATE_EXISTING_SUSANNE_OWNER_PASSWORD",
+    );
+    vi.stubEnv(
+      "SUSANNE_OWNER_PASSWORD_ROTATION_PASSWORD",
+      "do-not-retain-this-plaintext",
+    );
+
+    await expect(runApplicationStartup()).rejects.toThrow(/migrations must be enabled/i);
+    expect(process.env.SUSANNE_OWNER_PASSWORD_ROTATION_PASSWORD).toBeUndefined();
+  });
+
   it("journals encrypted archive and paid-usage schema before bootstrap", () => {
     const journal = JSON.parse(readFileSync("drizzle/meta/_journal.json", "utf8")) as {
       entries: Array<{ tag: string }>;
@@ -43,6 +58,7 @@ describe("Cloudways startup safety", () => {
       "0004_survivor_registry",
       "0005_viewer_role",
       "0006_survivor_portrait",
+      "0007_auth_session_version",
     ]);
 
     const archiveMigration = readFileSync(
@@ -105,10 +121,49 @@ describe("Cloudways startup safety", () => {
     expect(bootstrap).toContain('action: "identity.initial_curator_password_rotated"');
     expect(bootstrap).toContain("actorUserId: null");
     expect(bootstrap).toContain(
+      "sessionVersion: sql`${users.sessionVersion} + 1`",
+    );
+    expect(bootstrap).toContain(
       "Initial-curator password rotation refused because the configured identity does not exist.",
     );
     expect(bootstrap.indexOf('!names.has("admin")')).toBeLessThan(
       bootstrap.indexOf("if (rotationId)"),
+    );
+  });
+
+  it("keeps existing-owner recovery scoped, one-time, and operator-audited", () => {
+    const rotation = readFileSync(
+      "src/lib/auth/rotate-susanne-owner-password.ts",
+      "utf8",
+    );
+    expect(rotation).toContain("ROTATE_EXISTING_SUSANNE_OWNER_PASSWORD");
+    expect(rotation).toContain("SUSANNE_OWNER_PASSWORD_ROTATION_OPERATION_ID");
+    expect(rotation).toContain(
+      "delete process.env.SUSANNE_OWNER_PASSWORD_ROTATION_PASSWORD",
+    );
+    expect(rotation).toContain(
+      'const PINNED_OWNER_EMAIL = "jeremy@clicksmith.net"',
+    );
+    expect(rotation).toContain("targetEmail !== PINNED_OWNER_EMAIL");
+    expect(rotation).toContain("ownerEmail !== PINNED_OWNER_EMAIL");
+    expect(rotation).toContain('roleNames.has("admin")');
+    expect(rotation).toContain('roleNames.has("curator")');
+    expect(rotation).toContain(".for(\"update\")");
+    expect(rotation).toContain("onConflictDoNothing({ target: auditEvents.id })");
+    expect(rotation).toContain(
+      'action: "identity.susanne_owner_password_rotated"',
+    );
+    expect(rotation).toContain("actorUserId: null");
+    const metadataBlock = rotation.match(
+      /metadata:\s*{[\s\S]*?},\s*occurredAt/,
+    )?.[0];
+    expect(metadataBlock).toBeDefined();
+    expect(metadataBlock).not.toMatch(/password(?:Hash)?\s*:/i);
+    expect(rotation).not.toContain(".insert(users)");
+    expect(rotation).not.toContain(".insert(userRoles)");
+    expect(rotation).not.toContain(".update(userRoles)");
+    expect(rotation).toContain(
+      "sessionVersion: sql`${users.sessionVersion} + 1`",
     );
   });
 });

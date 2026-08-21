@@ -52,6 +52,7 @@ export const users = pgTable(
     email: varchar("email", { length: 320 }).notNull(),
     displayName: varchar("display_name", { length: 180 }).notNull(),
     passwordHash: text("password_hash"),
+    sessionVersion: integer("session_version").default(1).notNull(),
     mfaRequired: boolean("mfa_required").default(false).notNull(),
     mfaProviderReference: text("mfa_provider_reference"),
     active: boolean("active").default(true).notNull(),

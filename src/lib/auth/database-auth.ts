@@ -12,7 +12,7 @@ import { staffMfaRequired, verifyStaffMfa } from "@/lib/auth/mfa";
 import { hashPassword, verifyPasswordAsync } from "@/lib/auth/password";
 
 export type AuthenticationResult =
-  | { status: "authenticated"; actor: Actor }
+  | { status: "authenticated"; actor: Actor; sessionVersion: number }
   | { status: "invalid" }
   | { status: "unavailable" };
 
@@ -26,6 +26,7 @@ export interface DatabaseIdentity {
   email: string;
   displayName: string;
   passwordHash: string | null;
+  sessionVersion: number;
   mfaRequired: boolean;
   mfaProviderReference: string | null;
   active: boolean;
@@ -33,8 +34,16 @@ export interface DatabaseIdentity {
   activeFamilyIds: string[];
 }
 
-export function actorFromDatabaseIdentity(identity: DatabaseIdentity, mfaVerified: boolean): Actor | null {
+export function actorFromDatabaseIdentity(
+  identity: DatabaseIdentity,
+  mfaVerified: boolean,
+  expectedSessionVersion?: number,
+): Actor | null {
   if (!identity.active || !identity.roles.length) return null;
+  if (
+    expectedSessionVersion !== undefined &&
+    identity.sessionVersion !== expectedSessionVersion
+  ) return null;
   const isStaff = identity.roles.some((role) => role === "admin" || role === "curator");
   const enforceStaffMfa = isStaff && staffMfaRequired();
   if (enforceStaffMfa && (!identity.mfaRequired || !mfaVerified)) return null;
@@ -77,6 +86,7 @@ async function loadIdentityBy(column: "id" | "email", value: string): Promise<Da
     email: user.email,
     displayName: user.displayName,
     passwordHash: user.passwordHash,
+    sessionVersion: user.sessionVersion,
     mfaRequired: user.mfaRequired,
     mfaProviderReference: user.mfaProviderReference,
     active: user.active,
@@ -132,7 +142,7 @@ export async function authenticateDatabaseUser(input: {
         occurredAt: now,
       });
     });
-    return { status: "authenticated", actor };
+    return { status: "authenticated", actor, sessionVersion: identity.sessionVersion };
   } catch {
     return { status: "unavailable" };
   }
@@ -141,12 +151,17 @@ export async function authenticateDatabaseUser(input: {
 export async function resolveDatabaseSessionActor(input: {
   userId: string;
   mfaVerified: boolean;
+  sessionVersion: number;
 }): Promise<Actor | null> {
   if (!process.env.DATABASE_URL) return null;
   try {
     const identity = await loadIdentityBy("id", input.userId);
     if (!identity) return null;
-    return actorFromDatabaseIdentity(identity, input.mfaVerified);
+    return actorFromDatabaseIdentity(
+      identity,
+      input.mfaVerified,
+      input.sessionVersion,
+    );
   } catch {
     return null;
   }

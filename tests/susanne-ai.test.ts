@@ -72,6 +72,7 @@ function sessionCookie(input: {
       displayName: "Archive owner",
       roles: input.roles ?? ["admin"],
       mfaVerified: input.mfaVerified ?? true,
+      sessionVersion: 1,
       issuedAt: now - 1_000,
       expiresAt: now + 60_000,
     },

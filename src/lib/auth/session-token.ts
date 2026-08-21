@@ -3,6 +3,7 @@ import type { Actor } from "@/lib/auth/policy";
 import { ROLES } from "@/lib/domain/types";
 
 export interface SessionPayload extends Actor {
+  sessionVersion: number;
   issuedAt: number;
   expiresAt: number;
 }
@@ -40,6 +41,8 @@ export function verifySession(
       typeof payload.email !== "string" ||
       typeof payload.displayName !== "string" ||
       typeof payload.mfaVerified !== "boolean" ||
+      !Number.isSafeInteger(payload.sessionVersion) ||
+      payload.sessionVersion < 1 ||
       !Array.isArray(payload.roles) ||
       !payload.roles.every((role) => ROLES.includes(role)) ||
       typeof payload.issuedAt !== "number" ||

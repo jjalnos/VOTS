@@ -5,6 +5,7 @@ import { PublicShell } from "@/components/public-shell";
 import { StatusPill } from "@/components/status-pill";
 import { localeFrom, t } from "@/lib/i18n";
 import { getArchiveRepository } from "@/lib/repository";
+import { testimonyFor, testimonyVerb } from "@/lib/publication/testimony";
 
 export const metadata: Metadata = { title: "Published profile / Perfil publicado" };
 
@@ -19,6 +20,7 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
   const sources = catalog.sources.filter((source) =>
     releases.some((release) => release.sourceIds.includes(source.id)),
   );
+  const testimony = testimonyFor(survivor.slug);
 
   return (
     <PublicShell locale={locale} path={`/profiles/${slug}`}>
@@ -56,6 +58,27 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
             </dl>
           </article>
           <aside className="card">
+            {testimony.length ? (
+              <div className="testimony">
+                <p className="eyebrow">{locale === "es" ? "En sus propias palabras" : "In their own words"}</p>
+                <h2>{locale === "es" ? "Testimonio" : "Testimony"}</h2>
+                <ul className="testimony-list">
+                  {testimony.map((entry) => (
+                    <li key={entry.url + entry.kind}>
+                      <a href={entry.url} rel="noreferrer">
+                        <span className="testimony-verb">{testimonyVerb(entry.kind, locale)}</span>
+                        {entry.label[locale]}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+                <p className="testimony-note">
+                  {locale === "es"
+                    ? "Publicado por el Museo Conmemorativo del Holocausto de San Antonio."
+                    : "Published by the Holocaust Memorial Museum of San Antonio."}
+                </p>
+              </div>
+            ) : null}
             <p className="eyebrow">{locale === "es" ? "Procedencia" : "Provenance"}</p>
             <h2>{locale === "es" ? "Fuentes aprobadas" : "Approved sources"}</h2>
             <ol className="source-list">

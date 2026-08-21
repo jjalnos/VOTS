@@ -41,12 +41,7 @@ export default async function Home({ searchParams }: PageProps<"/">) {
 
   return (
     <PublicShell locale={locale} path="/">
-      <ArchiveHome
-        locale={locale}
-        featuredRecords={featured}
-        counts={counts}
-        signedIn={Boolean(actor)}
-      />
+      <ArchiveHome locale={locale} featuredRecords={featured} counts={counts} />
     </PublicShell>
   );
 }

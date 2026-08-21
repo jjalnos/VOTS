@@ -33,6 +33,11 @@ export function SiteFooter({ locale }: { locale: Locale }) {
       <div className="footer-colophon">
         <div className="content-wrap">
           <p>
+            {locale === "es"
+              ? "Fotografías por cortesía del Museo Conmemorativo del Holocausto de San Antonio y de las familias sobrevivientes."
+              : "Photographs courtesy of the Holocaust Memorial Museum of San Antonio and the survivor families."}
+          </p>
+          <p>
             {locale === "es" ? "Donado por " : "Donated by "}
             <a href="https://clicksmith.net" target="_blank" rel="noreferrer">
               Clicksmith

@@ -2,28 +2,58 @@ import Link from "next/link";
 import styles from "./archive-home.module.css";
 import type { Locale } from "@/lib/domain/types";
 import { withLocale } from "@/lib/i18n";
-import type { FeaturedRecord } from "@/lib/publication/featured-records";
+import type { FeaturedRecord, FeaturedRecordSlug } from "@/lib/publication/featured-records";
+
+const DONATE_URL = "https://portal.clicksmith.net/donate/voices-of-the-shoah";
+const SUPPORT_EMAIL = "support@clicksmith.net";
+
+interface RoadmapStop {
+  title: string;
+  detail: string;
+  status: "done" | "now" | "ahead";
+}
 
 interface HomeCopy {
   heroTitle: string;
   heroLead: string;
   heroAction: string;
-  survivorsEyebrow: Record<string, string>;
+  survivorsEyebrow: Record<FeaturedRecordSlug, string>;
+  photoAlts: Record<FeaturedRecordSlug, string>;
+  photoCredit: Record<FeaturedRecordSlug, string>;
   readStory: string;
+  missionEyebrow: string;
+  missionTitle: string;
+  missionBody: string[];
+  armbandAlt: string;
+  armbandCaption: string;
+  armbandCaptionLinkLabel: string;
+  roadmapEyebrow: string;
+  roadmapTitle: string;
+  roadmapStops: RoadmapStop[];
+  statusLabels: Record<RoadmapStop["status"], string>;
+  fundingEyebrow: string;
+  fundingTitle: string;
+  fundingBody: string;
+  fundingAction: string;
+  fundingDisclosure: string;
+  fundingContact: string;
+  registryHeading: string;
+  registryNote: string;
   namesLabel: string;
   photographsLabel: string;
   recordsLabel: string;
   searchLabel: string;
   searchPlaceholder: string;
   searchAction: string;
-  browseAll: (count: number | null) => string;
+  browseAll: string;
   photoAlt: string;
 }
 
-function copyFor(locale: Locale): HomeCopy {
+function copyFor(locale: Locale, names: number | null): HomeCopy {
   if (locale === "es") {
+    const nombres = names ? `${names} nombres` : "más de trescientos nombres";
     return {
-      heroTitle: "Cuatro generaciones sobrevivieron para hablar.",
+      heroTitle: "Sobrevivieron. Cuatro generaciones hablan.",
       heroLead:
         "Este archivo preserva las voces, los rostros y los registros de las familias de la Shoá en San Antonio.",
       heroAction: "Conocer a los sobrevivientes",
@@ -31,19 +61,79 @@ function copyFor(locale: Locale): HomeCopy {
         "sam-cohen": "Testimonio grabado",
         "stephan-jalnos": "Compartido por un descendiente",
       },
+      photoAlts: {
+        "sam-cohen":
+          "Retrato de Sam Cohen de joven, de la colección del Museo Conmemorativo del Holocausto de San Antonio",
+        "stephan-jalnos": "La familia Jalnos, cuatro generaciones fotografiadas juntas",
+      },
+      photoCredit: {
+        "sam-cohen": "Fotografía: Museo Conmemorativo del Holocausto de San Antonio",
+        "stephan-jalnos": "Fotografía: cortesía de la familia Jalnos",
+      },
       readStory: "Leer su historia",
+      missionEyebrow: "El proyecto",
+      missionTitle: "Cada sobreviviente deja documentos, fotografías y una voz. Este es el lugar donde se guardan.",
+      missionBody: [
+        "Voices of the Shoah es un comité de voluntarios del Museo Conmemorativo del Holocausto de San Antonio. Estamos construyendo el archivo digital permanente de la comunidad de sobrevivientes del museo: cada testimonio, cada documento y cada fotografía, organizados por sobreviviente y por familia.",
+        `La curadora del museo ya trabaja en este archivo. El registro reúne ${nombres} a lo largo de cuatro generaciones, y los primeros perfiles publicados muestran lo que será cada historia: verificada y citada.`,
+      ],
+      armbandAlt:
+        "Brazalete con la estrella de David sobre tablas de madera desgastada, de la colección del museo",
+      armbandCaption: "Brazalete con la estrella de David — colección del Museo Conmemorativo del Holocausto de San Antonio · ",
+      armbandCaptionLinkLabel: "hmmsa.org",
+      roadmapEyebrow: "Hacia dónde vamos",
+      roadmapTitle: "Un archivo se construye por etapas.",
+      roadmapStops: [
+        {
+          title: "El registro de sobrevivientes",
+          detail: `${nombres.charAt(0).toUpperCase() + nombres.slice(1)}, organizados por familia y generación, al cuidado de la curadora del museo.`,
+          status: "done",
+        },
+        {
+          title: "El repositorio de documentos",
+          detail: "Cartas, fotografías, grabaciones y objetos, digitalizados y vinculados a la persona a la que pertenecen.",
+          status: "now",
+        },
+        {
+          title: "El asistente de investigación",
+          detail: "La meta: preguntas en lenguaje natural sobre toda la colección, donde cada respuesta remite a su fuente.",
+          status: "ahead",
+        },
+        {
+          title: "El archivo público",
+          detail: "Historias que cada familia revisará y aprobará antes de abrirse a estudiantes e investigadores.",
+          status: "ahead",
+        },
+        {
+          title: "Un quiosco en el museo",
+          detail: "Las voces del archivo, presentes en las salas adonde San Antonio acude a recordar.",
+          status: "ahead",
+        },
+      ],
+      statusLabels: { done: "En línea", now: "En construcción", ahead: "Previsto" },
+      fundingEyebrow: "Apoye este trabajo",
+      fundingTitle: "Este archivo busca financiamiento.",
+      fundingBody:
+        "Voices of the Shoah se construye con trabajo voluntario y donaciones. Su aporte financia el desarrollo del archivo: el registro, el repositorio de documentos y las herramientas de investigación.",
+      fundingAction: "Apoyar el archivo",
+      fundingDisclosure:
+        "Las donaciones financian el trabajo de desarrollo del comité y las procesa Clicksmith, el desarrollador web del proyecto. No son donativos deducibles de impuestos al Museo Conmemorativo del Holocausto de San Antonio.",
+      fundingContact: `Preguntas y propuestas: ${SUPPORT_EMAIL}`,
+      registryHeading: "El registro",
+      registryNote: "El registro completo se conserva de forma privada, al cuidado de la curadora del museo.",
       namesLabel: "Nombres en el registro",
       photographsLabel: "Fotografías familiares",
       recordsLabel: "Registros publicados",
-      searchLabel: "Buscar en el archivo por nombre",
+      searchLabel: "Buscar por nombre en el archivo publicado",
       searchPlaceholder: "Buscar un nombre…",
       searchAction: "Buscar",
-      browseAll: (count) => (count ? `Ver los ${count} nombres` : "Ver todos los nombres"),
+      browseAll: "Ver los registros publicados",
       photoAlt: "Cuatro generaciones de una familia sobreviviente, fotografiadas juntas",
     };
   }
+  const nameCount = names ? `${names} names` : "more than three hundred names";
   return {
-    heroTitle: "Four generations survived to speak.",
+    heroTitle: "They survived. Four generations speak.",
     heroLead:
       "This archive preserves the voices, faces, and records of the survivor families of San Antonio.",
     heroAction: "Meet the survivors",
@@ -51,14 +141,73 @@ function copyFor(locale: Locale): HomeCopy {
       "sam-cohen": "Recorded testimony",
       "stephan-jalnos": "Shared by a descendant",
     },
+    photoAlts: {
+      "sam-cohen":
+        "Portrait of Sam Cohen as a young man, from the collection of the Holocaust Memorial Museum of San Antonio",
+      "stephan-jalnos": "The Jalnos family, four generations photographed together",
+    },
+    photoCredit: {
+      "sam-cohen": "Photograph: Holocaust Memorial Museum of San Antonio",
+      "stephan-jalnos": "Photograph: courtesy of the Jalnos family",
+    },
     readStory: "Read their story",
+    missionEyebrow: "The project",
+    missionTitle: "Every survivor leaves documents, photographs, and a voice. This is where they are kept.",
+    missionBody: [
+      "Voices of the Shoah is a volunteer committee of the Holocaust Memorial Museum of San Antonio. We are building the permanent digital archive of the museum's survivor community — every testimony, document, and photograph, organized by survivor and by family.",
+      `The museum's curator already works in this archive. The registry holds ${nameCount} across four generations, and the first published profiles show what every story will become: verified and cited.`,
+    ],
+    armbandAlt:
+      "Star of David armband resting on weathered wooden boards, from the museum's collection",
+    armbandCaption: "Star of David armband — collection of the Holocaust Memorial Museum of San Antonio · ",
+    armbandCaptionLinkLabel: "hmmsa.org",
+    roadmapEyebrow: "Where this is going",
+    roadmapTitle: "An archive is built in stages.",
+    roadmapStops: [
+      {
+        title: "The survivor registry",
+        detail: `${nameCount.charAt(0).toUpperCase() + nameCount.slice(1)}, organized by family and generation, in the care of the museum's curator.`,
+        status: "done",
+      },
+      {
+        title: "The document repository",
+        detail: "Letters, photographs, recordings, and artifacts, digitized and joined to the person they belong to.",
+        status: "now",
+      },
+      {
+        title: "The research assistant",
+        detail: "The aim: plain-language questions across the whole collection, with every answer traced back to its source.",
+        status: "ahead",
+      },
+      {
+        title: "The public archive",
+        detail: "Stories to be reviewed and approved by each family before they open to students and researchers.",
+        status: "ahead",
+      },
+      {
+        title: "A kiosk in the museum",
+        detail: "The archive's voices, present in the rooms where San Antonio comes to remember.",
+        status: "ahead",
+      },
+    ],
+    statusLabels: { done: "Live today", now: "In progress", ahead: "Planned" },
+    fundingEyebrow: "Support this work",
+    fundingTitle: "This archive is looking for funding.",
+    fundingBody:
+      "Voices of the Shoah is built by volunteers and funded by donations. Your support pays for the development of the archive itself — the registry, the document repository, and the research tools.",
+    fundingAction: "Support the archive",
+    fundingDisclosure:
+      "Donations fund the committee's development work and are processed by Clicksmith, the project's web developer. They are not tax-deductible gifts to the Holocaust Memorial Museum of San Antonio.",
+    fundingContact: `Questions and proposals: ${SUPPORT_EMAIL}`,
+    registryHeading: "The registry",
+    registryNote: "The full registry is held privately, in the care of the museum's curator.",
     namesLabel: "Names in the registry",
     photographsLabel: "Family photographs",
     recordsLabel: "Published records",
-    searchLabel: "Search the archive by name",
+    searchLabel: "Search the published archive by name",
     searchPlaceholder: "Search for a name…",
     searchAction: "Search",
-    browseAll: (count) => (count ? `Browse all ${count} names` : "Browse all names"),
+    browseAll: "Browse the published records",
     photoAlt: "Four generations of a survivor family, photographed together",
   };
 }
@@ -69,24 +218,38 @@ export interface ArchiveCounts {
   records: number;
 }
 
+/* Typed by slug so adding a featured survivor fails the build until a real
+   portrait is supplied. There is deliberately no fallback image: showing one
+   family's photograph under another survivor's name is the one mistake this
+   page must make impossible. */
+const ROW_PHOTOS: Record<FeaturedRecordSlug, string> = {
+  "sam-cohen": "/sam-cohen-portrait.jpg",
+  "stephan-jalnos": "/generation-to-generation-family.png",
+};
+
+const STATUS_CLASS: Record<RoadmapStop["status"], string> = {
+  done: styles.done,
+  now: styles.now,
+  ahead: styles.ahead,
+};
+
 export function ArchiveHome({
   locale,
   featuredRecords,
   counts,
-  signedIn = false,
 }: {
   locale: Locale;
   featuredRecords: FeaturedRecord[];
   counts: ArchiveCounts;
-  signedIn?: boolean;
 }) {
-  const content = copyFor(locale);
-  void signedIn;
+  const content = copyFor(locale, counts.names);
 
   return (
     <div className={styles.page}>
-      {/* Viewport 1 — split hero. The photograph gets its own zone; no text
-          ever sits on it. It is the one full-color image on the site. */}
+      {/* Movement 1 — split hero. The museum's own exhibit hall grounds the
+          text panel, faded to a whisper under paper; the photograph gets its
+          own zone and no text ever sits on it. It is the one full-color
+          image on the site. */}
       <section className={styles.hero} aria-labelledby="archive-introduction">
         <div className={styles.heroPanel}>
           <div className={styles.heroPanelInner}>
@@ -103,7 +266,7 @@ export function ArchiveHome({
         </div>
       </section>
 
-      {/* Viewport 2 — the survivors as editorial rows. Whitespace is the card. */}
+      {/* Movement 2 — the survivors as editorial rows. Whitespace is the card. */}
       {featuredRecords.map((record, index) => (
         <section
           key={record.slug}
@@ -113,26 +276,96 @@ export function ArchiveHome({
           <div className={index % 2 ? styles.rowInnerReversed : styles.rowInner}>
             <div className={`memorial-photo ${styles.rowPhoto}`} data-slug={record.slug}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={record.slug === "sam-cohen" ? "/sam-cohen-family.jpg" : "/generation-to-generation-family.png"}
-                alt={record.name}
-              />
+              <img src={ROW_PHOTOS[record.slug]} alt={content.photoAlts[record.slug]} />
             </div>
             <div className={styles.rowText}>
-              <p className="eyebrow">{content.survivorsEyebrow[record.slug] ?? ""}</p>
+              <p className="eyebrow">{content.survivorsEyebrow[record.slug]}</p>
               <h2 id={`survivor-${record.slug}`}>{record.name}</h2>
               <p className={styles.rowSummary}>{record.summary}</p>
-              <p className={styles.rowCitation}>{record.citation}</p>
+              <p className={styles.rowCitation}>
+                {record.citation}
+                <br />
+                {content.photoCredit[record.slug]}
+              </p>
               <Link className={styles.rowLink} href={withLocale(`/profiles/${record.slug}`, locale)}>
-                {content.readStory} →
+                {content.readStory} <span aria-hidden="true">→</span>
               </Link>
             </div>
           </div>
         </section>
       ))}
 
-      {/* Viewport 3 — the registry made real: scale, then a way in. */}
-      <section className={styles.registryBand} aria-label={content.searchLabel}>
+      {/* Movement 3 — why this exists. Museum wall text, not marketing. */}
+      <section className={styles.mission} aria-labelledby="mission-title">
+        <div className={styles.missionInner}>
+          <p className="eyebrow">{content.missionEyebrow}</p>
+          <h2 id="mission-title">{content.missionTitle}</h2>
+          <div className={styles.missionBody}>
+            {content.missionBody.map((paragraph, index) => (
+              <p key={index}>{paragraph}</p>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Movement 4 — an artifact from the museum's collection, shown whole,
+          under the same memorial treatment as every photograph of the era. */}
+      <figure className={styles.artifact}>
+        <div className="memorial-photo">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/hmmsa-armband.jpg" alt={content.armbandAlt} />
+        </div>
+        <figcaption>
+          {content.armbandCaption}
+          <a href="https://www.hmmsa.org">{content.armbandCaptionLinkLabel}</a>
+        </figcaption>
+      </figure>
+
+      {/* Movement 5 — the road ahead, told as intention, staged honestly. */}
+      <section className={styles.roadmap} aria-labelledby="roadmap-title">
+        <div className={styles.roadmapInner}>
+          <p className="eyebrow">{content.roadmapEyebrow}</p>
+          <h2 id="roadmap-title">{content.roadmapTitle}</h2>
+          {/* role="list" restores list semantics that list-style: none strips
+              in Safari/VoiceOver — the order is the point of this section. */}
+          <ol className={styles.roadmapList} role="list">
+            {content.roadmapStops.map((stop, index) => (
+              <li key={stop.title} className={STATUS_CLASS[stop.status]}>
+                <span className={styles.roadmapNumber} aria-hidden="true">
+                  {index + 1}
+                </span>
+                <div>
+                  <p className={styles.roadmapStatus}>{content.statusLabels[stop.status]}</p>
+                  <h3>{stop.title}</h3>
+                  <p className={styles.roadmapDetail}>{stop.detail}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      {/* Movement 6 — the ask, plainly, with the recipient named. */}
+      <section className={styles.funding} aria-labelledby="funding-title">
+        <div className={styles.fundingInner}>
+          <p className={styles.fundingEyebrow}>{content.fundingEyebrow}</p>
+          <h2 id="funding-title">{content.fundingTitle}</h2>
+          <p className={styles.fundingBody}>{content.fundingBody}</p>
+          <a className={styles.fundingAction} href={DONATE_URL}>
+            {content.fundingAction}
+          </a>
+          <p className={styles.fundingDisclosure}>{content.fundingDisclosure}</p>
+          <p className={styles.fundingContact}>
+            <a href={`mailto:${SUPPORT_EMAIL}`}>{content.fundingContact}</a>
+          </p>
+        </div>
+      </section>
+
+      {/* Movement 7 — the registry made real: scale, then a way in. */}
+      <section className={styles.registryBand} aria-labelledby="registry-heading">
+        <h2 className="sr-only" id="registry-heading">
+          {content.registryHeading}
+        </h2>
         <div className={styles.counters}>
           {counts.names ? (
             <div>
@@ -149,7 +382,10 @@ export function ArchiveHome({
             <span>{content.recordsLabel}</span>
           </div>
         </div>
-        <form className={styles.search} action={withLocale("/directory", locale).split("?")[0]} method="get" role="search">
+        <p className={styles.registryNote}>{content.registryNote}</p>
+        {/* GET submits drop the action URL's query string, so the locale rides
+            in the hidden input — the action stays the bare path. */}
+        <form className={styles.search} action="/directory" method="get" role="search">
           <input type="hidden" name="lang" value={locale} />
           <label className="sr-only" htmlFor="home-search">
             {content.searchLabel}
@@ -164,7 +400,7 @@ export function ArchiveHome({
           <button type="submit">{content.searchAction}</button>
         </form>
         <Link className={styles.browseAll} href={withLocale("/directory", locale)}>
-          {content.browseAll(counts.names)} →
+          {content.browseAll} <span aria-hidden="true">→</span>
         </Link>
       </section>
     </div>

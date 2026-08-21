@@ -1,5 +1,26 @@
 import type { Metadata, Viewport } from "next";
+import { Archivo, Fraunces } from "next/font/google";
 import "./globals.css";
+
+/**
+ * Fraunces speaks only for people: headings, names, and — once real
+ * transcripts arrive — testimony. Archivo carries the interface.
+ * next/font self-hosts both at build time; nothing loads from a CDN.
+ */
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  style: ["normal", "italic"],
+  axes: ["opsz", "SOFT", "WONK"],
+  variable: "--font-display",
+  display: "swap",
+});
+
+const archivo = Archivo({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-ui",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: {
@@ -31,7 +52,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${fraunces.variable} ${archivo.variable}`}>
       <body>
         <a className="skip-link" href="#main-content">
           Skip to content / Ir al contenido

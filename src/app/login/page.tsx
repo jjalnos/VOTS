@@ -1,40 +1,41 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { LoginForm } from "@/components/login-form";
-import { PageBanner } from "@/components/page-banner";
 import { PublicShell } from "@/components/public-shell";
-import { localeFrom } from "@/lib/i18n";
+import { localeFrom, withLocale } from "@/lib/i18n";
 import { staffMfaRequired } from "@/lib/auth/mfa";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Private access / Acceso privado", robots: { index: false, follow: false } };
+export const metadata: Metadata = {
+  title: "Sign in / Iniciar sesión",
+  robots: { index: false, follow: false },
+};
 
 export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   const locale = localeFrom((await searchParams).lang);
-  const showDevelopmentHint = process.env.NODE_ENV !== "production" && process.env.DEV_AUTH_ENABLED === "true";
+  const showDevelopmentHint =
+    process.env.NODE_ENV !== "production" && process.env.DEV_AUTH_ENABLED === "true";
   const requireStaffMfa = staffMfaRequired();
+
   return (
     <PublicShell locale={locale} path="/login">
-      <PageBanner
-        eyebrow={locale === "es" ? "Acceso por invitación" : "Invitation-only access"}
-        title={locale === "es" ? "Espacio de archivo privado" : "Private archival workspace"}
-        description={requireStaffMfa
-          ? (locale === "es" ? "Las familias usan correo y contraseña. El personal administrativo y curatorial también debe completar MFA." : "Families use email and password. Administrative and curatorial staff must also complete MFA.")
-          : (locale === "es" ? "Las familias y el personal usan correo y contraseña durante esta vista previa privada." : "Families and staff use email and password during this private preview.")}
-      />
-      <section className="section">
-        <div className="content-wrap grid-2">
-          <div className="card">
-            <LoginForm
-              locale={locale}
-              requireStaffMfa={requireStaffMfa}
-              showDevelopmentHint={showDevelopmentHint}
-            />
-          </div>
-          <aside className="card">
-            <p className="eyebrow">{locale === "es" ? "Privacidad" : "Privacy"}</p>
-            <h2>{locale === "es" ? "El acceso no implica publicación" : "Access does not mean publication"}</h2>
-            <p>{locale === "es" ? "Las contribuciones familiares permanecen privadas. Solo una decisión curatorial explícita puede crear una versión pública." : "Family contributions remain private. Only an explicit curator decision can create a public release."}</p>
-          </aside>
+      <section className="signin">
+        <div className="signin-column">
+          <h1>{locale === "es" ? "Iniciar sesión" : "Sign in"}</h1>
+          <span className="signin-rule" aria-hidden="true" />
+          <LoginForm
+            locale={locale}
+            requireStaffMfa={requireStaffMfa}
+            showDevelopmentHint={showDevelopmentHint}
+          />
+          <p className="signin-note">
+            {locale === "es"
+              ? "El acceso es para familias y personal del museo. Las contribuciones permanecen privadas hasta una decisión curatorial explícita."
+              : "Access is for families and museum staff. Contributions stay private until an explicit curator decision."}
+          </p>
+          <Link className="signin-back" href={withLocale("/", locale)}>
+            ← {locale === "es" ? "Volver al archivo" : "Back to the archive"}
+          </Link>
         </div>
       </section>
     </PublicShell>

@@ -1,20 +1,30 @@
 :root {
-  --wine: #4f0908;
-  --wine-deep: #310606;
-  --wine-soft: #7b2f2a;
-  --ink: #1d1917;
-  --ink-soft: #5f5750;
-  --paper: #f2eadb;
-  --paper-light: #fbf8f2;
-  --linen: #e4dac8;
-  --gold: #aa7a2a;
+  /* Paper & Wine — paper carries the site; wine is the one accent. */
+  --paper: #faf7f2;
+  --ink: #1a1512;
+  --muted: #6b615a;
+  --wine: #6d1a17;
+  --wine-deep: #4f0908;
+  --hairline: #e3dcd2;
+  --tint: #f1e9dd;
+
+  /* Type: Fraunces for people and headings, Archivo for the interface. */
+  --serif: var(--font-display, Georgia, "Times New Roman", serif);
+  --sans: var(--font-ui, "Avenir Next", Avenir, "Segoe UI", Helvetica, Arial, sans-serif);
+
+  /* Aliases for rules not yet rebuilt. Gold intentionally resolves to wine:
+     one accent now does everything. */
+  --paper-light: var(--paper);
+  --ink-soft: var(--muted);
+  --linen: var(--hairline);
+  --wine-soft: var(--wine);
+  --gold: var(--wine);
+  --gold-light: #c9a99a;
   --sage: #496257;
   --white: #ffffff;
   --danger: #8e1c18;
   --success: #1f5d46;
-  --shadow: 0 18px 48px rgba(49, 6, 6, 0.1);
-  --serif: Georgia, "Times New Roman", serif;
-  --sans: "Avenir Next", Avenir, "Segoe UI", Helvetica, Arial, sans-serif;
+  --shadow: none;
   --max: 1240px;
 }
 
@@ -82,13 +92,6 @@ textarea {
   transform: translateY(0);
 }
 
-.utility-bar {
-  color: var(--white);
-  background: var(--ink);
-  font-size: 0.76rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
 
 .utility-inner,
 .header-inner,
@@ -98,108 +101,124 @@ textarea {
   margin-inline: auto;
 }
 
-.utility-inner {
-  display: flex;
-  min-height: 38px;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-}
 
-.utility-links,
-.language-switcher {
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-}
 
-.language-switcher a {
-  min-width: 42px;
-  min-height: 34px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.35rem 0.5rem;
-  text-decoration: none;
-  border: 1px solid rgba(255, 255, 255, 0.35);
-}
 
-.language-switcher a[aria-current="page"] {
-  color: var(--ink);
-  background: var(--paper);
-}
 
+/* One bar. Wine-deep ground is the only place the old dark chrome survives. */
 .site-header {
-  color: var(--white);
-  background: var(--wine);
-  border-bottom: 4px solid var(--gold);
+  color: var(--paper);
+  background: var(--wine-deep);
 }
 
 .header-inner {
-  display: grid;
-  grid-template-columns: minmax(280px, 1fr) auto;
-  gap: 2rem;
+  display: flex;
   align-items: center;
-  padding-block: 1.25rem;
+  gap: 2rem;
+  min-height: 64px;
 }
 
 .brand {
   display: flex;
-  align-items: center;
-  gap: 1rem;
+  flex-direction: column;
+  gap: 0.1rem;
   text-decoration: none;
-}
-
-.brand-mark {
-  display: grid;
-  width: 54px;
-  height: 54px;
-  flex: 0 0 auto;
-  place-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.55);
-  font-family: var(--serif);
-  font-size: 1.2rem;
-  letter-spacing: -0.08em;
+  margin-right: auto;
 }
 
 .brand-name {
-  display: block;
-  max-width: 680px;
   font-family: var(--serif);
-  font-size: clamp(1.1rem, 2vw, 1.45rem);
-  line-height: 1.18;
+  font-size: 1.25rem;
+  color: var(--paper);
+  line-height: 1.1;
 }
 
 .brand-subtitle {
-  display: block;
-  margin-top: 0.22rem;
-  color: #eadbc3;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.15em;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
+  color: rgba(250, 247, 242, 0.6);
 }
 
 .primary-nav {
   display: flex;
   flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 0.2rem 1.1rem;
-  font-size: 0.9rem;
-  font-weight: 650;
+  gap: 0.2rem 1.4rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
 }
 
 .primary-nav a {
   min-height: 44px;
   display: inline-flex;
   align-items: center;
+  color: rgba(250, 247, 242, 0.85);
   text-decoration: none;
   border-bottom: 2px solid transparent;
+  transition: color 200ms ease, border-color 200ms ease;
 }
 
 .primary-nav a:hover {
-  border-color: var(--gold);
+  color: var(--paper);
+  border-color: var(--paper);
 }
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.language-switcher {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.language-switcher a {
+  color: rgba(250, 247, 242, 0.55);
+  text-decoration: none;
+  padding: 0.35rem 0.1rem;
+  border-bottom: 2px solid transparent;
+  transition: color 200ms ease;
+}
+
+.language-switcher a:hover {
+  color: var(--paper);
+}
+
+.language-switcher a[aria-current="page"] {
+  color: var(--paper);
+  border-color: var(--paper);
+}
+
+.language-rule {
+  width: 1px;
+  height: 0.9rem;
+  background: rgba(250, 247, 242, 0.25);
+}
+
+.header-signin,
+.header-actions .button.ghost-light {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgba(250, 247, 242, 0.55);
+  background: none;
+  border: none;
+  padding: 0.35rem 0;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 200ms ease;
+}
+
+.header-signin:hover,
+.header-actions .button.ghost-light:hover {
+  color: var(--paper);
+}
+
 
 .page-main {
   min-height: 64vh;
@@ -234,12 +253,11 @@ textarea {
 }
 
 .eyebrow {
-  margin: 0 0 0.8rem;
-  color: var(--wine-soft);
-  font-size: 0.75rem;
-  font-weight: 800;
-  letter-spacing: 0.15em;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
+  color: var(--muted);
 }
 
 .hero .eyebrow,
@@ -311,7 +329,7 @@ button.button {
   gap: 0.5rem;
   padding: 0.72rem 1.05rem;
   border: 1px solid var(--wine);
-  border-radius: 2px;
+  border-radius: 0;
   color: var(--white);
   background: var(--wine);
   font-weight: 750;
@@ -395,7 +413,7 @@ button.button {
   padding: var(--card-pad);
   background: var(--white);
   border: 1px solid var(--linen);
-  border-radius: 2px;
+  border-radius: 0;
   box-shadow: 0 10px 30px rgba(49, 6, 6, 0.04);
 }
 
@@ -441,7 +459,7 @@ button.button {
   text-indent: 0.16em;
   color: var(--gold-light, #ddbd82);
   border: 1px solid rgba(234, 219, 195, 0.35);
-  border-radius: 2px;
+  border-radius: 0;
   padding: 0.5rem 0.9rem;
   line-height: 1;
 }
@@ -468,7 +486,7 @@ button.button {
   align-items: center;
   padding: 0.2rem 0.55rem;
   border: 1px solid currentColor;
-  border-radius: 999px;
+  border-radius: 0;
   color: var(--sage);
   font-size: 0.7rem;
   font-weight: 800;
@@ -498,9 +516,31 @@ button.button {
 }
 
 .page-banner {
-  padding-block: clamp(3.2rem, 7vw, 6rem);
-  color: var(--white);
-  background: linear-gradient(110deg, var(--wine-deep), var(--wine));
+  background: var(--tint);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.page-banner .content-wrap {
+  padding-block: 2.25rem 2rem;
+}
+
+.page-banner h1 {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(1.75rem, 3.5vw, 2.25rem);
+  line-height: 1.15;
+  color: var(--wine);
+  margin: 0 0 0.4rem;
+}
+
+.page-banner p {
+  color: var(--muted);
+  max-width: 65ch;
+  margin: 0;
+}
+
+.page-banner .eyebrow {
+  margin-bottom: 0.35rem;
 }
 
 .page-banner h1 {
@@ -569,7 +609,7 @@ button.button {
   color: var(--ink);
   background: var(--white);
   border: 1px solid #948b80;
-  border-radius: 2px;
+  border-radius: 0;
 }
 
 .field textarea,
@@ -635,7 +675,7 @@ button.button {
   height: 0.95rem;
   background: var(--gold);
   border: 3px solid var(--paper-light);
-  border-radius: 50%;
+  border-radius: 0;
 }
 
 /* The private-workspace nav is a second row inside the header, so a signed-in
@@ -659,7 +699,7 @@ button.button {
   font-size: 0.88rem;
   text-decoration: none;
   border: 1px solid rgba(234, 219, 195, 0.35);
-  border-radius: 3px;
+  border-radius: 0;
 }
 
 .workspace-nav a:hover {
@@ -669,12 +709,6 @@ button.button {
 }
 
 /* The sign-out control sits with the other utility-bar actions. */
-.utility-links .button.ghost-light {
-  min-height: 30px;
-  padding: 0.2rem 0.75rem;
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
-}
 
 .workspace-shell {
   display: grid;
@@ -747,29 +781,53 @@ button.button {
 }
 
 .site-footer {
-  color: #eee2d2;
+  color: var(--paper);
   background: var(--wine-deep);
-  border-top: 4px solid var(--gold);
 }
 
 .footer-inner {
-  display: grid;
-  grid-template-columns: 1.2fr 0.8fr;
-  gap: 3rem;
-  padding-block: 3rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+  padding-block: 2rem;
 }
 
-.footer-inner a {
-  color: var(--white);
+.footer-identity {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
-.footer-note {
-  color: #d7c3ad;
-  font-size: 0.88rem;
+.footer-wordmark {
+  font-family: var(--serif);
+  font-size: 1.125rem;
 }
 
-/* A quiet colophon line: present, but never competing with the museum's own
-   name above it. */
+.footer-line {
+  font-size: 0.8125rem;
+  color: rgba(250, 247, 242, 0.6);
+}
+
+.footer-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.4rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.footer-nav a {
+  color: rgba(250, 247, 242, 0.75);
+  text-decoration: none;
+  transition: color 200ms ease;
+}
+
+.footer-nav a:hover {
+  color: var(--paper);
+}
+
 .footer-colophon {
   border-top: 1px solid rgba(234, 219, 195, 0.18);
 }
@@ -945,7 +1003,7 @@ button.button {
 
 .profile-portrait {
   margin: 0 0 1.4rem;
-  border-radius: 2px;
+  border-radius: 0;
   overflow: hidden;
 }
 
@@ -979,4 +1037,114 @@ button.button {
 .profile-portrait figcaption small {
   color: rgba(234, 219, 195, 0.7);
   font-size: 0.68rem;
+}
+
+
+/* Fraunces speaks at weight 400; size carries hierarchy, never boldness. */
+h1, h2, h3 {
+  font-family: var(--serif);
+  font-weight: 400;
+}
+
+body {
+  font-size: 1.0625rem;
+  line-height: 1.65;
+}
+
+/* Photographs of survivors render as one collection: grayscale under a wine
+   veil. The four-generation family photograph is exempt — it is the only
+   full-color image on the site. */
+.memorial-photo {
+  position: relative;
+  display: block;
+}
+
+.memorial-photo img {
+  filter: grayscale(100%);
+  display: block;
+  width: 100%;
+}
+
+.memorial-photo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--wine);
+  opacity: 0.15;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+
+
+/* ---- Sign in: one quiet column, no card, no competing content. -------- */
+
+.signin {
+  display: flex;
+  justify-content: center;
+  padding: clamp(3rem, 9vh, 6rem) 1.5rem 4rem;
+}
+
+.signin-column {
+  width: 100%;
+  max-width: 24rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.signin-column h1 {
+  font-size: 1.75rem;
+  color: var(--ink);
+  margin: 0 0 0.9rem;
+}
+
+.signin-rule {
+  width: 80px;
+  height: 2px;
+  background: var(--wine);
+  margin-bottom: 2rem;
+}
+
+.signin .field label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.signin .field input {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--hairline);
+  border-radius: 0;
+  padding: 0.6rem 0.1rem;
+  font-size: 1.0625rem;
+}
+
+.signin .field input:focus-visible {
+  outline: none;
+  border-bottom: 2px solid var(--wine);
+}
+
+.signin .button {
+  width: 100%;
+  justify-content: center;
+  min-height: 48px;
+  margin-top: 0.5rem;
+}
+
+.signin-note {
+  font-size: 0.8125rem;
+  color: var(--muted);
+  margin: 1.5rem 0 2rem;
+}
+
+.signin-back {
+  font-size: 0.9375rem;
+  color: var(--wine);
+  text-decoration: none;
+}
+
+.signin-back:hover {
+  opacity: 0.7;
 }

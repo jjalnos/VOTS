@@ -271,12 +271,10 @@ export default async function SurvivorRegistryPage({
       title={copy.title}
       description={copy.description}
     >
-      <section className={styles.section} aria-labelledby="registry-title">
+      <section className={styles.section} aria-label={copy.title}>
         <div className="content-wrap">
           <header className={styles.introduction}>
             <div>
-              <p className={styles.kicker}>{copy.kicker}</p>
-              <h2 id="registry-title">{copy.heading}</h2>
               <p>{copy.intro}</p>
               <p className={styles.sourceNote}>{copy.sourceNote}</p>
             </div>

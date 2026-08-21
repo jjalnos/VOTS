@@ -5,7 +5,10 @@ import postgres from "postgres";
 import * as schema from "@/db/schema";
 import { ensureInitialCuratorFromEnvironment } from "@/lib/auth/bootstrap-curator";
 import { ensureDemonstrationViewerFromEnvironment } from "@/lib/auth/bootstrap-viewer";
-import { ensurePublishedCatalogFromEnvironment } from "@/lib/publication/seed-catalog";
+import {
+  ensurePublishedCatalogFromEnvironment,
+  syncPortraitsFromCode,
+} from "@/lib/publication/seed-catalog";
 
 const startupState = globalThis as typeof globalThis & {
   votsApplicationStartup?: Promise<void>;
@@ -60,6 +63,16 @@ export async function runApplicationStartup(): Promise<void> {
       } catch (error) {
         console.error(
           "The public catalog publication was skipped:",
+          error instanceof Error ? error.message : error,
+        );
+      }
+      // Portraits follow the code without a flag: update-only against records
+      // that already exist, and a failure never stops the archive.
+      try {
+        await syncPortraitsFromCode();
+      } catch (error) {
+        console.error(
+          "The portrait sync was skipped:",
           error instanceof Error ? error.message : error,
         );
       }

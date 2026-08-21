@@ -34,6 +34,11 @@ export const PUBLISHABLE_SLUGS = new Set(["sam-cohen", "stephan-jalnos"]);
  * Photographs published beside a survivor, each with the credit and permission
  * it is published under. Add an entry here only for an image the archive
  * actually has the right to show.
+ *
+ * This map is the source of truth for portraits: syncPortraitsFromCode applies
+ * it at every startup, so adding or correcting an entry deploys with the code
+ * and needs no environment flag. It only updates survivors that already exist —
+ * creating records stays behind the SEED_CONFIRM publication gate.
  */
 export const PORTRAITS: Record<string, { url: string; credit: string; rights: string }> = {
   "sam-cohen": {
@@ -149,24 +154,7 @@ export async function ensurePublishedCatalogFromEnvironment(): Promise<CatalogSe
   }
 
   // --- portraits ---------------------------------------------------------
-  for (const [slug, portrait] of Object.entries(PORTRAITS)) {
-    if (!PUBLISHABLE_SLUGS.has(slug)) continue;
-    const [row] = await db
-      .select({ id: survivors.id, portraitUrl: survivors.portraitUrl })
-      .from(survivors)
-      .where(eq(survivors.slug, slug))
-      .limit(1);
-    if (!row || row.portraitUrl) continue;
-    await db
-      .update(survivors)
-      .set({
-        portraitUrl: portrait.url,
-        portraitCredit: portrait.credit,
-        portraitRights: portrait.rights,
-      })
-      .where(eq(survivors.id, row.id));
-    console.log(`attached portrait: ${slug}`);
-  }
+  await syncPortraitsFromCode();
 
   // --- releases ----------------------------------------------------------
   const existingReleases = await db
@@ -223,3 +211,46 @@ export async function ensurePublishedCatalogFromEnvironment(): Promise<CatalogSe
   return survivorIdMap.size ? "published" : "already-present";
 }
 
+
+/**
+ * Brings survivors' portraits in line with the PORTRAITS map. Update-only: a
+ * survivor that does not exist is skipped, never created, and a slug outside
+ * PUBLISHABLE_SLUGS is never touched. Runs at every startup so a photograph
+ * added to the code appears on the next deploy.
+ */
+export async function syncPortraitsFromCode(): Promise<number> {
+  const db = getDatabase();
+  let applied = 0;
+  for (const [slug, portrait] of Object.entries(PORTRAITS)) {
+    if (!PUBLISHABLE_SLUGS.has(slug) || isSentinelRecord(slug)) continue;
+    const [row] = await db
+      .select({
+        id: survivors.id,
+        portraitUrl: survivors.portraitUrl,
+        portraitCredit: survivors.portraitCredit,
+        portraitRights: survivors.portraitRights,
+      })
+      .from(survivors)
+      .where(eq(survivors.slug, slug))
+      .limit(1);
+    if (!row) continue;
+    if (
+      row.portraitUrl === portrait.url &&
+      row.portraitCredit === portrait.credit &&
+      row.portraitRights === portrait.rights
+    ) {
+      continue;
+    }
+    await db
+      .update(survivors)
+      .set({
+        portraitUrl: portrait.url,
+        portraitCredit: portrait.credit,
+        portraitRights: portrait.rights,
+      })
+      .where(eq(survivors.id, row.id));
+    applied += 1;
+    console.log(`portrait synced: ${slug}`);
+  }
+  return applied;
+}

@@ -21,6 +21,16 @@ describe("Cloudways startup safety", () => {
     await expect(runApplicationStartup()).rejects.toThrow(/migrations must be enabled/i);
   });
 
+  it("refuses additional owner provisioning when checked-in migration startup is disabled", async () => {
+    vi.stubEnv("DATABASE_AUTO_MIGRATE", "false");
+    vi.stubEnv(
+      "PROVISION_ADMIN_CURATOR_CONFIRM",
+      "PROVISION_ADDITIONAL_ADMIN_CURATOR",
+    );
+
+    await expect(runApplicationStartup()).rejects.toThrow(/migrations must be enabled/i);
+  });
+
   it("journals encrypted archive and paid-usage schema before bootstrap", () => {
     const journal = JSON.parse(readFileSync("drizzle/meta/_journal.json", "utf8")) as {
       entries: Array<{ tag: string }>;
@@ -48,6 +58,9 @@ describe("Cloudways startup safety", () => {
     expect(startup.indexOf("await migrate(")).toBeLessThan(
       startup.indexOf("await ensureInitialCuratorFromEnvironment()"),
     );
+    expect(startup.indexOf("await migrate(")).toBeLessThan(
+      startup.indexOf("await ensureAdditionalAdminCuratorFromEnvironment()"),
+    );
     expect(startup).not.toContain(".reserve()");
     expect(startup).toContain("drizzle(migrationSql, { schema })");
     expect(startup).toContain("idle_timeout: 0");
@@ -58,6 +71,29 @@ describe("Cloudways startup safety", () => {
     expect(startup).toContain(
       "await migrationSql`SELECT pg_advisory_unlock(hashtext('vots-application-startup-v1'))`",
     );
+  });
+
+  it("keeps additional administrator/curator provisioning one-time and operator-audited", () => {
+    const provisioner = readFileSync(
+      "src/lib/auth/provision-admin-curator.ts",
+      "utf8",
+    );
+    expect(provisioner).toContain("PROVISION_ADDITIONAL_ADMIN_CURATOR");
+    expect(provisioner).toContain("PROVISION_ADMIN_CURATOR_OPERATION_ID");
+    expect(provisioner).toContain("delete process.env.PROVISION_ADMIN_CURATOR_PASSWORD");
+    expect(provisioner).toContain("password.length < 20");
+    expect(provisioner).toContain(
+      "sql`lower(${users.email}) = ${configuration.email}`",
+    );
+    expect(provisioner).toContain("id: configuration.operationId");
+    expect(provisioner).toContain("onConflictDoNothing({ target: auditEvents.id })");
+    expect(provisioner).toContain(
+      'action: "identity.operator_admin_curator_provisioned"',
+    );
+    expect(provisioner).toContain("actorUserId: null");
+    expect(provisioner).toContain('role: "admin", grantedBy: null');
+    expect(provisioner).toContain('role: "curator", grantedBy: null');
+    expect(provisioner).not.toMatch(/metadata:[\s\S]{0,300}(password|passwordHash)/);
   });
 
   it("requires an explicit, audited one-time confirmation before rotating Robin's password", () => {

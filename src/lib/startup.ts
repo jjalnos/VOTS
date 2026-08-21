@@ -5,6 +5,7 @@ import postgres from "postgres";
 import * as schema from "@/db/schema";
 import { ensureInitialCuratorFromEnvironment } from "@/lib/auth/bootstrap-curator";
 import { ensureDemonstrationViewerFromEnvironment } from "@/lib/auth/bootstrap-viewer";
+import { ensureAdditionalAdminCuratorFromEnvironment } from "@/lib/auth/provision-admin-curator";
 import {
   ensurePublishedCatalogFromEnvironment,
   syncPortraitsFromCode,
@@ -17,7 +18,10 @@ const startupState = globalThis as typeof globalThis & {
 /** Runs checked-in database migrations before accepting live application work. */
 export async function runApplicationStartup(): Promise<void> {
   if (process.env.DATABASE_AUTO_MIGRATE !== "true") {
-    if (process.env.BOOTSTRAP_CONFIRM) {
+    if (
+      process.env.BOOTSTRAP_CONFIRM ||
+      process.env.PROVISION_ADMIN_CURATOR_CONFIRM?.trim()
+    ) {
       throw new Error("Database migrations must be enabled for the controlled bootstrap.");
     }
     return;
@@ -43,6 +47,9 @@ export async function runApplicationStartup(): Promise<void> {
         migrationsFolder: path.join(process.cwd(), "drizzle"),
       });
       await ensureInitialCuratorFromEnvironment();
+      // Additional owners are an exceptional, one-time operator action. Any
+      // malformed or unsafe request stays fatal so it cannot appear to succeed.
+      await ensureAdditionalAdminCuratorFromEnvironment();
       // The demonstration account is a convenience, not part of the archive's
       // identity. A mistake in its configuration must never stop the archive
       // itself from starting, so this failure is reported and stepped over.

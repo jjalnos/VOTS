@@ -18,21 +18,35 @@ const nextConfig: NextConfig = {
     ];
   },
   async headers() {
+    const securityHeaders = [
+      { key: "X-Content-Type-Options", value: "nosniff" },
+      { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+      { key: "Strict-Transport-Security", value: "max-age=31536000" },
+      { key: "X-Frame-Options", value: "SAMEORIGIN" },
+      { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+      {
+        key: "Content-Security-Policy",
+        value:
+          `default-src 'self'; base-uri 'self'; connect-src 'self'; font-src 'self' data:; form-action 'self'; frame-ancestors 'self'; frame-src 'self' https://www.youtube-nocookie.com; img-src 'self' data: https:; media-src 'self' blob:; object-src 'none'; ${scriptPolicy}; style-src 'self' 'unsafe-inline'; upgrade-insecure-requests`,
+      },
+    ];
     return [
       {
         source: "/(.*)",
+        headers: securityHeaders,
+      },
+      {
+        // Duplicate Permissions-Policy headers combine restrictively. Exclude
+        // the private room from the deny rule instead of trying to override it.
+        source: "/:path((?!chat(?:/.*)?$).*)",
         headers: [
-          { key: "X-Content-Type-Options", value: "nosniff" },
-          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
-          { key: "Strict-Transport-Security", value: "max-age=31536000" },
-          { key: "X-Frame-Options", value: "SAMEORIGIN" },
-          { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
-          {
-            key: "Content-Security-Policy",
-            value:
-              `default-src 'self'; base-uri 'self'; connect-src 'self'; font-src 'self' data:; form-action 'self'; frame-ancestors 'self'; img-src 'self' data: https:; media-src 'self' blob:; object-src 'none'; ${scriptPolicy}; style-src 'self' 'unsafe-inline'; upgrade-insecure-requests`,
-          },
+        ],
+      },
+      {
+        source: "/chat",
+        headers: [
+          { key: "Permissions-Policy", value: "camera=(), microphone=(self), geolocation=()" },
         ],
       },
     ];

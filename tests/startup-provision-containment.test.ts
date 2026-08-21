@@ -17,6 +17,8 @@ const startupMocks = vi.hoisted(() => {
     ensureDemonstrationViewer: vi.fn(async () => undefined),
     ensurePublishedCatalog: vi.fn(async () => "disabled"),
     syncPortraits: vi.fn(async () => undefined),
+    syncDemonstrationFlag: vi.fn(async () => undefined),
+    syncPublishedIdentityCorrections: vi.fn(async () => undefined),
   };
 });
 
@@ -48,6 +50,8 @@ vi.mock("@/lib/auth/provision-admin-curator", () => ({
 
 vi.mock("@/lib/publication/seed-catalog", () => ({
   ensurePublishedCatalogFromEnvironment: startupMocks.ensurePublishedCatalog,
+  syncDemonstrationFlagFromCode: startupMocks.syncDemonstrationFlag,
+  syncPublishedIdentityCorrectionsFromCode: startupMocks.syncPublishedIdentityCorrections,
   syncPortraitsFromCode: startupMocks.syncPortraits,
 }));
 
@@ -75,6 +79,8 @@ beforeEach(() => {
   startupMocks.ensureDemonstrationViewer.mockReset().mockResolvedValue(undefined);
   startupMocks.ensurePublishedCatalog.mockReset().mockResolvedValue("disabled");
   startupMocks.syncPortraits.mockReset().mockResolvedValue(undefined);
+  startupMocks.syncDemonstrationFlag.mockReset().mockResolvedValue(undefined);
+  startupMocks.syncPublishedIdentityCorrections.mockReset().mockResolvedValue(undefined);
 });
 
 afterEach(() => {
@@ -100,6 +106,8 @@ describe("additional administrator/curator startup containment", () => {
     expect(startupMocks.ensureDemonstrationViewer).toHaveBeenCalledOnce();
     expect(startupMocks.ensurePublishedCatalog).toHaveBeenCalledOnce();
     expect(startupMocks.syncPortraits).toHaveBeenCalledOnce();
+    expect(startupMocks.syncDemonstrationFlag).toHaveBeenCalledOnce();
+    expect(startupMocks.syncPublishedIdentityCorrections).toHaveBeenCalledOnce();
     expect(process.env.PROVISION_ADMIN_CURATOR_PASSWORD).toBeUndefined();
     const loggedText = errorLog.mock.calls.flat().map(String).join(" ");
     expect(loggedText).toMatch(/provisioning was skipped/i);

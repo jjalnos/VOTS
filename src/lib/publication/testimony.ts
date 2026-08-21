@@ -32,7 +32,10 @@ export const TESTIMONY: Record<string, TestimonyLink[]> = {
     {
       kind: "video",
       url: "https://youtu.be/I-Xq1fGq_gI",
-      label: t("Susanne Jalnos's testimony", "El testimonio de Susanne Jalnos"),
+      label: t(
+        "Susanne “Zsuzsi” Weisz Jalnos’s testimony",
+        "El testimonio de Susanne “Zsuzsi” Weisz Jalnos",
+      ),
     },
     {
       kind: "video",

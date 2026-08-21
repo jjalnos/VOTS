@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   isSentinelRecord,
   PORTRAITS,
+  PUBLISHED_IDENTITY_CORRECTIONS,
   PUBLISHABLE_SLUGS,
 } from "@/lib/publication/seed-catalog";
 import { seedSources, seedStories, seedSurvivors } from "@/lib/data/seed";
@@ -43,6 +44,14 @@ describe("public catalog publication guards", () => {
       const survivor = seedSurvivors.find((record) => record.slug === slug)!;
       expect(survivor.isDemonstration, `"${slug}" is flagged as demonstration data`).toBe(false);
     }
+  });
+
+  it("keeps the family-confirmed Susanne name aligned with the seed", () => {
+    const susanne = seedSurvivors.find((record) => record.slug === "susanne-jalnos")!;
+    const correction = PUBLISHED_IDENTITY_CORRECTIONS["susanne-jalnos"];
+    expect(susanne.displayName).toEqual(correction.displayName);
+    expect(susanne.displayName.en).toContain("Zsuzsi");
+    expect(susanne.displayName.en).toContain("Weisz");
   });
 
   it("refuses every private sentinel fixture", () => {

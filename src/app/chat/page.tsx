@@ -1,39 +1,49 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { ChatExperience } from "@/components/chat-experience";
-import { PageBanner } from "@/components/page-banner";
-import { PublicShell } from "@/components/public-shell";
+import { WorkspaceShell } from "@/components/workspace-shell";
+import { evaluateSusanneOwnerAccess } from "@/lib/ai/susanne-access";
+import { requireAction } from "@/lib/auth/server-session";
 import { localeFrom } from "@/lib/i18n";
 
-export const metadata: Metadata = { title: "Ask the archive / Consultar el archivo" };
+export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Private listening room · Susanne “Zsuzsi” Weisz Jalnos",
+  description: "Authentic published testimony and a private, testimony-grounded archival guide.",
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: { index: false, follow: false },
+  },
+};
 
 export default async function ChatPage({ searchParams }: PageProps<"/chat">) {
   const locale = localeFrom((await searchParams).lang);
+  const returnTo = locale === "es" ? "/chat?lang=es" : "/chat";
+  const actor = await requireAction("manage_access", returnTo);
+
+  // This room is deliberately narrower than the admin role. Reuse the same
+  // fail-closed owner check enforced by both private API routes.
+  const authorization = evaluateSusanneOwnerAccess(
+    actor,
+    process.env.SUSANNE_OWNER_EMAIL,
+  );
+  if (!authorization.ok) redirect("/unauthorized");
+
   return (
-    <PublicShell locale={locale} path="/chat">
-      <PageBanner
-        eyebrow={locale === "es" ? "Guía citada para visitantes" : "Cited visitor guide"}
-        title={locale === "es" ? "Consultar el archivo" : "Ask the archive"}
-        description={
-          locale === "es"
-            ? "Las respuestas usan solo material publicado por curaduría. Si el archivo no respalda una respuesta, la guía lo dirá."
-            : "Answers use only curator-published material. If the archive cannot support an answer, the guide will say so."
-        }
-      />
-      <section className="section">
-        <div className="content-wrap grid-2">
-          <ChatExperience locale={locale} />
-          <aside className="card">
-            <p className="eyebrow">{locale === "es" ? "Límites claros" : "Clear boundaries"}</p>
-            <h2>{locale === "es" ? "Lo que esta guía no hace" : "What this guide does not do"}</h2>
-            <ul>
-              <li>{locale === "es" ? "No busca en cargas privadas." : "It does not search private uploads."}</li>
-              <li>{locale === "es" ? "No infiere identidades ni relaciones." : "It does not infer identities or relationships."}</li>
-              <li>{locale === "es" ? "No presenta sugerencias como hechos." : "It does not present suggestions as facts."}</li>
-              <li>{locale === "es" ? "No usa investigación externa en el chat público." : "It does not use external research in public chat."}</li>
-            </ul>
-          </aside>
-        </div>
-      </section>
-    </PublicShell>
+    <WorkspaceShell
+      actor={actor}
+      locale={locale}
+      path="/chat"
+      title="Susanne “Zsuzsi” Weisz Jalnos"
+      description={
+        locale === "es"
+          ? "Sala privada para escuchar su testimonio auténtico y conversar con una guía de archivo con citas."
+          : "A private room for her authentic testimony and a cited conversation with the archival guide."
+      }
+    >
+      <ChatExperience locale={locale} />
+    </WorkspaceShell>
   );
 }

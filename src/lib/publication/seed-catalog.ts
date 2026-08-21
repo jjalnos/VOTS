@@ -110,6 +110,19 @@ export const PORTRAITS: Record<string, { url: string; credit: string; rights: st
   },
 };
 
+/**
+ * Family-confirmed identity corrections made after a record was first
+ * published. This list stays deliberately narrow and update-only.
+ */
+export const PUBLISHED_IDENTITY_CORRECTIONS = {
+  "susanne-jalnos": {
+    displayName: {
+      en: "Susanne “Zsuzsi” Weisz Jalnos",
+      es: "Susanne “Zsuzsi” Weisz Jalnos",
+    },
+  },
+} as const;
+
 /** Anything matching these never goes to a public database. */
 export function isSentinelRecord(value: string): boolean {
   return /private|sentinel|never-public|unapproved/i.test(value);
@@ -337,6 +350,33 @@ export async function syncPortraitsFromCode(): Promise<number> {
       .where(eq(survivors.id, row.id));
     applied += 1;
     console.log(`portrait synced: ${slug}`);
+  }
+  return applied;
+}
+
+export async function syncPublishedIdentityCorrectionsFromCode(): Promise<number> {
+  const db = getDatabase();
+  let applied = 0;
+  for (const [slug, correction] of Object.entries(PUBLISHED_IDENTITY_CORRECTIONS)) {
+    if (!PUBLISHABLE_SLUGS.has(slug) || isSentinelRecord(slug)) continue;
+    const [row] = await db
+      .select({
+        id: survivors.id,
+        displayName: survivors.displayName,
+      })
+      .from(survivors)
+      .where(eq(survivors.slug, slug))
+      .limit(1);
+    if (!row) continue;
+    if (JSON.stringify(row.displayName) === JSON.stringify(correction.displayName)) {
+      continue;
+    }
+    await db
+      .update(survivors)
+      .set({ displayName: correction.displayName })
+      .where(eq(survivors.id, row.id));
+    applied += 1;
+    console.log(`published identity correction synced: ${slug}`);
   }
   return applied;
 }

@@ -127,12 +127,12 @@ export const seedSurvivors: Survivor[] = [
     slug: "susanne-jalnos",
     familyId: "family-demo",
     displayName: {
-      en: "Susanne Jalnos",
-      es: "Susanne Jalnos",
+      en: "Susanne “Zsuzsi” Weisz Jalnos",
+      es: "Susanne “Zsuzsi” Weisz Jalnos",
     },
     summary: {
-      en: "Susanne Jalnos was born in Rajka, Hungary, a small town near the border of what was then Czechoslovakia, to a family of her parents, a brother, and a sister. On 10 March 1944 the Nazis marched into Hungary. Her story was shared by her son, Robi, in the museum’s Survivor Speakers Series.",
-      es: "Susanne Jalnos nació en Rajka, un pequeño pueblo de Hungría cercano a la frontera con lo que entonces era Checoslovaquia, en una familia formada por sus padres, un hermano y una hermana. El 10 de marzo de 1944 los nazis entraron en Hungría. Su historia fue relatada por su hijo, Robi, en la serie de conferencias de sobrevivientes del museo.",
+      en: "Susanne “Zsuzsi” Weisz Jalnos was born in Rajka, Hungary, a small town near the border of what was then Czechoslovakia, to a family of her parents, a brother, and a sister. On 10 March 1944 the Nazis marched into Hungary. Her story was shared by her son, Robi, in the museum’s Survivor Speakers Series.",
+      es: "Susanne “Zsuzsi” Weisz Jalnos nació en Rajka, un pequeño pueblo de Hungría cercano a la frontera con lo que entonces era Checoslovaquia, en una familia formada por sus padres, un hermano y una hermana. El 10 de marzo de 1944 los nazis entraron en Hungría. Su historia fue relatada por su hijo, Robi, en la serie de conferencias de sobrevivientes del museo.",
     },
     originalLanguage: "en",
     reviewStatus: "approved",

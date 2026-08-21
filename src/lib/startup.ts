@@ -9,6 +9,7 @@ import { ensureAdditionalAdminCuratorFromEnvironment } from "@/lib/auth/provisio
 import {
   ensurePublishedCatalogFromEnvironment,
   syncDemonstrationFlagFromCode,
+  syncPublishedIdentityCorrectionsFromCode,
   syncPortraitsFromCode,
 } from "@/lib/publication/seed-catalog";
 
@@ -94,9 +95,10 @@ export async function runApplicationStartup(): Promise<void> {
       try {
         await syncPortraitsFromCode();
         await syncDemonstrationFlagFromCode();
+        await syncPublishedIdentityCorrectionsFromCode();
       } catch (error) {
         console.error(
-          "The portrait sync was skipped:",
+          "The published catalog sync was skipped:",
           error instanceof Error ? error.message : error,
         );
       }

@@ -6,8 +6,12 @@ import {
 import { seedSources, seedStories, seedSurvivors } from "@/lib/data/seed";
 
 describe("public catalog publication guards", () => {
-  it("publishes only the two reviewed survivor records", () => {
-    expect([...PUBLISHABLE_SLUGS].sort()).toEqual(["sam-cohen", "stephan-jalnos"]);
+  it("publishes only the reviewed survivor records", () => {
+    expect([...PUBLISHABLE_SLUGS].sort()).toEqual([
+      "sam-cohen",
+      "stephan-jalnos",
+      "susanne-jalnos",
+    ]);
   });
 
   it("refuses every private sentinel fixture", () => {

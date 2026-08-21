@@ -37,7 +37,7 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
             {survivor.portrait ? (
               <figure className="profile-portrait">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={survivor.portrait.url} alt={survivor.displayName[locale]} />
+                <img src={survivor.portrait.url} alt={survivor.portrait.credit} />
                 <figcaption>
                   <span>{survivor.portrait.credit}</span>
                   {survivor.portrait.rights ? <small>{survivor.portrait.rights}</small> : null}

@@ -28,7 +28,7 @@ const CONFIRMATION = CATALOG_SEED_CONFIRMATION;
 export type CatalogSeedStatus = "disabled" | "published" | "already-present";
 
 /** Only these survivor records may be published by this routine. */
-export const PUBLISHABLE_SLUGS = new Set(["sam-cohen", "stephan-jalnos"]);
+export const PUBLISHABLE_SLUGS = new Set(["sam-cohen", "stephan-jalnos", "susanne-jalnos"]);
 
 /**
  * Photographs published beside a survivor, each with the credit and permission
@@ -50,6 +50,11 @@ export const PORTRAITS: Record<string, { url: string; credit: string; rights: st
     url: "/generation-to-generation-family.png",
     credit: "A Jalnos family photograph",
     rights: "Family photograph supplied for this project.",
+  },
+  "susanne-jalnos": {
+    url: "/susanne-jalnos-portrait.jpg",
+    credit: "Detail from an HMMSA Survivor Speakers Series announcement, 21 September 2025",
+    rights: "Reproduced from material the museum published publicly. Written permission from the museum and the family is being sought.",
   },
 };
 

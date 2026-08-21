@@ -64,7 +64,7 @@ export default async function DirectoryPage({ searchParams }: PageProps<"/direct
                   {record.portrait ? (
                     <figure className="record-portrait">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={record.portrait.url} alt={record.displayName[locale]} />
+                      <img src={record.portrait.url} alt={record.portrait.credit} />
                       <figcaption>{record.portrait.credit}</figcaption>
                     </figure>
                   ) : (

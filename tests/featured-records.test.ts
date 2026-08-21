@@ -3,11 +3,12 @@ import { getPublicCatalog } from "@/lib/data/public-catalog";
 import { selectFeaturedRecords } from "@/lib/publication/featured-records";
 
 describe("featured public records", () => {
-  it("returns Sam Cohen and Stephan Jalnos in a deliberate order", () => {
+  it("returns the three published survivors in a deliberate order", () => {
     const records = selectFeaturedRecords(getPublicCatalog("en"), "en");
 
     expect(records.map((record) => record.slug)).toEqual([
       "sam-cohen",
+      "susanne-jalnos",
       "stephan-jalnos",
     ]);
     expect(records.every((record) => record.sourceUrl.startsWith("https://"))).toBe(true);
@@ -23,7 +24,7 @@ describe("featured public records", () => {
     };
 
     expect(selectFeaturedRecords(withoutStephanRelease, "en").map((record) => record.slug))
-      .toEqual(["sam-cohen"]);
+      .toEqual(["sam-cohen", "susanne-jalnos"]);
   });
 
   it("omits a record when its attached source is not approved", () => {
@@ -38,6 +39,6 @@ describe("featured public records", () => {
     };
 
     expect(selectFeaturedRecords(withPendingSamSource, "en").map((record) => record.slug))
-      .toEqual(["stephan-jalnos"]);
+      .toEqual(["susanne-jalnos", "stephan-jalnos"]);
   });
 });

@@ -22,7 +22,7 @@ describe("public content isolation", () => {
   it("requires a locale-specific release", () => {
     const spanish = getPublicCatalog("es");
     expect(spanish.archiveItems).toHaveLength(0);
-    expect(spanish.survivors).toHaveLength(2);
+    expect(spanish.survivors).toHaveLength(3);
   });
 
   it("returns only sources referenced by an actually published entity", () => {
@@ -30,11 +30,13 @@ describe("public content isolation", () => {
     expect(catalog.survivors.map((survivor) => survivor.displayName.en)).toEqual([
       "Sam Cohen",
       "Stephan Jalnos",
+      "Susanne Jalnos",
     ]);
     expect(catalog.sources.map((source) => source.id)).toEqual([
       "source-hmmsa-archive-policy",
       "source-sam-cohen-interview",
       "source-stephan-jalnos-series",
+      "source-susanne-jalnos-series",
     ]);
     const publishedIds = new Set([
       ...catalog.survivors,

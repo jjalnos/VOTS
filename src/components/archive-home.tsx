@@ -67,15 +67,19 @@ function copyFor(locale: Locale, names: number | null): HomeCopy {
       galleryCaption: "Las galerías del museo, San Antonio, Texas",
       survivorsEyebrow: {
         "sam-cohen": "Testimonio grabado",
+        "susanne-jalnos": "Relatado por su hijo",
         "stephan-jalnos": "Compartido por un descendiente",
       },
       photoAlts: {
         "sam-cohen":
           "Retrato de Sam Cohen de joven, de la colección del Museo Conmemorativo del Holocausto de San Antonio",
+        "susanne-jalnos":
+          "Retrato de Susanne Jalnos, publicado por el Museo Conmemorativo del Holocausto de San Antonio para su serie de conferencias de sobrevivientes",
         "stephan-jalnos": "Fotografía de la familia Jalnos: una pareja joven con su bebé",
       },
       photoCredit: {
         "sam-cohen": "Fotografía: Museo Conmemorativo del Holocausto de San Antonio",
+        "susanne-jalnos": "Fotografía: detalle de un anuncio del Museo Conmemorativo del Holocausto de San Antonio",
         "stephan-jalnos": "Fotografía: cortesía de la familia Jalnos",
       },
       readStory: "Leer su historia",
@@ -130,7 +134,7 @@ function copyFor(locale: Locale, names: number | null): HomeCopy {
       registryHeading: "El registro",
       registryNote: "El registro completo se conserva de forma privada, al cuidado de la curadora del museo.",
       namesLabel: "Nombres en el registro",
-      photographsLabel: "Fotografías familiares",
+      photographsLabel: "Fotografías publicadas",
       recordsLabel: "Registros publicados",
       searchLabel: "Buscar por nombre en el archivo publicado",
       searchPlaceholder: "Buscar un nombre…",
@@ -151,15 +155,19 @@ function copyFor(locale: Locale, names: number | null): HomeCopy {
     galleryCaption: "The museum galleries, San Antonio, Texas",
     survivorsEyebrow: {
       "sam-cohen": "Recorded testimony",
+      "susanne-jalnos": "Shared by her son",
       "stephan-jalnos": "Shared by a descendant",
     },
     photoAlts: {
       "sam-cohen":
         "Portrait of Sam Cohen as a young man, from the collection of the Holocaust Memorial Museum of San Antonio",
+      "susanne-jalnos":
+        "Portrait of Susanne Jalnos, published by the Holocaust Memorial Museum of San Antonio for its Survivor Speakers Series announcement",
       "stephan-jalnos": "A Jalnos family photograph: a young couple with their baby",
     },
     photoCredit: {
       "sam-cohen": "Photograph: Holocaust Memorial Museum of San Antonio",
+      "susanne-jalnos": "Photograph: detail from a Holocaust Memorial Museum of San Antonio announcement",
       "stephan-jalnos": "Photograph: courtesy of the Jalnos family",
     },
     readStory: "Read their story",
@@ -214,7 +222,7 @@ function copyFor(locale: Locale, names: number | null): HomeCopy {
     registryHeading: "The registry",
     registryNote: "The full registry is held privately, in the care of the museum's curator.",
     namesLabel: "Names in the registry",
-    photographsLabel: "Family photographs",
+    photographsLabel: "Photographs published",
     recordsLabel: "Published records",
     searchLabel: "Search the published archive by name",
     searchPlaceholder: "Search for a name…",
@@ -235,6 +243,7 @@ export interface ArchiveCounts {
    page must make impossible. */
 const ROW_PHOTOS: Record<FeaturedRecordSlug, string> = {
   "sam-cohen": "/sam-cohen-portrait.jpg",
+  "susanne-jalnos": "/susanne-jalnos-portrait.jpg",
   "stephan-jalnos": "/generation-to-generation-family.png",
 };
 

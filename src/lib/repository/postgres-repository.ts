@@ -256,7 +256,10 @@ async function loadCuratorWorkspace(actor: Actor): Promise<CuratorWorkspace> {
   const db = getDatabase();
   const [survivorRows, itemRows, sourceRows, storyRows, eventRows, releaseRows, factRows] =
     await Promise.all([
-      db.select().from(survivorsTable),
+      // Ordered so the catalog is deterministic: without this, PostgreSQL
+      // returns heap order, and a portrait update silently moves a survivor
+      // to the end of every list that reads the catalog.
+      db.select().from(survivorsTable).orderBy(survivorsTable.slug),
       db.select().from(archiveItemsTable),
       db.select().from(sourcesTable),
       db.select().from(storiesTable),

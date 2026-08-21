@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { getPublicCatalog } from "@/lib/data/public-catalog";
 import {
   FEATURED_RECORD_SLUGS,
+  selectArchiveIndex,
   selectFeaturedRecords,
 } from "@/lib/publication/featured-records";
 
@@ -43,5 +44,32 @@ describe("featured public records", () => {
     const slugs = selectFeaturedRecords(withPendingSamSource, "en").map((record) => record.slug);
     expect(slugs).not.toContain("sam-cohen");
     expect(slugs).toEqual(FEATURED_RECORD_SLUGS.filter((slug) => slug !== "sam-cohen"));
+  });
+
+  // Catalog order is whatever the database returns, so the index must impose
+  // its own: a survivor who gains a portrait once drifted to the end of the
+  // homepage because an UPDATE moved the row.
+  it("files the index by family name, independent of catalog order", () => {
+    const catalog = getPublicCatalog("en");
+    const forward = selectArchiveIndex(catalog, "en").map((record) => record.name);
+    const reversed = selectArchiveIndex(
+      { ...catalog, survivors: [...catalog.survivors].reverse() },
+      "en",
+    ).map((record) => record.name);
+
+    expect(forward).toEqual(reversed);
+    expect(forward.length).toBeGreaterThan(0);
+
+    const families = forward.map((name) => name.split(" ").at(-1)!);
+    expect(families).toEqual([...families].sort((a, b) => a.localeCompare(b, "en")));
+    // Relatives stay together: both Scharffs, both Haendels.
+    expect(forward.filter((n) => n.endsWith("Scharff"))).toHaveLength(2);
+    const scharffAt = forward.findIndex((n) => n.endsWith("Scharff"));
+    expect(forward[scharffAt + 1]).toMatch(/Scharff$/);
+  });
+
+  it("never lists a survivor already given a full row", () => {
+    const index = selectArchiveIndex(getPublicCatalog("en"), "en").map((r) => r.slug);
+    for (const slug of FEATURED_RECORD_SLUGS) expect(index).not.toContain(slug);
   });
 });

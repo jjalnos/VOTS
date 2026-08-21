@@ -76,7 +76,7 @@ export function selectArchiveIndex(
   exclude: readonly string[] = FEATURED_RECORD_SLUGS,
 ): ArchiveIndexRecord[] {
   const excluded = new Set(exclude);
-  return catalog.survivors.flatMap((survivor) => {
+  const records = catalog.survivors.flatMap((survivor) => {
     if (excluded.has(survivor.slug)) return [];
 
     const release = catalog.releases.find(
@@ -97,4 +97,17 @@ export function selectArchiveIndex(
       portraitCredit: survivor.portrait?.credit ?? null,
     }];
   });
+
+  // An archival index reads by family, so the Scharffs and the Haendels stand
+  // together rather than being separated by whoever falls between them.
+  return records.sort((a, b) => {
+    const family = familyName(a.name).localeCompare(familyName(b.name), locale);
+    return family !== 0 ? family : a.name.localeCompare(b.name, locale);
+  });
+}
+
+/** The last word of a display name — "Anna Weisz Rado" files under Rado. */
+function familyName(displayName: string): string {
+  const parts = displayName.trim().split(/\s+/);
+  return parts[parts.length - 1] ?? displayName;
 }

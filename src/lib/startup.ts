@@ -48,8 +48,23 @@ export async function runApplicationStartup(): Promise<void> {
       });
       await ensureInitialCuratorFromEnvironment();
       // Additional owners are an exceptional, one-time operator action. Any
-      // malformed or unsafe request stays fatal so it cannot appear to succeed.
-      await ensureAdditionalAdminCuratorFromEnvironment();
+      // malformed or unsafe request is reported without preventing the archive
+      // from serving. Never include the thrown error here: database drivers and
+      // future validation errors can contain protected configuration values.
+      try {
+        const status = await ensureAdditionalAdminCuratorFromEnvironment();
+        if (status === "created") {
+          console.log("Additional administrator/curator provisioning completed.");
+        } else if (status === "already-present") {
+          console.log(
+            "Additional administrator/curator provisioning was already completed.",
+          );
+        }
+      } catch {
+        console.error(
+          "Additional administrator/curator provisioning was skipped after a validation or execution failure. Review the protected deployment configuration.",
+        );
+      }
       // The demonstration account is a convenience, not part of the archive's
       // identity. A mistake in its configuration must never stop the archive
       // itself from starting, so this failure is reported and stepped over.

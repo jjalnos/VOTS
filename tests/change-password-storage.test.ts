@@ -23,24 +23,36 @@ interface FakeTransactionState {
 
 function fakeDatabase(options: {
   passwordHash?: string | null;
+  lockedPasswordHash?: string | null;
   activeIdentity?: boolean;
   updateCompletes?: boolean;
 } = {}): FakeTransactionState {
   const state: FakeTransactionState = { transactionCalls: 0 };
+  const passwordHash = options.passwordHash ?? hashPassword(currentPassword);
   const identityRows = options.activeIdentity === false
     ? []
-    : [{ id: userId, passwordHash: options.passwordHash ?? hashPassword(currentPassword) }];
+    : [{ id: userId, passwordHash }];
+  const lockedIdentityRows = options.activeIdentity === false
+    ? []
+    : [{
+        id: userId,
+        passwordHash: options.lockedPasswordHash === undefined
+          ? passwordHash
+          : options.lockedPasswordHash,
+      }];
+
+  function selectBuilder(rows: Array<{ id: string; passwordHash: string | null }>) {
+    const builder = {
+      from: vi.fn(() => builder),
+      where: vi.fn(() => builder),
+      for: vi.fn(() => builder),
+      limit: vi.fn(async () => rows),
+    };
+    return builder;
+  }
 
   const transaction = {
-    select: vi.fn(() => {
-      const builder = {
-        from: vi.fn(() => builder),
-        where: vi.fn(() => builder),
-        for: vi.fn(() => builder),
-        limit: vi.fn(async () => identityRows),
-      };
-      return builder;
-    }),
+    select: vi.fn(() => selectBuilder(lockedIdentityRows)),
     update: vi.fn(() => {
       const builder = {
         set: vi.fn((value: Record<string, unknown>) => {
@@ -61,6 +73,7 @@ function fakeDatabase(options: {
   };
 
   databaseMock.getDatabase.mockReturnValue({
+    select: vi.fn(() => selectBuilder(identityRows)),
     transaction: vi.fn(async (callback: (value: typeof transaction) => unknown) => {
       state.transactionCalls += 1;
       return callback(transaction);
@@ -118,6 +131,7 @@ describe("database password change", () => {
     });
     expect(wrong).toBe("rejected");
     expect(wrongState.updateValue).toBeUndefined();
+    expect(wrongState.transactionCalls).toBe(0);
 
     const inactiveState = fakeDatabase({ activeIdentity: false });
     const inactive = await changeDatabaseUserPassword({
@@ -127,6 +141,7 @@ describe("database password change", () => {
     });
     expect(inactive).toBe("rejected");
     expect(inactiveState.updateValue).toBeUndefined();
+    expect(inactiveState.transactionCalls).toBe(0);
 
     const reusedState = fakeDatabase();
     const reused = await changeDatabaseUserPassword({
@@ -136,6 +151,24 @@ describe("database password change", () => {
     });
     expect(reused).toBe("rejected");
     expect(reusedState.updateValue).toBeUndefined();
+    expect(reusedState.transactionCalls).toBe(0);
+  });
+
+  it("rejects a concurrent password change after rechecking the hash under lock", async () => {
+    const state = fakeDatabase({
+      lockedPasswordHash: hashPassword("concurrently-changed-password"),
+    });
+
+    const result = await changeDatabaseUserPassword({
+      userId,
+      currentPassword,
+      newPassword,
+    });
+
+    expect(result).toBe("rejected");
+    expect(state.transactionCalls).toBe(1);
+    expect(state.updateValue).toBeUndefined();
+    expect(state.auditValue).toBeUndefined();
   });
 
   it("fails closed without database configuration or when the transaction cannot complete", async () => {

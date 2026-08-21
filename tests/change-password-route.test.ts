@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const passwordChangeMocks = vi.hoisted(() => ({
   configuredAuthProvider: vi.fn(() => "database"),
   getActorFromRequest: vi.fn(),
+  consumePasswordChangeAttempt: vi.fn(),
   changeDatabaseUserPassword: vi.fn(),
 }));
 
@@ -17,6 +18,11 @@ vi.mock("@/lib/auth/server-session", () => ({
 
 vi.mock("@/lib/auth/change-password", () => ({
   changeDatabaseUserPassword: passwordChangeMocks.changeDatabaseUserPassword,
+}));
+
+vi.mock("@/lib/auth/change-password-rate-limit", () => ({
+  consumePasswordChangeAttempt:
+    passwordChangeMocks.consumePasswordChangeAttempt,
 }));
 
 import { POST as changePassword } from "@/app/api/auth/change-password/route";
@@ -58,6 +64,9 @@ beforeEach(() => {
   vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://archive.example");
   passwordChangeMocks.configuredAuthProvider.mockReset().mockReturnValue("database");
   passwordChangeMocks.getActorFromRequest.mockReset().mockResolvedValue(actor);
+  passwordChangeMocks.consumePasswordChangeAttempt
+    .mockReset()
+    .mockResolvedValue({ allowed: true, retryAfter: 1 });
   passwordChangeMocks.changeDatabaseUserPassword.mockReset().mockResolvedValue("changed");
 });
 
@@ -92,6 +101,48 @@ describe("authenticated password-change route", () => {
       error: "Password-change request is too large.",
     });
     expect(passwordChangeMocks.getActorFromRequest).not.toHaveBeenCalled();
+    expect(passwordChangeMocks.changeDatabaseUserPassword).not.toHaveBeenCalled();
+  });
+
+  it("throttles before password verification with a validated Retry-After", async () => {
+    passwordChangeMocks.consumePasswordChangeAttempt.mockResolvedValue({
+      allowed: false,
+      retryAfter: 347,
+    });
+
+    const denied = await changePassword(request(validBody()));
+
+    expect(denied.status).toBe(429);
+    expect(denied.headers.get("retry-after")).toBe("347");
+    expect(await denied.json()).toEqual({
+      error: "Too many password-change attempts. Wait before trying again.",
+    });
+    expect(passwordChangeMocks.consumePasswordChangeAttempt).toHaveBeenCalledWith(
+      expect.any(Request),
+      actor.userId,
+    );
+    expect(passwordChangeMocks.changeDatabaseUserPassword).not.toHaveBeenCalled();
+
+    passwordChangeMocks.consumePasswordChangeAttempt.mockResolvedValue({
+      allowed: false,
+      retryAfter: Number.NaN,
+    });
+    const invalidDelay = await changePassword(request(validBody()));
+    expect(invalidDelay.status).toBe(429);
+    expect(invalidDelay.headers.get("retry-after")).toBe("1");
+  });
+
+  it("fails closed before password verification when throttling storage is unavailable", async () => {
+    passwordChangeMocks.consumePasswordChangeAttempt.mockRejectedValue(
+      new Error("database connection details must not escape"),
+    );
+
+    const response = await changePassword(request(validBody()));
+
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({
+      error: "Password change is temporarily unavailable.",
+    });
     expect(passwordChangeMocks.changeDatabaseUserPassword).not.toHaveBeenCalled();
   });
 

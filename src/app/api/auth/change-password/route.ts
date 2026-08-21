@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { changeDatabaseUserPassword } from "@/lib/auth/change-password";
+import { consumePasswordChangeAttempt } from "@/lib/auth/change-password-rate-limit";
 import { configuredAuthProvider } from "@/lib/auth/provider";
 import {
   getActorFromRequest,
@@ -27,6 +28,12 @@ function clearSession(response: NextResponse): NextResponse {
     maxAge: 0,
   });
   return response;
+}
+
+function validatedRetryAfter(value: number): number {
+  return Number.isSafeInteger(value) && value >= 1 && value <= 60 * 60
+    ? value
+    : 1;
 }
 
 export async function POST(request: Request) {
@@ -74,6 +81,27 @@ export async function POST(request: Request) {
         { error: "Sign in again before changing your password." },
         { status: 401 },
       ),
+    );
+  }
+
+  let limit;
+  try {
+    limit = await consumePasswordChangeAttempt(request, actor.userId);
+  } catch {
+    return NextResponse.json(
+      { error: "Password change is temporarily unavailable." },
+      { status: 503 },
+    );
+  }
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { error: "Too many password-change attempts. Wait before trying again." },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": String(validatedRetryAfter(limit.retryAfter)),
+        },
+      },
     );
   }
 

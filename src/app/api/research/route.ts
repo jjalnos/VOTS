@@ -9,6 +9,8 @@ import {
 import { EXTERNAL_RESEARCH_COST_ACKNOWLEDGEMENT } from "@/lib/ai/types";
 import { hasTrustedOrigin } from "@/lib/http/origin";
 
+export const runtime = "nodejs";
+
 const researchSchema = z.object({
   query: z.string().trim().min(10).max(800),
   locale: z.enum(["en", "es"]),

@@ -275,6 +275,35 @@ export async function ensurePublishedCatalogFromEnvironment(): Promise<CatalogSe
  * PUBLISHABLE_SLUGS is never touched. Runs at every startup so a photograph
  * added to the code appears on the next deploy.
  */
+/**
+ * Clears the demonstration flag on published survivors.
+ *
+ * The profile page renders a "demonstration record" notice from this column,
+ * and the seeder only sets it when a record is first created — so survivors
+ * published before these became real, sourced people kept the flag and were
+ * publicly labelled demonstrations. Update-only, like the portrait sync.
+ */
+export async function syncDemonstrationFlagFromCode(): Promise<number> {
+  const db = getDatabase();
+  let cleared = 0;
+  for (const slug of PUBLISHABLE_SLUGS) {
+    if (isSentinelRecord(slug)) continue;
+    const [row] = await db
+      .select({ id: survivors.id, isDemonstration: survivors.isDemonstration })
+      .from(survivors)
+      .where(eq(survivors.slug, slug))
+      .limit(1);
+    if (!row || row.isDemonstration === false) continue;
+    await db
+      .update(survivors)
+      .set({ isDemonstration: false })
+      .where(eq(survivors.id, row.id));
+    cleared += 1;
+    console.log(`cleared demonstration flag: ${slug}`);
+  }
+  return cleared;
+}
+
 export async function syncPortraitsFromCode(): Promise<number> {
   const db = getDatabase();
   let applied = 0;

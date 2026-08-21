@@ -8,6 +8,7 @@ import { ensureDemonstrationViewerFromEnvironment } from "@/lib/auth/bootstrap-v
 import { ensureAdditionalAdminCuratorFromEnvironment } from "@/lib/auth/provision-admin-curator";
 import {
   ensurePublishedCatalogFromEnvironment,
+  syncDemonstrationFlagFromCode,
   syncPortraitsFromCode,
 } from "@/lib/publication/seed-catalog";
 
@@ -92,6 +93,7 @@ export async function runApplicationStartup(): Promise<void> {
       // that already exist, and a failure never stops the archive.
       try {
         await syncPortraitsFromCode();
+        await syncDemonstrationFlagFromCode();
       } catch (error) {
         console.error(
           "The portrait sync was skipped:",

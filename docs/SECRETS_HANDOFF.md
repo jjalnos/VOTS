@@ -21,7 +21,7 @@ Names are safe to document; values are not.
 | Private archive encryption | `DEMO_ARCHIVE_MASTER_KEY`, `DEMO_ARCHIVE_KEY_VERSION` | Treat every key version as retained decryption material until all ciphertext using it has been re-encrypted and verified. |
 | Self-hosted AI authentication | `LOCAL_AI_AUTH_TOKEN` | Grant access only to the internal model endpoint. |
 | Paid external research | `OPENAI_API_KEY` | Server-side external-research path only; rotate independently of the internal AI service. |
-| Usage alerts | `RESEND_API_KEY` | Restrict to the approved sending identity and alert workflow. |
+| Usage alerts | `SMTP_USER`, `SMTP_PASSWORD` (Cloudways Elastic Email) or legacy `RESEND_API_KEY` | Keep the selected provider's credential server-side and restrict it to the approved sending identity and alert workflow. Project SMTP credentials as Cloudways Sensitive values. `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_REQUIRE_TLS`, and `SMTP_FROM` are configuration rather than secret payloads. |
 | Bootstrap credentials | `BOOTSTRAP_*_PASSWORD`, bootstrap confirmation values | One-time use only; remove from Cloudways and redeploy immediately after successful bootstrap. |
 
 ## Rotation runbook
@@ -39,6 +39,7 @@ The current demo archive stores a numeric key version with each encrypted blob b
 
 - No secret may use a `NEXT_PUBLIC_` name or be passed into a Client Component. Next.js documents that `NEXT_PUBLIC_` variables are inlined into browser JavaScript at build time. See [Next.js environment variables](https://nextjs.org/docs/pages/guides/environment-variables).
 - Never place secret payloads in source control, `.env.example`, API responses, rendered HTML, screenshots, tickets, chat, application logs, deployment logs, telemetry, or alert bodies. Log only the secret identifier, numeric version, operation result, and actor/service identity.
+- For Elastic Email, verify `voicesoftheshoah.org` before use and restrict the application sender to `no-reply@voicesoftheshoah.org`. Create a dedicated SMTP credential with a username matching `vots-smtp-<8-to-32-character-unique-suffix>@voicesoftheshoah.org` rather than reusing an account-wide API key. Use `smtp.elasticemail.com:2525` with `SMTP_SECURE=false` and `SMTP_REQUIRE_TLS=true`, which requires a STARTTLS upgrade. The application pins these transport settings so an environment edit cannot redirect the SMTP password to another host. Never weaken TLS to diagnose delivery; use the provider dashboard and redacted status information instead.
 - Do not log complete environment objects, authorization headers, request headers, provider responses, or exception objects that might carry credentials.
 - Enable and review Secret Manager Data Access audit logs for `AccessSecretVersion`; Google classifies secret payload access as a Data Read operation, and Data Access logs generally require explicit enablement. See [Secret Manager audit logging](https://cloud.google.com/secret-manager/docs/audit-logging) and [Cloud Audit Logs](https://cloud.google.com/logging/docs/audit).
 - Separate duties: the runtime identity reads only named secrets; the rotation identity can add versions but does not run the application; destructive version actions require an approved change and proof that no retained data depends on the version.

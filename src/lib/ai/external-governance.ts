@@ -20,6 +20,10 @@ import {
   getUsageAlertAdapter,
   type UsageAlertAdapter,
 } from "@/lib/ai/usage-alert";
+import {
+  recordSettledTokenUsageBestEffort,
+  type TokenUsageTelemetry,
+} from "@/lib/observability/new-relic-token-usage";
 
 export type ExternalUsageStatus =
   | "not-run"
@@ -256,12 +260,14 @@ interface GovernanceDependencies {
   resolveProvider?: (maxOutputTokens: number) => ExternalResearchProviderResolution;
   ledger?: ExternalUsageLedger;
   alertAdapter?: UsageAlertAdapter;
+  tokenUsageTelemetry?: TokenUsageTelemetry;
 }
 
 export async function runGovernedExternalResearch(
   request: ResearchRequest,
   dependencies: GovernanceDependencies = {},
 ): Promise<GovernedExternalResearchResult> {
+  const startedAtMs = Date.now();
   const now = (dependencies.now ?? (() => new Date()))();
   const limits = externalUsageLimitsFromEnvironment();
 
@@ -304,6 +310,7 @@ export async function runGovernedExternalResearch(
       }),
     };
   }
+  const model = resolution.model ?? "configured-external-model";
 
   let ledger: ExternalUsageLedger;
   try {
@@ -368,7 +375,7 @@ export async function runGovernedExternalResearch(
     reservationResult = await ledger.reserve({
       actorId: request.initiatedByUserId,
       provider: "openai",
-      model: resolution.model ?? "configured-external-model",
+      model,
       reservedTokens,
       now,
       limits,
@@ -408,6 +415,7 @@ export async function runGovernedExternalResearch(
     });
   } catch {
     let snapshot = reservationResult.snapshot;
+    let settled = false;
     try {
       snapshot = await ledger.settle({
         reservation: reservationResult.reservation,
@@ -418,9 +426,24 @@ export async function runGovernedExternalResearch(
         now,
         limits,
       });
+      settled = true;
     } catch {
       // The external provider has not been called. Preserve sanitized metadata
       // from the successful reservation and fail closed.
+    }
+    if (settled) {
+      await recordSettledTokenUsageBestEffort({
+        provider: "openai",
+        model,
+        result: "blocked",
+        inputTokens: 0,
+        outputTokens: 0,
+        chargedTokens: 0,
+        reservedTokens,
+        snapshot,
+        durationMs: Date.now() - startedAtMs,
+        timestamp: now,
+      }, dependencies.tokenUsageTelemetry);
     }
     throw new ExternalResearchGovernanceError(
       "usage-alert-unavailable",
@@ -445,6 +468,7 @@ export async function runGovernedExternalResearch(
     suggestion = await resolution.provider.research(request);
   } catch {
     let snapshot = reservationResult.snapshot;
+    let settled = false;
     try {
       snapshot = await ledger.settle({
         reservation: reservationResult.reservation,
@@ -455,10 +479,25 @@ export async function runGovernedExternalResearch(
         now,
         limits,
       });
+      settled = true;
     } catch {
       // A conservative reservation remains until expiry, when the durable
       // ledger promotes it to a charged provider-error record at the full
       // reserved ceiling. Never retry the provider from this request.
+    }
+    if (settled) {
+      await recordSettledTokenUsageBestEffort({
+        provider: "openai",
+        model,
+        result: "provider-error",
+        inputTokens: inputTokenCeiling,
+        outputTokens: limits.maxOutputTokens,
+        chargedTokens: reservedTokens,
+        reservedTokens,
+        snapshot,
+        durationMs: Date.now() - startedAtMs,
+        timestamp: now,
+      }, dependencies.tokenUsageTelemetry);
     }
     throw new ExternalResearchGovernanceError(
       "provider-error",
@@ -504,6 +543,18 @@ export async function runGovernedExternalResearch(
       "The external research result was withheld because durable usage accounting could not be completed.",
     );
   }
+  await recordSettledTokenUsageBestEffort({
+    provider: "openai",
+    model,
+    result: "completed",
+    inputTokens: reported?.inputTokens ?? inputTokenCeiling,
+    outputTokens: reported?.outputTokens ?? limits.maxOutputTokens,
+    chargedTokens,
+    reservedTokens,
+    snapshot,
+    durationMs: Date.now() - startedAtMs,
+    timestamp: now,
+  }, dependencies.tokenUsageTelemetry);
   return {
     suggestion,
     usage: usageMetadata({

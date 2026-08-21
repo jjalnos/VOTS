@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
 import styles from "@/components/password-change-form.module.css";
 import type { Locale } from "@/lib/domain/types";
 
@@ -190,7 +189,6 @@ function PasswordInput({
 }
 
 export function PasswordChangeForm({ locale }: { locale: Locale }) {
-  const router = useRouter();
   const [status, setStatus] = useState<FormStatus>("idle");
   const [serverError, setServerError] = useState<string | null>(null);
   const [fieldError, setFieldError] = useState<{
@@ -206,16 +204,10 @@ export function PasswordChangeForm({ locale }: { locale: Locale }) {
   const newPasswordRef = useRef<HTMLInputElement>(null);
   const confirmPasswordRef = useRef<HTMLInputElement>(null);
   const requestRef = useRef<AbortController | null>(null);
-  const redirectTimerRef = useRef<number | null>(null);
   const es = locale === "es";
   const disabled = status === "loading" || status === "success";
 
-  useEffect(() => () => {
-    requestRef.current?.abort();
-    if (redirectTimerRef.current !== null) {
-      window.clearTimeout(redirectTimerRef.current);
-    }
-  }, []);
+  useEffect(() => () => requestRef.current?.abort(), []);
 
   function focusField(field: PasswordField) {
     const refs = {
@@ -283,10 +275,6 @@ export function PasswordChangeForm({ locale }: { locale: Locale }) {
       }
 
       setStatus("success");
-      redirectTimerRef.current = window.setTimeout(() => {
-        router.replace("/login?lang=" + locale);
-        router.refresh();
-      }, 2_000);
     } catch {
       if (controller.signal.aborted) return;
       resetSecrets(form);
@@ -357,8 +345,12 @@ export function PasswordChangeForm({ locale }: { locale: Locale }) {
         ? (
           <p className={styles.success} role="status">
             {es
-              ? "Contraseña cambiada. Todas las sesiones se revocaron, incluida esta. Será redirigido para iniciar sesión con la nueva contraseña."
-              : "Password changed. Every session was revoked, including this one. You will be redirected to sign in with the new password."}
+              ? "Contraseña cambiada. Todas las sesiones dejaron de ser válidas, incluida esta. "
+              : "Password changed. Every session became invalid, including this one. "}
+            <a href={"/login?lang=" + locale}>
+              {es ? "Iniciar sesión de nuevo" : "Sign in again"}
+            </a>
+            .
           </p>
         )
         : null}

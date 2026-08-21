@@ -36,6 +36,15 @@ describe("public catalog publication guards", () => {
     }
   });
 
+  // A real person's sourced record must never be labelled demonstration data:
+  // the profile page renders that notice straight off this flag.
+  it("marks no published survivor as demonstration data", () => {
+    for (const slug of PUBLISHABLE_SLUGS) {
+      const survivor = seedSurvivors.find((record) => record.slug === slug)!;
+      expect(survivor.isDemonstration, `"${slug}" is flagged as demonstration data`).toBe(false);
+    }
+  });
+
   it("refuses every private sentinel fixture", () => {
     const sentinelSurvivor = seedSurvivors.find((s) => s.slug === "private-draft-never-public")!;
     const sentinelStory = seedStories.find((s) => s.slug === "private-story")!;

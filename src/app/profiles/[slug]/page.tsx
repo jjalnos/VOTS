@@ -33,7 +33,9 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
             <div className="status-row">
               <StatusPill>{t(locale, "curatorReviewed")}</StatusPill>
             </div>
-            <p className="notice">{t(locale, "demoNotice")}</p>
+            <p className="notice">
+              {t(locale, survivor.isDemonstration ? "demoNotice" : "summaryNotice")}
+            </p>
             {survivor.portrait ? (
               <figure className="profile-portrait">
                 {/* eslint-disable-next-line @next/next/no-img-element */}

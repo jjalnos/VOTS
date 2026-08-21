@@ -130,6 +130,22 @@ describe("New Relic aggregate token telemetry", () => {
     expect(request).not.toHaveBeenCalled();
   });
 
+  it("reports an enabled-but-invalid configuration with a sanitized rate-limited warning", async () => {
+    vi.resetModules();
+    vi.stubEnv("NEW_RELIC_TOKEN_USAGE_EVENTS_ENABLED", "true");
+    vi.stubEnv("NEW_RELIC_ACCOUNT_ID", "not-an-account-id");
+    vi.stubEnv("NEW_RELIC_LICENSE_KEY", "nr-license-secret");
+    const warning = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const freshModule = await import("@/lib/observability/new-relic-token-usage");
+
+    await freshModule.getTokenUsageTelemetry().recordSettledUsage(settledUsage);
+    await freshModule.getTokenUsageTelemetry().recordSettledUsage(settledUsage);
+
+    expect(warning).toHaveBeenCalledOnce();
+    expect(warning.mock.calls[0]?.join(" ")).toMatch(/configuration is unavailable/i);
+    expect(warning.mock.calls[0]?.join(" ")).not.toContain("nr-license-secret");
+  });
+
   it("sanitizes delivery failures without reading an upstream response body", async () => {
     const secret = "nr-license-secret";
     const responseBody = vi.fn();

@@ -4,6 +4,10 @@ export const NEW_RELIC_TOKEN_USAGE_EVENT_TYPE = "VotsAiTokenUsage";
 
 const NEW_RELIC_EVENTS_HOST = "insights-collector.newrelic.com";
 const DEFAULT_TIMEOUT_MS = 2_000;
+const HEALTH_WARNING_INTERVAL_MS = 5 * 60_000;
+
+let lastConfigurationWarningAt = 0;
+let lastDeliveryWarningAt = 0;
 
 export interface SettledTokenUsageEventInput {
   provider: "openai";
@@ -29,6 +33,21 @@ class DisabledTokenUsageTelemetry implements TokenUsageTelemetry {
 }
 
 const disabledTelemetry = new DisabledTokenUsageTelemetry();
+
+function warnHealthOncePerInterval(
+  kind: "configuration" | "delivery",
+  now = Date.now(),
+): void {
+  const lastWarningAt = kind === "configuration"
+    ? lastConfigurationWarningAt
+    : lastDeliveryWarningAt;
+  if (now - lastWarningAt < HEALTH_WARNING_INTERVAL_MS) return;
+  if (kind === "configuration") lastConfigurationWarningAt = now;
+  else lastDeliveryWarningAt = now;
+  console.warn(
+    `[observability] New Relic token telemetry ${kind} is unavailable; durable usage accounting and its primary alert remain active.`,
+  );
+}
 
 function nonNegativeInteger(value: number): number {
   return Number.isFinite(value) ? Math.max(0, Math.trunc(value)) : 0;
@@ -133,10 +152,14 @@ export function getTokenUsageTelemetry(): TokenUsageTelemetry {
   }
   const accountId = process.env.NEW_RELIC_ACCOUNT_ID;
   const licenseKey = process.env.NEW_RELIC_LICENSE_KEY;
-  if (!accountId || !licenseKey) return disabledTelemetry;
+  if (!accountId || !licenseKey) {
+    warnHealthOncePerInterval("configuration");
+    return disabledTelemetry;
+  }
   try {
     return new NewRelicTokenUsageTelemetry(accountId, licenseKey);
   } catch {
+    warnHealthOncePerInterval("configuration");
     return disabledTelemetry;
   }
 }
@@ -150,5 +173,8 @@ export async function recordSettledTokenUsageBestEffort(
   } catch {
     // The PostgreSQL ledger and its existing high-usage alert remain
     // authoritative. Observability must never change a provider outcome.
+    // This warning is intentionally constant and rate-limited: never include
+    // the exception, key, headers, response body, or event payload in logs.
+    warnHealthOncePerInterval("delivery");
   }
 }

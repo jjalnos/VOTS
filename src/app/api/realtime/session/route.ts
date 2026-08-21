@@ -40,6 +40,56 @@ function safeRetryAfter(value: string | undefined): string | undefined {
   return String(Math.max(1, Math.min(Number(value), 3_600)));
 }
 
+interface SafeUpstreamError {
+  code?: string;
+  param?: string;
+  type?: string;
+}
+
+function safeUpstreamDiagnosticValue(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  return /^[A-Za-z0-9_.:[\]-]{1,96}$/.test(value) ? value : undefined;
+}
+
+async function safeUpstreamError(response: Response): Promise<SafeUpstreamError> {
+  try {
+    const payload = await response.json() as {
+      error?: { code?: unknown; param?: unknown; type?: unknown };
+    };
+    return {
+      code: safeUpstreamDiagnosticValue(payload.error?.code),
+      param: safeUpstreamDiagnosticValue(payload.error?.param),
+      type: safeUpstreamDiagnosticValue(payload.error?.type),
+    };
+  } catch {
+    return {};
+  }
+}
+
+function rejectedRealtimeMessage(
+  status: number,
+  diagnostic: SafeUpstreamError,
+): string {
+  if (status === 401) {
+    return "The OpenAI production key was rejected by the realtime service.";
+  }
+  if (status === 403 || status === 404) {
+    return "The OpenAI project does not currently permit this realtime model.";
+  }
+  if (status === 400) {
+    const code = diagnostic.code ?? diagnostic.type;
+    const suffix = [code, diagnostic.param ? `at ${diagnostic.param}` : undefined]
+      .filter(Boolean)
+      .join(" ");
+    return suffix
+      ? `The realtime configuration was rejected (${suffix}).`
+      : "The realtime configuration was rejected by OpenAI.";
+  }
+  return status >= 500
+    ? "The realtime voice service is temporarily unavailable."
+    : "The realtime voice service is not available for this private experience.";
+}
+
 export async function POST(request: Request) {
   if (!hasTrustedOrigin(request)) {
     return errorResponse("Cross-site realtime session requests are not accepted.", 403);
@@ -125,10 +175,9 @@ export async function POST(request: Request) {
         retryAfter ? { "Retry-After": retryAfter } : {},
       );
     }
+    const diagnostic = await safeUpstreamError(upstream);
     return errorResponse(
-      upstream.status >= 500
-        ? "The realtime voice service is temporarily unavailable."
-        : "The realtime voice service is not available for this private experience.",
+      rejectedRealtimeMessage(upstream.status, diagnostic),
       upstream.status >= 500 ? 502 : 503,
     );
   }

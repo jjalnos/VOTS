@@ -306,6 +306,29 @@ describe("private Realtime WebRTC session", () => {
     );
   });
 
+  it("returns only sanitized provider diagnostics for a rejected configuration", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => Response.json({
+      error: {
+        type: "invalid_request_error",
+        code: "invalid_value",
+        param: "session.audio.input.turn_detection.eagerness",
+        message: "secret upstream detail that must not reach the browser",
+      },
+    }, { status: 400 })));
+
+    const response = await createRealtimeSession(realtimeRequest());
+    expect(response.status).toBe(503);
+    const payload = await response.json();
+    expect(payload).toEqual({
+      error:
+        "The realtime configuration was rejected (invalid_value at session.audio.input.turn_detection.eagerness).",
+    });
+    expect(JSON.stringify(payload)).not.toContain("secret upstream detail");
+    expect(usageLedger.settle).toHaveBeenCalledWith(
+      expect.objectContaining({ status: "provider-error" }),
+    );
+  });
+
   it("fails closed for cross-site, unauthenticated, disabled, and malformed requests", async () => {
     const fetcher = vi.fn();
     vi.stubGlobal("fetch", fetcher);

@@ -1,6 +1,11 @@
 import type { Locale, PublicCatalog } from "@/lib/domain/types";
 
-export const FEATURED_RECORD_SLUGS = ["sam-cohen", "susanne-jalnos", "stephan-jalnos"] as const;
+export const FEATURED_RECORD_SLUGS = [
+  "sam-cohen",
+  "susanne-jalnos",
+  "stephan-jalnos",
+  "rose-williams",
+] as const;
 
 export type FeaturedRecordSlug = (typeof FEATURED_RECORD_SLUGS)[number];
 

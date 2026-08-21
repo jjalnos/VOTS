@@ -1,16 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { getPublicCatalog } from "@/lib/data/public-catalog";
-import { selectFeaturedRecords } from "@/lib/publication/featured-records";
+import {
+  FEATURED_RECORD_SLUGS,
+  selectFeaturedRecords,
+} from "@/lib/publication/featured-records";
 
 describe("featured public records", () => {
-  it("returns the three published survivors in a deliberate order", () => {
+  // The homepage order is declared in FEATURED_RECORD_SLUGS; the selection
+  // must preserve it rather than fall back to catalog order.
+  it("returns the featured survivors in their declared order", () => {
     const records = selectFeaturedRecords(getPublicCatalog("en"), "en");
 
-    expect(records.map((record) => record.slug)).toEqual([
-      "sam-cohen",
-      "susanne-jalnos",
-      "stephan-jalnos",
-    ]);
+    expect(records.map((record) => record.slug)).toEqual([...FEATURED_RECORD_SLUGS]);
     expect(records.every((record) => record.sourceUrl.startsWith("https://"))).toBe(true);
   });
 
@@ -23,8 +24,9 @@ describe("featured public records", () => {
       ),
     };
 
-    expect(selectFeaturedRecords(withoutStephanRelease, "en").map((record) => record.slug))
-      .toEqual(["sam-cohen", "susanne-jalnos"]);
+    const slugs = selectFeaturedRecords(withoutStephanRelease, "en").map((record) => record.slug);
+    expect(slugs).not.toContain("stephan-jalnos");
+    expect(slugs).toEqual(FEATURED_RECORD_SLUGS.filter((slug) => slug !== "stephan-jalnos"));
   });
 
   it("omits a record when its attached source is not approved", () => {
@@ -38,7 +40,8 @@ describe("featured public records", () => {
       ),
     };
 
-    expect(selectFeaturedRecords(withPendingSamSource, "en").map((record) => record.slug))
-      .toEqual(["susanne-jalnos", "stephan-jalnos"]);
+    const slugs = selectFeaturedRecords(withPendingSamSource, "en").map((record) => record.slug);
+    expect(slugs).not.toContain("sam-cohen");
+    expect(slugs).toEqual(FEATURED_RECORD_SLUGS.filter((slug) => slug !== "sam-cohen"));
   });
 });

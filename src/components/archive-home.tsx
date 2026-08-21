@@ -23,8 +23,9 @@ interface HomeCopy {
   galleryAlt: string;
   galleryCaption: string;
   survivorsEyebrow: Record<FeaturedRecordSlug, string>;
-  photoAlts: Record<FeaturedRecordSlug, string>;
-  photoCredit: Record<FeaturedRecordSlug, string>;
+  photoAlts: Record<FeaturedRecordSlug, string | null>;
+  photoCredit: Record<FeaturedRecordSlug, string | null>;
+  platePending: string;
   readStory: string;
   missionEyebrow: string;
   missionTitle: string;
@@ -70,6 +71,7 @@ function copyFor(locale: Locale, names: number | null): HomeCopy {
         "sam-cohen": "Testimonio grabado",
         "susanne-jalnos": "Relatado por su hijo",
         "stephan-jalnos": "Compartido por un descendiente",
+        "rose-williams": "Autora de sus memorias",
       },
       photoAlts: {
         "sam-cohen":
@@ -77,12 +79,15 @@ function copyFor(locale: Locale, names: number | null): HomeCopy {
         "susanne-jalnos":
           "Retrato de Susanne Jalnos, publicado por el Museo Conmemorativo del Holocausto de San Antonio para su serie de conferencias de sobrevivientes",
         "stephan-jalnos": "Fotografía de la familia Jalnos: una pareja joven con su bebé",
+        "rose-williams": null,
       },
       photoCredit: {
         "sam-cohen": "Fotografía: Museo Conmemorativo del Holocausto de San Antonio",
         "susanne-jalnos": "Fotografía: detalle de un anuncio del Museo Conmemorativo del Holocausto de San Antonio",
         "stephan-jalnos": "Fotografía: cortesía de la familia Jalnos",
+        "rose-williams": null,
       },
+      platePending: "Se busca una fotografía",
       readStory: "Leer su historia",
       missionEyebrow: "El proyecto",
       missionTitle: "Cada sobreviviente deja documentos, fotografías y una voz. Este es el lugar donde se guardan.",
@@ -158,6 +163,7 @@ function copyFor(locale: Locale, names: number | null): HomeCopy {
       "sam-cohen": "Recorded testimony",
       "susanne-jalnos": "Shared by her son",
       "stephan-jalnos": "Shared by a descendant",
+      "rose-williams": "Author of her own memoir",
     },
     photoAlts: {
       "sam-cohen":
@@ -165,12 +171,15 @@ function copyFor(locale: Locale, names: number | null): HomeCopy {
       "susanne-jalnos":
         "Portrait of Susanne Jalnos, published by the Holocaust Memorial Museum of San Antonio for its Survivor Speakers Series announcement",
       "stephan-jalnos": "A Jalnos family photograph: a young couple with their baby",
+      "rose-williams": null,
     },
     photoCredit: {
       "sam-cohen": "Photograph: Holocaust Memorial Museum of San Antonio",
       "susanne-jalnos": "Photograph: detail from a Holocaust Memorial Museum of San Antonio announcement",
       "stephan-jalnos": "Photograph: courtesy of the Jalnos family",
+      "rose-williams": null,
     },
+    platePending: "A photograph is being sought",
     readStory: "Read their story",
     missionEyebrow: "The project",
     missionTitle: "Every survivor leaves documents, photographs, and a voice. This is where they are kept.",
@@ -242,11 +251,24 @@ export interface ArchiveCounts {
    portrait is supplied. There is deliberately no fallback image: showing one
    family's photograph under another survivor's name is the one mistake this
    page must make impossible. */
-const ROW_PHOTOS: Record<FeaturedRecordSlug, string> = {
+const ROW_PHOTOS: Record<FeaturedRecordSlug, string | null> = {
   "sam-cohen": "/sam-cohen-portrait.jpg",
   "susanne-jalnos": "/susanne-jalnos-portrait.jpg",
   "stephan-jalnos": "/generation-to-generation-family.png",
+  // The museum holds no photograph of Rose Williams at a size worth
+  // publishing. An archival plate says so rather than borrowing one.
+  "rose-williams": null,
 };
+
+/** Initials for the plate that stands in for an absent photograph. */
+function monogram(name: string): string {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .slice(0, 3)
+    .join("");
+}
 
 const STATUS_CLASS: Record<RoadmapStop["status"], string> = {
   done: styles.done,
@@ -301,18 +323,34 @@ export function ArchiveHome({
           aria-labelledby={`survivor-${record.slug}`}
         >
           <div className={index % 2 ? styles.rowInnerReversed : styles.rowInner}>
-            <div className={`memorial-photo ${styles.rowPhoto}`} data-slug={record.slug}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={ROW_PHOTOS[record.slug]} alt={content.photoAlts[record.slug]} />
-            </div>
+            {ROW_PHOTOS[record.slug] ? (
+              <div className={`memorial-photo ${styles.rowPhoto}`} data-slug={record.slug}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={ROW_PHOTOS[record.slug]!}
+                  alt={content.photoAlts[record.slug] ?? record.name}
+                />
+              </div>
+            ) : (
+              <div className={styles.rowPlate} data-slug={record.slug}>
+                <span className={styles.plateMonogram} aria-hidden="true">
+                  {monogram(record.name)}
+                </span>
+                <span className={styles.plateNote}>{content.platePending}</span>
+              </div>
+            )}
             <div className={styles.rowText}>
               <p className="eyebrow">{content.survivorsEyebrow[record.slug]}</p>
               <h2 id={`survivor-${record.slug}`}>{record.name}</h2>
               <p className={styles.rowSummary}>{record.summary}</p>
               <p className={styles.rowCitation}>
                 {record.citation}
-                <br />
-                {content.photoCredit[record.slug]}
+                {content.photoCredit[record.slug] ? (
+                  <>
+                    <br />
+                    {content.photoCredit[record.slug]}
+                  </>
+                ) : null}
               </p>
               <Link className={styles.rowLink} href={withLocale(`/profiles/${record.slug}`, locale)}>
                 {content.readStory} <span aria-hidden="true">→</span>

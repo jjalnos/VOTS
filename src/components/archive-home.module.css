@@ -133,7 +133,8 @@
   grid-template-columns: 1fr 360px;
 }
 
-.rowInnerReversed .rowPhoto {
+.rowInnerReversed .rowPhoto,
+.rowInnerReversed .rowPlate {
   order: 2;
 }
 
@@ -141,6 +142,46 @@
   aspect-ratio: 4 / 5;
   object-fit: cover;
   object-position: center top;
+}
+
+/* An archival plate, not a missing image: where the museum holds no
+   photograph worth publishing, the row says so plainly and asks for one,
+   rather than borrowing another family's picture. */
+.rowPlate {
+  aspect-ratio: 4 / 5;
+  display: grid;
+  place-content: center;
+  gap: 1rem;
+  text-align: center;
+  padding: 1.5rem;
+  background:
+    repeating-linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.05) 0 2px,
+      transparent 2px 9px
+    ),
+    var(--wine-deep);
+}
+
+.plateMonogram {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 2.75rem;
+  line-height: 1;
+  letter-spacing: 0.14em;
+  text-indent: 0.14em;
+  color: var(--parchment);
+  border: 1px solid rgba(234, 219, 195, 0.4);
+  padding: 0.75rem 1rem;
+}
+
+.plateNote {
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--parchment);
+  opacity: 0.85;
 }
 
 .rowText h2 {
@@ -493,11 +534,13 @@
     grid-template-columns: 1fr;
   }
 
-  .rowInnerReversed .rowPhoto {
+  .rowInnerReversed .rowPhoto,
+  .rowInnerReversed .rowPlate {
     order: 0;
   }
 
-  .rowPhoto {
+  .rowPhoto,
+  .rowPlate {
     max-width: 420px;
   }
 

@@ -14,9 +14,13 @@ interface RoadmapStop {
 }
 
 interface HomeCopy {
+  heroEyebrow: string;
   heroTitle: string;
   heroLead: string;
   heroAction: string;
+  heroSecondary: string;
+  galleryAlt: string;
+  galleryCaption: string;
   survivorsEyebrow: Record<FeaturedRecordSlug, string>;
   photoAlts: Record<FeaturedRecordSlug, string>;
   photoCredit: Record<FeaturedRecordSlug, string>;
@@ -46,17 +50,21 @@ interface HomeCopy {
   searchPlaceholder: string;
   searchAction: string;
   browseAll: string;
-  photoAlt: string;
 }
 
 function copyFor(locale: Locale, names: number | null): HomeCopy {
   if (locale === "es") {
     const nombres = names ? `${names} nombres` : "más de trescientos nombres";
     return {
+      heroEyebrow: "Museo Conmemorativo del Holocausto de San Antonio",
       heroTitle: "Sobrevivieron. Cuatro generaciones hablan.",
       heroLead:
         "Este archivo preserva las voces, los rostros y los registros de las familias de la Shoá en San Antonio.",
       heroAction: "Conocer a los sobrevivientes",
+      heroSecondary: "Conocer el proyecto",
+      galleryAlt:
+        "Las galerías del Museo Conmemorativo del Holocausto de San Antonio, con sus paneles de exposición en perspectiva",
+      galleryCaption: "Las galerías del museo, San Antonio, Texas",
       survivorsEyebrow: {
         "sam-cohen": "Testimonio grabado",
         "stephan-jalnos": "Compartido por un descendiente",
@@ -64,7 +72,7 @@ function copyFor(locale: Locale, names: number | null): HomeCopy {
       photoAlts: {
         "sam-cohen":
           "Retrato de Sam Cohen de joven, de la colección del Museo Conmemorativo del Holocausto de San Antonio",
-        "stephan-jalnos": "La familia Jalnos, cuatro generaciones fotografiadas juntas",
+        "stephan-jalnos": "Fotografía de la familia Jalnos: una pareja joven con su bebé",
       },
       photoCredit: {
         "sam-cohen": "Fotografía: Museo Conmemorativo del Holocausto de San Antonio",
@@ -128,15 +136,19 @@ function copyFor(locale: Locale, names: number | null): HomeCopy {
       searchPlaceholder: "Buscar un nombre…",
       searchAction: "Buscar",
       browseAll: "Ver los registros publicados",
-      photoAlt: "Cuatro generaciones de una familia sobreviviente, fotografiadas juntas",
     };
   }
   const nameCount = names ? `${names} names` : "more than three hundred names";
   return {
+    heroEyebrow: "The Holocaust Memorial Museum of San Antonio",
     heroTitle: "They survived. Four generations speak.",
     heroLead:
       "This archive preserves the voices, faces, and records of the survivor families of San Antonio.",
     heroAction: "Meet the survivors",
+    heroSecondary: "About the project",
+    galleryAlt:
+      "The galleries of the Holocaust Memorial Museum of San Antonio, exhibit panels receding in perspective",
+    galleryCaption: "The museum galleries, San Antonio, Texas",
     survivorsEyebrow: {
       "sam-cohen": "Recorded testimony",
       "stephan-jalnos": "Shared by a descendant",
@@ -144,7 +156,7 @@ function copyFor(locale: Locale, names: number | null): HomeCopy {
     photoAlts: {
       "sam-cohen":
         "Portrait of Sam Cohen as a young man, from the collection of the Holocaust Memorial Museum of San Antonio",
-      "stephan-jalnos": "The Jalnos family, four generations photographed together",
+      "stephan-jalnos": "A Jalnos family photograph: a young couple with their baby",
     },
     photoCredit: {
       "sam-cohen": "Photograph: Holocaust Memorial Museum of San Antonio",
@@ -208,7 +220,6 @@ function copyFor(locale: Locale, names: number | null): HomeCopy {
     searchPlaceholder: "Search for a name…",
     searchAction: "Search",
     browseAll: "Browse the published records",
-    photoAlt: "Four generations of a survivor family, photographed together",
   };
 }
 
@@ -246,25 +257,31 @@ export function ArchiveHome({
 
   return (
     <div className={styles.page}>
-      {/* Movement 1 — split hero. The museum's own exhibit hall grounds the
-          text panel, faded to a whisper under paper; the photograph gets its
-          own zone and no text ever sits on it. It is the one full-color
-          image on the site. */}
+      {/* Movement 1 — the overture. Type alone on paper, at full scale, then
+          the museum's own gallery edge to edge beneath it. No text ever sits
+          on a photograph. */}
       <section className={styles.hero} aria-labelledby="archive-introduction">
-        <div className={styles.heroPanel}>
-          <div className={styles.heroPanelInner}>
-            <h1 id="archive-introduction">{content.heroTitle}</h1>
-            <p>{content.heroLead}</p>
+        <div className={styles.heroInner}>
+          <p className={styles.heroEyebrow}>{content.heroEyebrow}</p>
+          <h1 id="archive-introduction">{content.heroTitle}</h1>
+          <p className={styles.heroLead}>{content.heroLead}</p>
+          <div className={styles.heroActions}>
             <Link className={styles.heroAction} href={withLocale("/directory", locale)}>
               {content.heroAction}
             </Link>
+            <a className={styles.heroSecondary} href="#mission-title">
+              {content.heroSecondary}
+            </a>
           </div>
         </div>
-        <div className={styles.heroPhoto}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/generation-to-generation-family.png" alt={content.photoAlt} />
-        </div>
       </section>
+      <figure className={styles.heroPlate}>
+        <div className="memorial-photo">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/hmmsa-exhibit-hall.jpg" alt={content.galleryAlt} />
+        </div>
+        <figcaption>{content.galleryCaption}</figcaption>
+      </figure>
 
       {/* Movement 2 — the survivors as editorial rows. Whitespace is the card. */}
       {featuredRecords.map((record, index) => (

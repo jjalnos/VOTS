@@ -3,52 +3,60 @@
   color: var(--ink);
 }
 
-/* ---- Viewport 1: split hero ------------------------------------------- */
+/* ---- Movement 1: the overture ----------------------------------------- */
 
 .hero {
   display: grid;
-  grid-template-columns: 42% 58%;
-  min-height: min(78vh, 720px);
-  border-bottom: 1px solid var(--hairline);
+  place-items: center;
+  text-align: center;
+  padding: clamp(4.5rem, 12vh, 9rem) 1.5rem clamp(3.5rem, 9vh, 6rem);
 }
 
-.heroPanel {
-  display: flex;
-  align-items: center;
-  /* The museum's own exhibit hall, faded to a whisper under paper. The
-     gradient veil keeps the ink at full contrast; the photograph reads as
-     texture, never as a surface the text sits on. */
-  background:
-    linear-gradient(to right, rgba(250, 247, 242, 0.9), rgba(250, 247, 242, 0.97)),
-    url("/hmmsa-exhibit-hall.jpg") center / cover no-repeat;
+.heroInner {
+  max-width: 60rem;
 }
 
-.heroPanelInner {
-  padding: 3rem clamp(1.5rem, 5vw, 4.5rem);
-  max-width: 34rem;
+.heroEyebrow {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 1.75rem;
 }
 
-.heroPanelInner h1 {
-  font-size: clamp(2.25rem, 5vw, 3.5rem);
-  line-height: 1.08;
-  letter-spacing: -0.01em;
+.heroInner h1 {
+  /* The one place on the site where type is allowed to be monumental. */
+  font-size: clamp(2.75rem, 7vw, 5.25rem);
+  line-height: 1.02;
+  letter-spacing: -0.02em;
   color: var(--ink);
-  margin: 0 0 1.1rem;
+  margin: 0 auto 1.5rem;
+  max-width: 18ch;
   text-wrap: balance;
 }
 
-.heroPanelInner p {
+.heroLead {
   color: var(--muted);
-  font-size: 1.125rem;
-  margin: 0 0 2rem;
-  max-width: 46ch;
+  font-size: clamp(1.0625rem, 1.6vw, 1.3125rem);
+  line-height: 1.6;
+  margin: 0 auto 2.5rem;
+  max-width: 54ch;
+}
+
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 1.75rem;
 }
 
 .heroAction {
   display: inline-flex;
   align-items: center;
-  min-height: 48px;
-  padding: 0 1.75rem;
+  min-height: 52px;
+  padding: 0 2rem;
   background: var(--wine);
   color: var(--paper);
   font-weight: 500;
@@ -61,21 +69,42 @@
   background: var(--wine-deep);
 }
 
-.heroPhoto {
-  overflow: hidden;
-  position: relative;
-  /* The text panel sets the hero's height; the photograph fills whatever
-     zone that leaves, so a tall original can never stretch the viewport. */
+.heroSecondary {
+  color: var(--wine);
+  font-weight: 500;
+  font-size: 0.9375rem;
+  text-decoration: none;
+  border-bottom: 1px solid var(--wine);
+  padding-bottom: 2px;
+  transition: opacity 200ms ease;
 }
 
-.heroPhoto img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center top;
+.heroSecondary:hover {
+  opacity: 0.7;
+}
+
+/* The museum's own galleries, edge to edge — the archive's subject shown at
+   the scale it deserves, and never a surface for text. */
+.heroPlate {
+  margin: 0;
+  border-block: 1px solid var(--hairline);
+}
+
+.heroPlate img {
   display: block;
+  width: 100%;
+  height: clamp(320px, 52vh, 560px);
+  object-fit: cover;
+  object-position: center;
+}
+
+.heroPlate figcaption {
+  padding: 0.75rem 1.5rem;
+  text-align: center;
+  font-size: 0.8125rem;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  border-top: 1px solid var(--hairline);
 }
 
 /* ---- Viewport 2: editorial survivor rows ------------------------------ */
@@ -455,24 +484,8 @@
 /* ---- Small screens ----------------------------------------------------- */
 
 @media (max-width: 860px) {
-  .hero {
-    grid-template-columns: 1fr;
-    min-height: 0;
-  }
-
-  .heroPhoto {
-    order: -1;
-    position: static;
-    height: 55vh;
-  }
-
-  .heroPhoto img {
-    position: static;
-    height: 100%;
-  }
-
-  .heroPanelInner {
-    padding-block: 2.5rem;
+  .heroActions {
+    gap: 1.25rem;
   }
 
   .rowInner,

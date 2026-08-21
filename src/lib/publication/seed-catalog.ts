@@ -48,7 +48,7 @@ export const PORTRAITS: Record<string, { url: string; credit: string; rights: st
   },
   "stephan-jalnos": {
     url: "/generation-to-generation-family.png",
-    credit: "The Jalnos family, four generations",
+    credit: "A Jalnos family photograph",
     rights: "Family photograph supplied for this project.",
   },
 };

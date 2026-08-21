@@ -89,6 +89,11 @@ export const seedSurvivors: Survivor[] = [
     originalLanguage: "en",
     reviewStatus: "approved",
     isDemonstration: true,
+    portrait: {
+      url: "/sam-cohen-family.jpg",
+      credit: "Cohen family photograph",
+      rights: "Family photograph supplied for this project.",
+    },
     createdBy: "user-curator-demo",
     createdAt: now,
     updatedAt: now,

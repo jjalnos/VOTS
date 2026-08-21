@@ -36,6 +36,11 @@ export const PUBLISHABLE_SLUGS = new Set(["sam-cohen", "stephan-jalnos"]);
  * actually has the right to show.
  */
 export const PORTRAITS: Record<string, { url: string; credit: string; rights: string }> = {
+  "sam-cohen": {
+    url: "/sam-cohen-family.jpg",
+    credit: "Cohen family photograph",
+    rights: "Family photograph supplied for this project.",
+  },
   "stephan-jalnos": {
     url: "/generation-to-generation-family.png",
     credit: "The Jalnos family, four generations",

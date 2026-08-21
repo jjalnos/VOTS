@@ -2,6 +2,7 @@ import Link from "next/link";
 import styles from "./archive-home.module.css";
 import type { Locale } from "@/lib/domain/types";
 import { withLocale } from "@/lib/i18n";
+import { testimonyFor, testimonyVerb } from "@/lib/publication/testimony";
 import type {
   ArchiveIndexRecord,
   FeaturedRecord,
@@ -34,6 +35,7 @@ interface HomeCopy {
   indexTitle: string;
   indexLead: string;
   indexReadMore: string;
+  rowTestimony: string;
   readStory: string;
   missionEyebrow: string;
   missionTitle: string;
@@ -101,6 +103,7 @@ function copyFor(locale: Locale, names: number | null): HomeCopy {
       indexLead:
         "Cada persona que el museo ha publicado, con su historia tal como el museo la cuenta. Los perfiles crecerán a medida que lleguen documentos, fotografías y testimonios.",
       indexReadMore: "Leer su historia",
+      rowTestimony: "En sus propias palabras",
       readStory: "Leer su historia",
       missionEyebrow: "El proyecto",
       missionTitle: "Cada sobreviviente deja documentos, fotografías y una voz. Este es el lugar donde se guardan.",
@@ -198,6 +201,7 @@ function copyFor(locale: Locale, names: number | null): HomeCopy {
     indexLead:
       "Everyone the museum has published, each with their story as the museum tells it. These profiles will grow as documents, photographs, and testimony arrive.",
     indexReadMore: "Read their story",
+    rowTestimony: "In their own words",
     readStory: "Read their story",
     missionEyebrow: "The project",
     missionTitle: "Every survivor leaves documents, photographs, and a voice. This is where they are kept.",
@@ -372,6 +376,21 @@ export function ArchiveHome({
                   </>
                 ) : null}
               </p>
+              {testimonyFor(record.slug).length ? (
+                <div className={styles.rowTestimony}>
+                  <p className="eyebrow">{content.rowTestimony}</p>
+                  <ul className="testimony-list">
+                    {testimonyFor(record.slug).map((entry) => (
+                      <li key={entry.url + entry.kind}>
+                        <a href={entry.url} rel="noreferrer">
+                          <span className="testimony-verb">{testimonyVerb(entry.kind, locale)}</span>
+                          {entry.label[locale]}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
               <Link className={styles.rowLink} href={withLocale(`/profiles/${record.slug}`, locale)}>
                 {content.readStory} <span aria-hidden="true">→</span>
               </Link>

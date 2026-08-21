@@ -205,6 +205,14 @@
   margin: 0 0 1.4rem;
 }
 
+.rowTestimony {
+  margin: 0 0 1.5rem;
+}
+
+.rowTestimony .eyebrow {
+  margin-bottom: 0.5rem;
+}
+
 .rowLink {
   color: var(--wine);
   font-weight: 500;

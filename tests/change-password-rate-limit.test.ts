@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const rateLimitMocks = vi.hoisted(() => {
@@ -37,6 +38,7 @@ function request(): Request {
 }
 
 beforeEach(() => {
+  vi.stubEnv("NODE_ENV", "test");
   vi.stubEnv("DATABASE_URL", "postgres://database.example/archive");
   rateLimitMocks.insertRows.length = 0;
   rateLimitMocks.insertedScopeKeys.length = 0;
@@ -77,6 +79,12 @@ describe("persistent password-change throttling", () => {
       expect.stringMatching(/^password-change:ip:[0-9a-f]{64}$/),
       `password-change:user:${userId}`,
     ]);
+    const plainAddressDigest = createHash("sha256")
+      .update("192.0.2.19")
+      .digest("hex");
+    expect(rateLimitMocks.insertedScopeKeys[1]).not.toBe(
+      `password-change:ip:${plainAddressDigest}`,
+    );
     expect(rateLimitMocks.insertedScopeKeys.every((key) => !key.startsWith("login:")))
       .toBe(true);
     const statements = rateLimitMocks.transaction.mock.calls
@@ -114,6 +122,16 @@ describe("persistent password-change throttling", () => {
     await expect(
       consumePasswordChangeAttempt(request(), userId, now),
     ).rejects.toThrow(/invalid result/i);
+  });
+
+  it("fails closed when production session key material is unavailable", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("AUTH_SESSION_SECRET", "");
+
+    await expect(
+      consumePasswordChangeAttempt(request(), userId, now),
+    ).rejects.toThrow(/cannot protect its client scope/i);
+    expect(rateLimitMocks.sql.begin).not.toHaveBeenCalled();
   });
 
   it("ships its own persistent table rather than sharing login buckets", () => {

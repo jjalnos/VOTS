@@ -1,5 +1,6 @@
-import { createHash } from "node:crypto";
+import { createHmac } from "node:crypto";
 import postgres from "postgres";
+import { sessionSecret } from "@/lib/auth/server-session";
 import { trustedProxyClientAddress } from "@/lib/http/request";
 
 export interface PasswordChangeRateLimitResult {
@@ -37,7 +38,12 @@ function sqlClient(): ReturnType<typeof postgres> {
 }
 
 function clientAddressScope(request: Request): string {
-  return createHash("sha256")
+  const secret = sessionSecret();
+  if (!secret) {
+    throw new Error("Password-change throttling cannot protect its client scope.");
+  }
+  return createHmac("sha256", secret)
+    .update("vots-password-change-ip-v1\0")
     .update(trustedProxyClientAddress(request))
     .digest("hex");
 }

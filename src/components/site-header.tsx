@@ -24,7 +24,7 @@ export function SiteHeader({
 
   return (
     <header className="site-header">
-      <div className="header-inner">
+      <div className="header-inner header-main">
         <Link className="brand" href={withLocale("/", locale)}>
           <span className="brand-name">Voices of the Shoah</span>
           <span className="brand-subtitle">{t(locale, "institutionName")}</span>

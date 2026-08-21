@@ -65,6 +65,24 @@ export function hashPassword(password: string, salt = randomBytes(16)): string {
   ].join("$");
 }
 
+export async function hashPasswordAsync(
+  password: string,
+  salt = randomBytes(16),
+): Promise<string> {
+  if (password.length < 12 || password.length > 200) {
+    throw new Error("Production passwords must contain between 12 and 200 characters.");
+  }
+  const digest = await deriveAsync(password, salt);
+  return [
+    FORMAT,
+    String(COST),
+    String(BLOCK_SIZE),
+    String(PARALLELIZATION),
+    salt.toString("base64url"),
+    digest.toString("base64url"),
+  ].join("$");
+}
+
 export function verifyPassword(password: string, storedHash: string | null | undefined): boolean {
   const parsed = parseStoredHash(storedHash);
   if (!parsed || password.length > 200) return false;

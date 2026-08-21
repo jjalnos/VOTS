@@ -17,11 +17,12 @@ Names are safe to document; values are not.
 | --- | --- | --- |
 | Database access | `DATABASE_URL` | Separate staging and production credentials; rotate with a tested cutover. |
 | Session signing | `AUTH_SESSION_SECRET` | Generate independently per environment; expect existing sessions to require replacement after rotation. |
+| Password-reset token authentication | `PASSWORD_RESET_TOKEN_KEY` | Generate independently per environment with at least 32 random bytes. Rotation immediately invalidates every outstanding reset link. |
 | MFA verification | `MFA_VERIFY_BEARER_TOKEN` | Restrict to the server-side verification integration. |
 | Private archive encryption | `DEMO_ARCHIVE_MASTER_KEY`, `DEMO_ARCHIVE_KEY_VERSION` | Treat every key version as retained decryption material until all ciphertext using it has been re-encrypted and verified. |
 | Self-hosted AI authentication | `LOCAL_AI_AUTH_TOKEN` | Grant access only to the internal model endpoint. |
 | Paid external research | `OPENAI_API_KEY` | Server-side external-research path only; rotate independently of the internal AI service. |
-| Usage alerts | `SMTP_USER`, `SMTP_PASSWORD` (Cloudways Elastic Email) or legacy `RESEND_API_KEY` | Keep the selected provider's credential server-side and restrict it to the approved sending identity and alert workflow. Project SMTP credentials as Cloudways Sensitive values. `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_REQUIRE_TLS`, and `SMTP_FROM` are configuration rather than secret payloads. |
+| Password recovery and usage alerts | `SMTP_USER`, `SMTP_PASSWORD` (Cloudways Elastic Email) or legacy `RESEND_API_KEY` for alerts only | Keep the selected provider's credential server-side and restrict it to the approved sending identity. Password recovery requires SMTP and does not fall back to Resend. Project SMTP credentials as Cloudways Sensitive values. `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_REQUIRE_TLS`, and `SMTP_FROM` are configuration rather than secret payloads. |
 | Bootstrap credentials | `BOOTSTRAP_*_PASSWORD`, bootstrap confirmation values | One-time use only; remove from Cloudways and redeploy immediately after successful bootstrap. |
 
 ## Rotation runbook

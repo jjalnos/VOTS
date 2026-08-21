@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Locale } from "@/lib/domain/types";
 
@@ -63,6 +64,7 @@ export function LoginForm({
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (status === "loading") return;
     setStatus("loading");
     setErrorMessage(null);
     const data = new FormData(event.currentTarget);
@@ -133,6 +135,9 @@ export function LoginForm({
               : (showPassword ? "Hide" : "Show")}
           </button>
         </div>
+        <Link className="signin-help-link" href={`/forgot-password?lang=${locale}`}>
+          {locale === "es" ? "¿Olvidaste tu contraseña?" : "Forgot your password?"}
+        </Link>
       </div>
       {requireStaffMfa ? (
         <div className="field">
@@ -140,9 +145,14 @@ export function LoginForm({
           <input id="mfaCode" name="mfaCode" inputMode="numeric" autoComplete="one-time-code" />
         </div>
       ) : null}
-      <button className="button" type="submit" disabled={status === "loading"}>
+      <button className="button" type="submit" aria-disabled={status === "loading"}>
         {status === "loading" ? (locale === "es" ? "Verificando…" : "Verifying…") : (locale === "es" ? "Entrar" : "Sign in")}
       </button>
+      <p className="sr-only" role="status" aria-live="polite">
+        {status === "loading"
+          ? locale === "es" ? "Verificando tus credenciales." : "Verifying your credentials."
+          : ""}
+      </p>
       {status === "error" && errorMessage ? (
         <p id="login-error" className="form-status error" role="alert">
           {errorMessage}

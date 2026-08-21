@@ -180,6 +180,11 @@ textarea {
 }
 
 .language-switcher a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
   color: rgba(250, 247, 242, 0.55);
   text-decoration: none;
   padding: 0.35rem 0.1rem;
@@ -360,7 +365,8 @@ button.button {
   background: transparent;
 }
 
-.button:disabled {
+.button:disabled,
+.button[aria-disabled="true"] {
   opacity: 0.55;
   cursor: not-allowed;
 }
@@ -916,11 +922,25 @@ button.button {
     padding-block: 0.7rem;
   }
 
-  .header-inner {
-    gap: 1rem;
+  .header-main {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.5rem 1rem;
+    padding-block: 0.75rem;
   }
 
-  .primary-nav {
+  .header-main .brand {
+    min-width: 0;
+    margin-right: 0;
+  }
+
+  .header-main .header-actions {
+    justify-self: end;
+    gap: 0.85rem;
+  }
+
+  .header-main .primary-nav {
+    grid-column: 1 / -1;
     display: grid;
     grid-template-columns: 1fr 1fr;
     width: 100%;
@@ -1115,7 +1135,7 @@ body {
 .signin .field input {
   background: transparent;
   border: none;
-  border-bottom: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--muted);
   border-radius: 0;
   padding: 0.6rem 0.1rem;
   font-size: 1.0625rem;
@@ -1126,11 +1146,61 @@ body {
   border-bottom: 2px solid var(--wine);
 }
 
+.signin .field input[aria-invalid="true"] {
+  border-bottom-color: var(--danger);
+}
+
 .signin .button {
   width: 100%;
   justify-content: center;
   min-height: 48px;
   margin-top: 0.5rem;
+}
+
+.signin-help-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  justify-self: end;
+  color: var(--wine);
+  font-size: 0.875rem;
+  text-decoration: none;
+}
+
+.signin-help-link:hover,
+.signin-help-link:focus-visible {
+  text-decoration: underline;
+}
+
+.signin-intro {
+  color: var(--muted);
+  margin: -0.5rem 0 1.5rem;
+}
+
+.signin-field-note {
+  color: var(--muted);
+  font-size: 0.8125rem;
+  margin: -0.65rem 0 0;
+}
+
+.signin-secondary-link {
+  margin-top: 2rem;
+}
+
+.signin .notice:focus,
+.signin .form-status:focus {
+  outline: 3px solid var(--wine);
+  outline-offset: 4px;
+}
+
+.signin .notice.success:focus {
+  outline-color: var(--success);
+}
+
+.signin .form-status.error {
+  padding: 0.75rem 1rem;
+  border-left: 4px solid var(--danger);
+  background: #f8eaea;
 }
 
 .signin-note {
@@ -1140,6 +1210,9 @@ body {
 }
 
 .signin-back {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   font-size: 0.9375rem;
   color: var(--wine);
   text-decoration: none;

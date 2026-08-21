@@ -1,5 +1,6 @@
 import {
   boolean,
+  check,
   index,
   integer,
   jsonb,
@@ -13,6 +14,7 @@ import {
   uuid,
   varchar,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import type { LocalizedText } from "@/lib/domain/types";
 
 export const roleName = pgEnum("role_name", ["admin", "curator", "family", "viewer"]);
@@ -74,6 +76,42 @@ export const userRoles = pgTable(
     grantedAt: timestamp("granted_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [primaryKey({ columns: [table.userId, table.role] })],
+);
+
+export const passwordResetTokens = pgTable(
+  "password_reset_tokens",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    tokenHash: varchar("token_hash", { length: 64 }).notNull(),
+    sessionVersionAtIssue: integer("session_version_at_issue").notNull(),
+    locale: varchar("locale", { length: 2 }).notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    deliveredAt: timestamp("delivered_at", { withTimezone: true }),
+    usedAt: timestamp("used_at", { withTimezone: true }),
+    revokedAt: timestamp("revoked_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("password_reset_tokens_hash_unique").on(table.tokenHash),
+    index("password_reset_tokens_user_expiry_idx").on(table.userId, table.expiresAt),
+    index("password_reset_tokens_expiry_idx").on(table.expiresAt),
+  ],
+);
+
+export const passwordResetRateLimits = pgTable(
+  "password_reset_rate_limits",
+  {
+    scopeKey: varchar("scope_key", { length: 220 }).primaryKey(),
+    windowStartedAt: timestamp("window_started_at", { withTimezone: true }).notNull(),
+    requestCount: integer("request_count").notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
+  },
+  (table) => [
+    check("password_reset_rate_limits_count_positive", sql`${table.requestCount} > 0`),
+  ],
 );
 
 export const families = pgTable(

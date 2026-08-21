@@ -177,7 +177,8 @@ describe("Susanne owner authorization", () => {
     const first = privacyPreservingSafetyIdentifier(OWNER_ID);
     const second = privacyPreservingSafetyIdentifier(OWNER_ID);
     expect(first).toBe(second);
-    expect(first).toMatch(/^vots_[0-9a-f]{64}$/);
+    expect(first).toMatch(/^vots_[0-9a-f]{59}$/);
+    expect(first).toHaveLength(64);
     expect(first).not.toContain(OWNER_ID);
   });
 });
@@ -209,7 +210,11 @@ describe("private Realtime WebRTC session", () => {
       expect(JSON.stringify(session)).toContain("never speak in the first person as her");
       expect(session.tool_choice).toBe("required");
       expect(JSON.stringify(session)).toContain("quote_approved=false");
-      expect(new Headers(init?.headers).get("OpenAI-Safety-Identifier")).toMatch(/^vots_/);
+      const safetyIdentifier = new Headers(init?.headers).get(
+        "OpenAI-Safety-Identifier",
+      );
+      expect(safetyIdentifier).toMatch(/^vots_[0-9a-f]+$/);
+      expect(safetyIdentifier).toHaveLength(64);
       return new Response(VALID_SDP, { status: 200, headers: { "Content-Type": "application/sdp" } });
     });
     vi.stubGlobal("fetch", fetcher);

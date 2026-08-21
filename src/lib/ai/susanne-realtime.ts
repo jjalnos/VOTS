@@ -72,10 +72,14 @@ export async function readBoundedSdp(
 export function privacyPreservingSafetyIdentifier(userId: string): string | undefined {
   const secret = sessionSecret();
   if (!secret) return undefined;
-  return `vots_${createHmac("sha256", secret)
+  const digest = createHmac("sha256", secret)
     .update("susanne-realtime-safety-id\u0000")
     .update(userId)
-    .digest("hex")}`;
+    .digest("hex");
+  // OpenAI safety identifiers are limited to 64 characters. A 59-character
+  // hexadecimal HMAC suffix still retains 236 bits while preserving a useful
+  // non-identifying application prefix.
+  return `vots_${digest.slice(0, 59)}`;
 }
 
 export function susanneRealtimeSessionConfiguration() {

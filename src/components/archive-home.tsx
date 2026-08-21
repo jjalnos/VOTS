@@ -2,7 +2,11 @@ import Link from "next/link";
 import styles from "./archive-home.module.css";
 import type { Locale } from "@/lib/domain/types";
 import { withLocale } from "@/lib/i18n";
-import type { FeaturedRecord, FeaturedRecordSlug } from "@/lib/publication/featured-records";
+import type {
+  ArchiveIndexRecord,
+  FeaturedRecord,
+  FeaturedRecordSlug,
+} from "@/lib/publication/featured-records";
 
 const DONATE_URL = "https://portal.clicksmith.net/donate/voices-of-the-shoah";
 const SUPPORT_EMAIL = "support@clicksmith.net";
@@ -26,6 +30,10 @@ interface HomeCopy {
   photoAlts: Record<FeaturedRecordSlug, string | null>;
   photoCredit: Record<FeaturedRecordSlug, string | null>;
   platePending: string;
+  indexEyebrow: string;
+  indexTitle: string;
+  indexLead: string;
+  indexReadMore: string;
   readStory: string;
   missionEyebrow: string;
   missionTitle: string;
@@ -88,6 +96,11 @@ function copyFor(locale: Locale, names: number | null): HomeCopy {
         "rose-williams": null,
       },
       platePending: "Se busca una fotografía",
+      indexEyebrow: "Todos los sobrevivientes",
+      indexTitle: "Los demás nombres de este archivo.",
+      indexLead:
+        "Cada persona que el museo ha publicado, con su historia tal como el museo la cuenta. Los perfiles crecerán a medida que lleguen documentos, fotografías y testimonios.",
+      indexReadMore: "Leer su historia",
       readStory: "Leer su historia",
       missionEyebrow: "El proyecto",
       missionTitle: "Cada sobreviviente deja documentos, fotografías y una voz. Este es el lugar donde se guardan.",
@@ -180,6 +193,11 @@ function copyFor(locale: Locale, names: number | null): HomeCopy {
       "rose-williams": null,
     },
     platePending: "A photograph is being sought",
+    indexEyebrow: "Every survivor",
+    indexTitle: "The rest of the names in this archive.",
+    indexLead:
+      "Everyone the museum has published, each with their story as the museum tells it. These profiles will grow as documents, photographs, and testimony arrive.",
+    indexReadMore: "Read their story",
     readStory: "Read their story",
     missionEyebrow: "The project",
     missionTitle: "Every survivor leaves documents, photographs, and a voice. This is where they are kept.",
@@ -279,10 +297,12 @@ const STATUS_CLASS: Record<RoadmapStop["status"], string> = {
 export function ArchiveHome({
   locale,
   featuredRecords,
+  indexRecords,
   counts,
 }: {
   locale: Locale;
   featuredRecords: FeaturedRecord[];
+  indexRecords: ArchiveIndexRecord[];
   counts: ArchiveCounts;
 }) {
   const content = copyFor(locale, counts.names);
@@ -359,6 +379,43 @@ export function ArchiveHome({
           </div>
         </section>
       ))}
+
+      {/* Movement 2b — everyone else. Read straight from the catalog, so
+          publishing a survivor puts them here without touching this file. */}
+      {indexRecords.length ? (
+        <section className={styles.index} aria-labelledby="index-title">
+          <div className={styles.indexInner}>
+            <p className="eyebrow">{content.indexEyebrow}</p>
+            <h2 id="index-title">{content.indexTitle}</h2>
+            <p className={styles.indexLead}>{content.indexLead}</p>
+            <ul className={styles.indexGrid}>
+              {indexRecords.map((record) => (
+                <li key={record.slug}>
+                  <Link href={withLocale(`/profiles/${record.slug}`, locale)}>
+                    {record.portraitUrl ? (
+                      <div className={`memorial-photo ${styles.indexPhoto}`}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={record.portraitUrl} alt={record.portraitCredit ?? record.name} />
+                      </div>
+                    ) : (
+                      <div className={styles.indexPlate}>
+                        <span className={styles.plateMonogram} aria-hidden="true">
+                          {monogram(record.name)}
+                        </span>
+                      </div>
+                    )}
+                    <h3>{record.name}</h3>
+                    <p className={styles.indexSummary}>{record.summary}</p>
+                    <span className={styles.indexMore}>
+                      {content.indexReadMore} <span aria-hidden="true">→</span>
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      ) : null}
 
       {/* Movement 3 — why this exists. Museum wall text, not marketing. */}
       <section className={styles.mission} aria-labelledby="mission-title">

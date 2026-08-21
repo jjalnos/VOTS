@@ -14,6 +14,7 @@ describe("archive home", () => {
         createElement(ArchiveHome, {
           locale,
           featuredRecords: [],
+          indexRecords: [],
           counts: { names: 342, photographs: 12, records: 2 },
         }),
       );

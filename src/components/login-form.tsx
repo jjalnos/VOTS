@@ -20,22 +20,27 @@ export function LoginForm({
     event.preventDefault();
     setStatus("loading");
     const data = new FormData(event.currentTarget);
-    const response = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email: data.get("email"),
-        password: data.get("password"),
-        mfaCode: data.get("mfaCode") || undefined,
-      }),
-    });
-    if (!response.ok) {
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: data.get("email"),
+          password: data.get("password"),
+          mfaCode: data.get("mfaCode") || undefined,
+        }),
+      });
+      if (!response.ok) {
+        setStatus("error");
+        return;
+      }
+      const result = (await response.json()) as { destination: string };
+      router.push(`${result.destination}?lang=${locale}`);
+      router.refresh();
+    } catch {
+      // A dropped connection must return the form to a usable state.
       setStatus("error");
-      return;
     }
-    const result = (await response.json()) as { destination: string };
-    router.push(`${result.destination}?lang=${locale}`);
-    router.refresh();
   }
 
   return (

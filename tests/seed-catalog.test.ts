@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   isSentinelRecord,
+  PORTRAITS,
   PUBLISHABLE_SLUGS,
 } from "@/lib/publication/seed-catalog";
 import { seedSources, seedStories, seedSurvivors } from "@/lib/data/seed";
@@ -17,6 +18,21 @@ describe("public catalog publication guards", () => {
       expect(survivor!.reviewStatus).toBe("approved");
       expect(isSentinelRecord(slug)).toBe(false);
       expect(survivor!.isDemonstration).toBe(false);
+    }
+  });
+
+  // The seeder's INSERT never writes a portrait — portraits reach the database
+  // only through syncPortraitsFromCode reading PORTRAITS. A fixture portrait
+  // with no PORTRAITS entry therefore ships invisibly, which is exactly what
+  // happened to seven survivors on 2026-08-21.
+  it("carries every fixture portrait in the map that actually reaches the database", () => {
+    for (const survivor of seedSurvivors) {
+      if (!survivor.portrait || !PUBLISHABLE_SLUGS.has(survivor.slug)) continue;
+      const mapped = PORTRAITS[survivor.slug];
+      expect(mapped, `no PORTRAITS entry for "${survivor.slug}"`).toBeDefined();
+      expect(mapped.url).toBe(survivor.portrait.url);
+      expect(mapped.credit).toBe(survivor.portrait.credit);
+      expect(mapped.rights).toBe(survivor.portrait.rights);
     }
   });
 

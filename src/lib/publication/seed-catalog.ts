@@ -72,6 +72,42 @@ export const PORTRAITS: Record<string, { url: string; credit: string; rights: st
     credit: "Detail from an HMMSA Survivor Speakers Series announcement, 21 September 2025",
     rights: "Reproduced from material the museum published publicly. Written permission from the museum and the family is being sought.",
   },
+
+  "david-scharff": {
+    url: "/david-scharff.jpg",
+    credit: "David Scharff, Holocaust Memorial Museum of San Antonio",
+    rights: "Reproduced from material the museum published publicly. Written permission from the museum is being sought.",
+  },
+  "golda-scharff": {
+    url: "/golda-scharff.jpg",
+    credit: "Golda Scharff, Holocaust Memorial Museum of San Antonio",
+    rights: "Reproduced from material the museum published publicly. Written permission from the museum is being sought.",
+  },
+  "george-fodor": {
+    url: "/george-fodor-family.jpg",
+    credit: "George Fodor with his parents and sister, Holocaust Memorial Museum of San Antonio",
+    rights: "Reproduced from material the museum published publicly. Written permission from the museum is being sought.",
+  },
+  "harry-weiss": {
+    url: "/harry-weiss.jpg",
+    credit: "Harry Weiss, Holocaust Memorial Museum of San Antonio",
+    rights: "Reproduced from material the museum published publicly. Written permission from the museum is being sought.",
+  },
+  "mathilde-rosenblatt": {
+    url: "/mathilde-rosenblatt.jpg",
+    credit: "Mathilde Schwarz Rosenblatt, Holocaust Memorial Museum of San Antonio",
+    rights: "Reproduced from material the museum published publicly. Written permission from the museum is being sought.",
+  },
+  "oscar-ehrenberg": {
+    url: "/oscar-ehrenberg.jpg",
+    credit: "Oscar Ehrenberg, Holocaust Memorial Museum of San Antonio",
+    rights: "Reproduced from material the museum published publicly. Written permission from the museum is being sought.",
+  },
+  "roman-lubetzky": {
+    url: "/roman-lubetzky.jpg",
+    credit: "Roman Lubetzky with his son Daniel, Holocaust Memorial Museum of San Antonio",
+    rights: "Reproduced from material the museum published publicly. Written permission from the museum is being sought.",
+  },
 };
 
 /** Anything matching these never goes to a public database. */

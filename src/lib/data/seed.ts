@@ -115,7 +115,7 @@ export const seedSurvivors: Survivor[] = [
     isDemonstration: false,
     portrait: {
       url: "/generation-to-generation-family.png",
-      credit: "The Jalnos family, four generations",
+      credit: "A Jalnos family photograph",
       rights: "Family photograph supplied for this project.",
     },
     createdBy: "user-curator-demo",

@@ -6,6 +6,7 @@ import type { FeaturedRecord, FeaturedRecordSlug } from "@/lib/publication/featu
 
 const DONATE_URL = "https://portal.clicksmith.net/donate/voices-of-the-shoah";
 const SUPPORT_EMAIL = "support@clicksmith.net";
+const SHOW_FUNDING = false;
 
 interface RoadmapStop {
   title: string;
@@ -371,21 +372,23 @@ export function ArchiveHome({
         </div>
       </section>
 
-      {/* Movement 6 — the ask, plainly, with the recipient named. */}
-      <section className={styles.funding} aria-labelledby="funding-title">
-        <div className={styles.fundingInner}>
-          <p className={styles.fundingEyebrow}>{content.fundingEyebrow}</p>
-          <h2 id="funding-title">{content.fundingTitle}</h2>
-          <p className={styles.fundingBody}>{content.fundingBody}</p>
-          <a className={styles.fundingAction} href={DONATE_URL}>
-            {content.fundingAction}
-          </a>
-          <p className={styles.fundingDisclosure}>{content.fundingDisclosure}</p>
-          <p className={styles.fundingContact}>
-            <a href={`mailto:${SUPPORT_EMAIL}`}>{content.fundingContact}</a>
-          </p>
-        </div>
-      </section>
+      {SHOW_FUNDING ? (
+        /* Movement 6 — the ask, plainly, with the recipient named. */
+        <section className={styles.funding} aria-labelledby="funding-title">
+          <div className={styles.fundingInner}>
+            <p className={styles.fundingEyebrow}>{content.fundingEyebrow}</p>
+            <h2 id="funding-title">{content.fundingTitle}</h2>
+            <p className={styles.fundingBody}>{content.fundingBody}</p>
+            <a className={styles.fundingAction} href={DONATE_URL}>
+              {content.fundingAction}
+            </a>
+            <p className={styles.fundingDisclosure}>{content.fundingDisclosure}</p>
+            <p className={styles.fundingContact}>
+              <a href={`mailto:${SUPPORT_EMAIL}`}>{content.fundingContact}</a>
+            </p>
+          </div>
+        </section>
+      ) : null}
 
       {/* Movement 7 — the registry made real: scale, then a way in. */}
       <section className={styles.registryBand} aria-labelledby="registry-heading">

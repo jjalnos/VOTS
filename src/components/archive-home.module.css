@@ -226,100 +226,36 @@
   opacity: 0.7;
 }
 
-/* ---- Movement 2b: the archive index ----------------------------------- */
+/* ---- Movement 2b: path to the complete survivor directory ------------- */
 
-.index {
-  padding: clamp(3.5rem, 8vw, 5.5rem) 1.5rem;
-  border-top: 1px solid var(--hairline);
+.survivorDirectoryAction {
+  display: flex;
+  justify-content: center;
+  padding: clamp(2.5rem, 6vw, 4rem) 1.5rem;
+  border-block: 1px solid var(--hairline);
   background: var(--tint);
 }
 
-.indexInner {
-  width: min(100%, 1180px);
-  margin-inline: auto;
-}
-
-.indexInner h2 {
-  font-size: clamp(1.75rem, 3.6vw, 2.6rem);
-  color: var(--ink);
-  margin: 0.5rem 0 1rem;
-  text-wrap: balance;
-}
-
-.indexLead {
-  color: var(--muted);
-  font-size: 1.0625rem;
-  line-height: 1.7;
-  max-width: 62ch;
-  margin: 0 0 3rem;
-}
-
-.indexGrid {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
-  gap: clamp(2rem, 4vw, 3rem) clamp(1.5rem, 3vw, 2.5rem);
-}
-
-.indexGrid a {
-  display: block;
-  text-decoration: none;
-  color: inherit;
-}
-
-.indexPhoto,
-.indexPlate {
-  aspect-ratio: 4 / 5;
-  margin-bottom: 1rem;
-}
-
-.indexPhoto img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center top;
-}
-
-.indexPlate {
-  display: grid;
-  place-content: center;
-  background:
-    repeating-linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.05) 0 2px,
-      transparent 2px 9px
-    ),
-    var(--wine-deep);
-}
-
-.indexGrid h3 {
-  font-size: 1.25rem;
-  color: var(--ink);
-  margin: 0 0 0.5rem;
-}
-
-.indexSummary {
-  color: var(--muted);
+.survivorDirectoryLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  max-width: 100%;
+  min-height: 52px;
+  padding: 0.75rem 2rem;
+  background: var(--wine);
+  color: var(--paper);
   font-size: 0.9375rem;
-  line-height: 1.6;
-  margin: 0 0 0.75rem;
-  /* The full account lives on the profile; three lines is the invitation. */
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.indexMore {
-  color: var(--wine);
   font-weight: 500;
-  font-size: 0.875rem;
+  line-height: 1.35;
+  text-align: center;
+  text-decoration: none;
+  transition: background 200ms ease;
 }
 
-.indexGrid a:hover .indexMore {
-  opacity: 0.7;
+.survivorDirectoryLink:hover {
+  background: var(--wine-deep);
 }
 
 /* ---- Movement 3: mission ----------------------------------------------- */
@@ -330,7 +266,7 @@
 }
 
 .survivorRowTint + .mission,
-.index + .mission {
+.survivorDirectoryAction + .mission {
   /* The tinted row above already draws this hairline. */
   border-top: 0;
 }

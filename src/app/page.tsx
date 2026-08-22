@@ -2,10 +2,7 @@ import { ArchiveHome, type ArchiveCounts } from "@/components/archive-home";
 import { PublicShell } from "@/components/public-shell";
 import { getActor } from "@/lib/auth/server-session";
 import { localeFrom } from "@/lib/i18n";
-import {
-  selectArchiveIndex,
-  selectFeaturedRecords,
-} from "@/lib/publication/featured-records";
+import { selectFeaturedRecords } from "@/lib/publication/featured-records";
 import { getArchiveRepository } from "@/lib/repository";
 import { getSurvivorRegistryStore } from "@/lib/survivor-registry/store";
 
@@ -39,16 +36,14 @@ export default async function Home({ searchParams }: PageProps<"/">) {
   const catalog = await getArchiveRepository().publicCatalog(locale);
   const actor = await getActor();
   const featured = selectFeaturedRecords(catalog, locale);
-  const indexRecords = selectArchiveIndex(catalog, locale);
   const photographs = catalog.survivors.filter((survivor) => survivor.portrait).length;
-  const counts = await archiveCounts(featured.length + indexRecords.length, photographs);
+  const counts = await archiveCounts(catalog.survivors.length, photographs);
 
   return (
     <PublicShell locale={locale} path="/">
       <ArchiveHome
         locale={locale}
         featuredRecords={featured}
-        indexRecords={indexRecords}
         counts={counts}
       />
     </PublicShell>

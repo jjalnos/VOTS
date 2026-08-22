@@ -363,12 +363,16 @@ describe("private Realtime WebRTC session", () => {
     expect(session.tracing).toBeNull();
     expect(session.tool_choice).toBe("required");
     expect(session.instructions).toContain("You are not Susanne");
-    expect(session.instructions).toContain("That is not established in Susanne’s testimony.");
+    expect(session.instructions).toContain("I don’t have enough information about Susanne to answer that.");
     expect(session.instructions).toContain("call search_testimony");
+    expect(session.instructions).toContain("Produce no audio or text before the tool result");
+    expect(session.instructions).toContain("Start immediately with the answer");
+    expect(session.instructions).toContain("Do not append a citation");
     expect(session.instructions).toContain("Never quote, recite, reproduce");
     expect(session.instructions).toContain("quote_approved=false");
     expect(session.instructions).toContain("calm, resonant narrator register");
     expect(session.instructions).toContain("Do not imitate, reference, or evoke any real person or celebrity");
+    expect(session.instructions).not.toContain("retrieved timestamp citation");
   });
 });
 
@@ -386,7 +390,7 @@ describe("private testimony retrieval", () => {
       quote_approved: false,
       passages: [],
       sources: [{ url: SUSANNE_TESTIMONY_SOURCE.url, kind: "original-testimony" }],
-      refusal: "That is not established in Susanne’s testimony.",
+      refusal: "I don’t have enough information about Susanne to answer that.",
     });
     expect(fetcher).not.toHaveBeenCalled();
   });

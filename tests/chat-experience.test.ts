@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   functionCallsFromRealtimeEvent,
   GUIDE_VOICE_DISCLOSURE,
+  modelFacingTestimonyResult,
   normalizeTestimonySearchResult,
   realtimeGenerationIsCurrent,
   sourceHref,
@@ -53,7 +54,7 @@ describe("private Susanne conversation UI contracts", () => {
   it("renders only safe source URLs and preserves ungrounded refusals", () => {
     const result = normalizeTestimonySearchResult({
       grounded: false,
-      refusal: "That is not established in Susanne’s testimony.",
+      refusal: "I don’t have enough information about Susanne to answer that.",
       passages: [
         {
           id: "unsafe",
@@ -72,13 +73,49 @@ describe("private Susanne conversation UI contracts", () => {
     });
 
     expect(result.grounded).toBe(false);
-    expect(result.refusal).toBe("That is not established in Susanne’s testimony.");
+    expect(result.refusal).toBe("I don’t have enough information about Susanne to answer that.");
     expect(result.cards).toEqual([
       expect.objectContaining({
         title: "Susanne Jalnos testimony",
         kind: "video",
       }),
     ]);
+  });
+
+  it("keeps citation metadata out of the model-facing evidence", () => {
+    const result = normalizeTestimonySearchResult({
+      grounded: true,
+      refusal: "I don’t have enough information about Susanne to answer that.",
+      passages: [{
+        id: "passage-1",
+        text: [
+          "Susanne ‘Zsuzsi’ Weisz Jalnos — testimony passage at 14:00",
+          "Source: https://www.youtube.com/watch?v=I-Xq1fGq_gI",
+          "Transcript status: AI-transcribed from YouTube; unreviewed",
+          "She was imprisoned at Auschwitz for six weeks.",
+        ].join("\n"),
+        sourceTitle: "Susanne testimony · JFSA/HMMSA",
+        sourceUrl: "https://www.youtube.com/watch?v=I-Xq1fGq_gI&t=840s",
+        timestampSeconds: 840,
+        timestampLabel: "14:00",
+        citationLabel: "Susanne testimony · 14:00",
+        score: 0.91,
+      }],
+    });
+
+    const modelResult = modelFacingTestimonyResult(result);
+    expect(modelResult).toEqual({
+      grounded: true,
+      quote_approved: false,
+      passages: [{
+        text: "She was imprisoned at Auschwitz for six weeks.",
+        untrusted: true,
+      }],
+      refusal: "I don’t have enough information about Susanne to answer that.",
+    });
+    expect(JSON.stringify(modelResult)).not.toMatch(
+      /sourceTitle|sourceUrl|timestamp|citation|score|confidence|youtube|jfsa|hmmsa|14:00/i,
+    );
   });
 
   it("turns retrieved YouTube timestamps into direct source links", () => {

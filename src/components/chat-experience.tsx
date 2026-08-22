@@ -12,7 +12,7 @@ import styles from "@/components/chat-experience.module.css";
 import type { Locale } from "@/lib/domain/types";
 
 const SESSION_LIMIT_MS = 10 * 60 * 1000;
-const FIXED_REFUSAL = "That is not established in Susanne’s testimony.";
+const FIXED_REFUSAL = "I don’t have enough information about Susanne to answer that.";
 export const GUIDE_VOICE_DISCLOSURE = {
   en: "The published testimony below is Susanne’s real voice, not AI. Interactive answers use OpenAI’s built-in “cedar” voice—configured for calm, resonant documentary delivery—and come from an AI archival guide, not Susanne and not a clone of her voice.",
   es: "El testimonio publicado que aparece abajo es la voz real de Susanne, no IA. Las respuestas interactivas usan la voz integrada «cedar» de OpenAI, configurada con una narración documental serena y resonante, y provienen de una guía de archivo con IA: no son Susanne ni un clon de su voz.",
@@ -210,6 +210,43 @@ export function normalizeTestimonySearchResult(value: unknown): NormalizedSearch
   };
 }
 
+function factOnlyPassageText(value: string): string {
+  const lines = value.split(/\r?\n/);
+  while (lines.length) {
+    const line = lines[0]?.trim() ?? "";
+    if (!line) {
+      lines.shift();
+      continue;
+    }
+    if (
+      /^Susanne\b.*\btestimony passage at\b/iu.test(line)
+      || /^Source:\s*https?:\/\//iu.test(line)
+      || /^Transcript status:/iu.test(line)
+    ) {
+      lines.shift();
+      continue;
+    }
+    break;
+  }
+  return lines.join("\n").trim().slice(0, 3_000);
+}
+
+/** Keeps rich provenance in the UI while withholding citation metadata from speech. */
+export function modelFacingTestimonyResult(result: NormalizedSearchResult) {
+  const passages = result.cards.flatMap((card) => {
+    if (!card.text) return [];
+    const text = factOnlyPassageText(card.text);
+    return text ? [{ text, untrusted: true as const }] : [];
+  }).slice(0, 6);
+
+  return {
+    grounded: result.grounded && passages.length > 0,
+    quote_approved: false as const,
+    passages,
+    refusal: result.refusal,
+  };
+}
+
 export function sourceHref(card: Pick<SourceCard, "url" | "timestampSeconds">): string {
   if (card.timestampSeconds === undefined) return card.url;
   try {
@@ -246,8 +283,8 @@ function statusCopy(locale: Locale, state: ConnectionState, muted: boolean): str
         : "Searching the testimony before answering…";
     case "responding":
       return es
-        ? "La guía está preparando una respuesta citada…"
-        : "The guide is preparing a cited answer…";
+        ? "La guía está preparando una respuesta directa basada en hechos…"
+        : "The guide is preparing a direct, fact-based answer…";
     case "speaking":
       return es
         ? "La guía de archivo con IA está hablando."
@@ -585,13 +622,18 @@ export function ChatExperience({ locale }: { locale: Locale }) {
     setSourceCards(result.cards);
     setGrounded(result.grounded);
     setRefusal(result.refusal);
-    announce(result.grounded && result.cards.length
+    const optionalSourceAnnouncement = result.cards.length > 0
       ? (es
-        ? `Se encontraron ${result.cards.length} fuentes para la respuesta.`
-        : `${result.cards.length} sources are available for the answer.`)
+        ? " Los detalles opcionales de la fuente están disponibles debajo."
+        : " Optional source details are available below.")
+      : "";
+    announce((result.grounded && result.cards.length
+      ? (es
+        ? "La guía tiene suficiente respaldo para responder."
+        : "The guide has enough support to answer.")
       : (es
-        ? "El testimonio no estableció una respuesta; se mostrará la negativa fija."
-        : "The testimony did not establish an answer; the fixed refusal is available."));
+        ? "No hay suficiente información para responder."
+        : "There is not enough information to answer.")) + optionalSourceAnnouncement);
 
     if (!stillCurrent()) return;
     const outputSent = sendRealtimeEvent({
@@ -599,7 +641,7 @@ export function ChatExperience({ locale }: { locale: Locale }) {
       item: {
         type: "function_call_output",
         call_id: call.callId,
-        output: JSON.stringify({ ...result.raw, quote_approved: false }),
+        output: JSON.stringify(modelFacingTestimonyResult(result)),
       },
     }, expected, controller.signal);
     if (!outputSent || !stillCurrent()) return;
@@ -1116,7 +1158,7 @@ export function ChatExperience({ locale }: { locale: Locale }) {
           <div className={styles.conversationHeading}>
             <div>
               <p className={styles.kicker}>
-                {es ? "Guía con citas" : "Cited archival guide"}
+                {es ? "Guía directa y factual" : "Fact-first archival guide"}
               </p>
               <h2 id="private-listening-room">
                 {es
@@ -1252,8 +1294,8 @@ export function ChatExperience({ locale }: { locale: Locale }) {
               maxLength={600}
               required
               placeholder={es
-                ? "Escriba una pregunta sobre el testimonio de Susanne…"
-                : "Ask about what Susanne’s testimony establishes…"}
+                ? "Pregunte sobre la vida y las experiencias de Susanne…"
+                : "Ask about Susanne’s life and experiences…"}
               aria-invalid={questionError ? true : undefined}
               aria-describedby={questionError
                 ? "text-question-help text-question-error"
@@ -1270,8 +1312,8 @@ export function ChatExperience({ locale }: { locale: Locale }) {
               <p id="text-question-help">
                 {conversationReady
                   ? (es
-                    ? "Se buscará el testimonio antes de responder."
-                    : "The testimony will be searched before an answer is spoken.")
+                    ? "La guía responderá directamente con hechos respaldados."
+                    : "The guide will answer directly with supported facts.")
                   : (es
                     ? "Primero inicie la conversación privada; aquí no se usa el chat público de demostración."
                     : "Start the private conversation first; this does not use the public mock chat.")}
@@ -1335,10 +1377,12 @@ export function ChatExperience({ locale }: { locale: Locale }) {
             : null}
           {sourceCards.length
             ? (
-              <section
+              <details
                 className={styles.sources}
-                aria-labelledby="source-cards-title"
               >
+                <summary>
+                  {es ? "Detalles de la fuente (opcional)" : "Source details (optional)"}
+                </summary>
                 <div className={styles.sectionTitleRow}>
                   <h3 id="source-cards-title">
                     {es ? "Fuentes consultadas" : "Sources consulted"}
@@ -1398,7 +1442,7 @@ export function ChatExperience({ locale }: { locale: Locale }) {
                     </li>
                   ))}
                 </ol>
-              </section>
+              </details>
             )
             : null}
         </div>

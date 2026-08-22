@@ -39,8 +39,8 @@ export default async function ChatPage({ searchParams }: PageProps<"/chat">) {
       title="Susanne “Zsuzsi” Weisz Jalnos"
       description={
         locale === "es"
-          ? "Sala privada para escuchar su testimonio auténtico y conversar con una guía de archivo con citas."
-          : "A private room for her authentic testimony and a cited conversation with the archival guide."
+          ? "Sala privada para escuchar su testimonio auténtico y conversar directamente con una guía de archivo factual."
+          : "A private room for her authentic testimony and a direct, fact-focused conversation with the archival guide."
       }
     >
       <ChatExperience locale={locale} />

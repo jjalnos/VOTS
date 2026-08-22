@@ -196,7 +196,7 @@ describe("private Realtime WebRTC session", () => {
     });
   });
 
-  it("creates a fixed gpt-realtime-2.1 marin session without exposing the API key", async () => {
+  it("creates a fixed gpt-realtime-2.1 cedar session without exposing the API key", async () => {
     const fetcher = vi.fn(async (_url: string | URL | Request, init?: RequestInit) => {
       const form = init?.body as FormData;
       const session = JSON.parse(String(form.get("session"))) as Record<string, unknown>;
@@ -204,7 +204,7 @@ describe("private Realtime WebRTC session", () => {
       expect(session).toMatchObject({
         type: "realtime",
         model: "gpt-realtime-2.1",
-        audio: { output: { voice: "marin" } },
+        audio: { output: { voice: "cedar" } },
       });
       expect(JSON.stringify(session)).toContain("search_testimony");
       expect(JSON.stringify(session)).toContain("never speak in the first person as her");
@@ -359,7 +359,7 @@ describe("private Realtime WebRTC session", () => {
   it("pins the archival-guide identity and refusal policy in the server session", () => {
     const session = susanneRealtimeSessionConfiguration();
     expect(session.model).toBe("gpt-realtime-2.1");
-    expect(session.audio.output.voice).toBe("marin");
+    expect(session.audio.output.voice).toBe("cedar");
     expect(session.tracing).toBeNull();
     expect(session.tool_choice).toBe("required");
     expect(session.instructions).toContain("You are not Susanne");
@@ -367,6 +367,8 @@ describe("private Realtime WebRTC session", () => {
     expect(session.instructions).toContain("call search_testimony");
     expect(session.instructions).toContain("Never quote, recite, reproduce");
     expect(session.instructions).toContain("quote_approved=false");
+    expect(session.instructions).toContain("calm, resonant narrator register");
+    expect(session.instructions).toContain("Do not imitate, reference, or evoke any real person or celebrity");
   });
 });
 

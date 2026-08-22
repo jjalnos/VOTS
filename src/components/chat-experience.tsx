@@ -13,6 +13,10 @@ import type { Locale } from "@/lib/domain/types";
 
 const SESSION_LIMIT_MS = 10 * 60 * 1000;
 const FIXED_REFUSAL = "That is not established in Susanne’s testimony.";
+export const GUIDE_VOICE_DISCLOSURE = {
+  en: "The published testimony below is Susanne’s real voice, not AI. Interactive answers use OpenAI’s built-in “cedar” voice—configured for calm, resonant documentary delivery—and come from an AI archival guide, not Susanne and not a clone of her voice.",
+  es: "El testimonio publicado que aparece abajo es la voz real de Susanne, no IA. Las respuestas interactivas usan la voz integrada «cedar» de OpenAI, configurada con una narración documental serena y resonante, y provienen de una guía de archivo con IA: no son Susanne ni un clon de su voz.",
+} as const;
 
 type ConnectionState =
   | "idle"
@@ -1104,8 +1108,8 @@ export function ChatExperience({ locale }: { locale: Locale }) {
             </strong>
             <p>
               {es
-                ? "El testimonio publicado que aparece abajo es la voz real de Susanne, no IA. Las respuestas interactivas usan la voz integrada «marin» de OpenAI y provienen de una guía de archivo con IA: no son Susanne ni un clon de su voz."
-                : "The published testimony below is Susanne’s real voice, not AI. Interactive answers use OpenAI’s built-in “marin” voice and come from an AI archival guide—not Susanne and not a clone of her voice."}
+                ? GUIDE_VOICE_DISCLOSURE.es
+                : GUIDE_VOICE_DISCLOSURE.en}
             </p>
           </div>
 

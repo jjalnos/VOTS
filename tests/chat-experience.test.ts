@@ -1,12 +1,20 @@
 import { describe, expect, it } from "vitest";
 import {
   functionCallsFromRealtimeEvent,
+  GUIDE_VOICE_DISCLOSURE,
   normalizeTestimonySearchResult,
   realtimeGenerationIsCurrent,
   sourceHref,
 } from "@/components/chat-experience";
 
 describe("private Susanne conversation UI contracts", () => {
+  it("identifies Cedar as an AI guide voice in both supported locales", () => {
+    expect(GUIDE_VOICE_DISCLOSURE.en).toContain("built-in “cedar” voice");
+    expect(GUIDE_VOICE_DISCLOSURE.en).toContain("not Susanne and not a clone");
+    expect(GUIDE_VOICE_DISCLOSURE.es).toContain("voz integrada «cedar» de OpenAI");
+    expect(GUIDE_VOICE_DISCLOSURE.es).toContain("no son Susanne ni un clon");
+  });
+
   it("recognizes completed Realtime tool calls without duplicating partial arguments", () => {
     expect(functionCallsFromRealtimeEvent({
       type: "response.function_call_arguments.done",

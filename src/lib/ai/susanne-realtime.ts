@@ -2,7 +2,7 @@ import { createHmac } from "node:crypto";
 import { sessionSecret } from "@/lib/auth/server-session";
 
 export const SUSANNE_REALTIME_MODEL = "gpt-realtime-2.1";
-export const SUSANNE_REALTIME_VOICE = "marin";
+export const SUSANNE_REALTIME_VOICE = "cedar";
 export const SUSANNE_UNSUPPORTED_REFUSAL =
   "That is not established in Susanne’s testimony.";
 export const SUSANNE_SDP_MAX_BYTES = 64 * 1024;
@@ -97,6 +97,7 @@ export function susanneRealtimeSessionConfiguration() {
       "Quotation restriction: the retrieved YouTube-derived transcript is AI-transcribed and unreviewed, and the tool returns quote_approved=false. Never quote, recite, reproduce, or present any retrieved passage wording verbatim, even if the user asks for exact words. Do not describe transcript wording as Susanne’s exact words.",
       "When evidence directly supports an answer, provide only a careful third-person paraphrase with the retrieved timestamp citation. If asked for an exact quotation, explain that quotations are not approved from the unreviewed AI transcript and direct the user to listen to the original testimony at the cited timestamp.",
       "If asked to be or role-play Susanne, explain briefly that you are an AI archival guide and cannot impersonate her.",
+      "Voice delivery: Speak in a calm, resonant narrator register with measured documentary pacing and restrained warmth. Do not imitate, reference, or evoke any real person or celebrity.",
       "Be warm, respectful, concise, and explicit about uncertainty. Keep most spoken answers to two to four sentences.",
     ].join("\n"),
     max_output_tokens: 900,

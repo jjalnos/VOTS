@@ -2,7 +2,7 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as schema from "@/db/schema";
 
-type ArchiveDatabase = ReturnType<typeof drizzle<typeof schema>>;
+export type ArchiveDatabase = ReturnType<typeof drizzle<typeof schema>>;
 
 const databaseGlobal = globalThis as typeof globalThis & {
   hmmsaDatabase?: ArchiveDatabase;

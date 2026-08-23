@@ -1,4 +1,4 @@
-import { and, asc, eq, isNotNull, isNull } from "drizzle-orm";
+import { and, asc, desc, eq, isNotNull, isNull } from "drizzle-orm";
 import { getDatabase } from "@/db/client";
 import {
   archiveItems as archiveItemsTable,
@@ -33,6 +33,7 @@ import type {
   ArchiveRepository,
   CuratorWorkspace,
   PrivateUploadRecord,
+  UploadContext,
 } from "@/lib/repository/types";
 import {
   RepositoryAuthorizationError,
@@ -244,7 +245,11 @@ async function validateAssociation(actor: Actor, item: ArchiveItem): Promise<voi
   if (survivor && item.familyId && survivor.familyId !== item.familyId) {
     throw new RepositoryValidationError("The survivor and family associations do not match.");
   }
-  if (!can(actor, "create_record") && !can(actor, "contribute_upload", familyId)) {
+  if (
+    !can(actor, "create_record") &&
+    !can(actor, "upload_original") &&
+    !can(actor, "contribute_upload", familyId)
+  ) {
     throw new RepositoryAuthorizationError("This account cannot contribute to that family group.");
   }
 }
@@ -382,6 +387,30 @@ export const postgresArchiveRepository: ArchiveRepository = {
         updatedAt: iso(user.updatedAt),
       };
     });
+  },
+
+  async uploadContext(actor): Promise<UploadContext> {
+    if (!can(actor, "upload_original")) {
+      throw new RepositoryAuthorizationError("Access denied.");
+    }
+    const db = getDatabase();
+    const [familyRows, survivorRows, recentRows] = await Promise.all([
+      db.select().from(familiesTable).orderBy(familiesTable.name),
+      // Ordered by slug for the same determinism reason as the curator
+      // workspace: heap order moves rows after every UPDATE.
+      db.select().from(survivorsTable).orderBy(survivorsTable.slug),
+      db
+        .select()
+        .from(archiveItemsTable)
+        .where(eq(archiveItemsTable.uploadedBy, actor.userId))
+        .orderBy(desc(archiveItemsTable.createdAt))
+        .limit(8),
+    ]);
+    return {
+      families: familyRows.map(mapFamily),
+      survivors: survivorRows.map(mapSurvivor),
+      recentUploads: recentRows.map(mapArchiveItem),
+    };
   },
 
   validatePrivateUpload: validateAssociation,

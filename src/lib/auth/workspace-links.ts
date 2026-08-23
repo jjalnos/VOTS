@@ -26,10 +26,13 @@ export function workspaceLinksFor(actor: Actor | null, locale: Locale): string[]
     );
   }
   if (actor.roles.includes("family")) {
-    links.push([spanish ? "Contribución familiar" : "Family contribution", "/family"]);
+    links.push([spanish ? "Cargar al archivo" : "Archive upload", "/upload"]);
   }
   if (actor.roles.includes("admin")) {
-    links.push([spanish ? "Acceso y políticas" : "Access & policy", "/admin/access"]);
+    links.push(
+      [spanish ? "Cargar al archivo" : "Archive upload", "/upload"],
+      [spanish ? "Acceso y políticas" : "Access & policy", "/admin/access"],
+    );
   }
   links.push([spanish ? "Seguridad" : "Security", "/account/security"]);
   return links;

@@ -66,13 +66,3 @@ export class LocalMockMediaStorage implements OriginalMediaStorage {
     });
   }
 }
-
-export function getMediaStorage(): OriginalMediaStorage {
-  const provider = process.env.MEDIA_STORAGE_PROVIDER ?? "local_mock";
-  if (provider !== "local_mock") {
-    throw new Error(
-      "Only the local_mock media provider is implemented. Configure Google Drive or object storage in a future adapter without changing archive metadata contracts.",
-    );
-  }
-  return new LocalMockMediaStorage();
-}

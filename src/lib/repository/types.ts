@@ -31,6 +31,18 @@ export interface FamilyWorkspace {
   archiveItems: ArchiveItem[];
 }
 
+/**
+ * Everything the archive upload page needs to offer real choices instead of
+ * free-text identifiers: the family groups and survivors an administrator can
+ * associate an original with, plus their own most recent uploads so a
+ * contribution is immediately visible after it is stored.
+ */
+export interface UploadContext {
+  families: Family[];
+  survivors: Survivor[];
+  recentUploads: ArchiveItem[];
+}
+
 export interface PrivateUploadRecord {
   archiveItem: ArchiveItem;
   fileVersion: FileVersion;
@@ -42,6 +54,7 @@ export interface ArchiveRepository {
   curatorWorkspace(actor: Actor): Promise<CuratorWorkspace>;
   familyWorkspace(actor: Actor): Promise<FamilyWorkspace | null>;
   adminUsers(actor: Actor): Promise<User[]>;
+  uploadContext(actor: Actor): Promise<UploadContext>;
   validatePrivateUpload(actor: Actor, archiveItem: ArchiveItem): Promise<void>;
   persistPrivateUpload(actor: Actor, record: PrivateUploadRecord): Promise<void>;
 }

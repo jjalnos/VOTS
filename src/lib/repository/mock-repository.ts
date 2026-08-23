@@ -18,8 +18,21 @@ import {
   RepositoryValidationError,
 } from "@/lib/repository/types";
 
-const runtimeItems = [...seedArchiveItems];
-const runtimeUploads: PrivateUploadRecord[] = [];
+// Runtime state lives on globalThis for the same reason as the database
+// client: in development, route handlers and server components compile into
+// separate module graphs, and module-local arrays would give the upload API
+// and the upload page two different stores.
+const mockStateGlobal = globalThis as typeof globalThis & {
+  hmmsaMockRepositoryState?: {
+    runtimeItems: ArchiveItem[];
+    runtimeUploads: PrivateUploadRecord[];
+  };
+};
+mockStateGlobal.hmmsaMockRepositoryState ??= {
+  runtimeItems: [...seedArchiveItems],
+  runtimeUploads: [],
+};
+const { runtimeItems, runtimeUploads } = mockStateGlobal.hmmsaMockRepositoryState;
 
 function requirePermission(actor: Actor, action: Parameters<typeof can>[1]): void {
   if (!can(actor, action)) throw new RepositoryAuthorizationError("Access denied.");
@@ -36,9 +49,9 @@ function validateAssociation(actor: Actor, item: ArchiveItem): void {
   if (survivor && item.familyId && survivor.familyId !== item.familyId) {
     throw new RepositoryValidationError("The survivor and family associations do not match.");
   }
-  const curatorAllowed = can(actor, "create_record");
+  const staffAllowed = can(actor, "create_record") || can(actor, "upload_original");
   const familyAllowed = can(actor, "contribute_upload", familyId);
-  if (!curatorAllowed && !familyAllowed) {
+  if (!staffAllowed && !familyAllowed) {
     throw new RepositoryAuthorizationError("This account cannot contribute to that family group.");
   }
 }
@@ -77,6 +90,18 @@ export const mockArchiveRepository: ArchiveRepository = {
   async adminUsers(actor) {
     requirePermission(actor, "manage_access");
     return [...seedUsers];
+  },
+
+  async uploadContext(actor) {
+    requirePermission(actor, "upload_original");
+    return {
+      families: [...seedFamilies],
+      survivors: [...seedSurvivors],
+      recentUploads: runtimeItems
+        .filter((item) => item.uploadedBy === actor.userId)
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+        .slice(0, 8),
+    };
   },
 
   async validatePrivateUpload(actor, archiveItem) {

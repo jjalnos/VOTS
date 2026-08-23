@@ -90,7 +90,7 @@ export interface FileVersion {
   id: string;
   archiveItemId: string;
   versionNumber: number;
-  storageProvider: "local_mock" | "google_drive" | "object_storage";
+  storageProvider: "local_mock" | "postgres" | "google_drive" | "object_storage";
   storageKey: string;
   originalFilename: string;
   mediaType: string;

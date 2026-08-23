@@ -45,9 +45,9 @@ export function createPrivateArchiveItem(
   }
 
   const familyId = parsed.data.familyId ?? actor.familyId;
-  const curatorAllowed = can(actor, "create_record");
+  const staffAllowed = can(actor, "create_record") || can(actor, "upload_original");
   const familyAllowed = Boolean(familyId && can(actor, "contribute_upload", familyId));
-  if (!curatorAllowed && !familyAllowed) {
+  if (!staffAllowed && !familyAllowed) {
     throw new UploadValidationError("This account cannot contribute to that family group.", [
       "Family contributors may upload only to their invited family group.",
     ]);
@@ -70,4 +70,57 @@ export function createPrivateArchiveItem(
     createdAt: now,
     updatedAt: now,
   };
+}
+
+export const MAX_UPLOAD_BYTES = 25 * 1024 * 1024;
+
+/**
+ * File formats the archive accepts as originals. The list is deliberately
+ * broad across scans, photographs, recordings, and documents while still
+ * refusing executables, scripts, and archives — an original should always be
+ * the material itself, never a container or a program.
+ */
+export const ACCEPTED_FILE_EXTENSIONS = [
+  // Photographs and scans
+  "jpg", "jpeg", "png", "webp", "gif", "bmp", "tif", "tiff", "heic", "heif",
+  // Documents
+  "pdf", "doc", "docx", "rtf", "txt", "odt",
+  // Audio
+  "mp3", "m4a", "wav", "aac", "ogg", "flac",
+  // Video
+  "mp4", "mov", "m4v", "avi", "mkv", "webm",
+] as const;
+
+const acceptedExtensions = new Set<string>(ACCEPTED_FILE_EXTENSIONS);
+
+/** The `accept` attribute for the upload form's file input. */
+export const FILE_INPUT_ACCEPT = ACCEPTED_FILE_EXTENSIONS.map(
+  (extension) => `.${extension}`,
+).join(",");
+
+export interface UploadFileCheck {
+  filename: string;
+  byteSize: number;
+}
+
+/**
+ * Returns the reasons a file cannot be accepted, or an empty list when it can.
+ * Browsers disagree about MIME types, so the extension is the contract and the
+ * size keeps a single upload well inside what the database comfortably holds.
+ */
+export function uploadFileIssues(file: UploadFileCheck): string[] {
+  const issues: string[] = [];
+  if (file.byteSize < 1) {
+    issues.push("The file is empty.");
+  } else if (file.byteSize > MAX_UPLOAD_BYTES) {
+    issues.push("The file is larger than the 25 MB limit.");
+  }
+  const name = file.filename.trim().toLocaleLowerCase();
+  const extension = name.includes(".") ? name.split(".").pop() ?? "" : "";
+  if (!extension || !acceptedExtensions.has(extension)) {
+    issues.push(
+      "This file format is not accepted. Send photographs, scans, documents, audio, or video in a common format.",
+    );
+  }
+  return issues;
 }

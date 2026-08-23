@@ -15,7 +15,23 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
+import { customType } from "drizzle-orm/pg-core";
 import type { LocalizedText } from "@/lib/domain/types";
+
+/** drizzle-orm has no built-in bytea column; postgres-js speaks Buffer. */
+const bytea = customType<{ data: Uint8Array; driverData: Buffer }>({
+  dataType() {
+    return "bytea";
+  },
+  toDriver(value: Uint8Array): Buffer {
+    return Buffer.isBuffer(value)
+      ? value
+      : Buffer.from(value.buffer, value.byteOffset, value.byteLength);
+  },
+  fromDriver(value: Buffer): Uint8Array {
+    return new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
+  },
+});
 
 export const roleName = pgEnum("role_name", ["admin", "curator", "family", "viewer"]);
 export const archiveLanguage = pgEnum("archive_language", ["en", "es", "other"]);
@@ -247,6 +263,23 @@ export const fileVersions = pgTable(
     uniqueIndex("file_versions_item_version_unique").on(table.archiveItemId, table.versionNumber),
   ],
 );
+
+/**
+ * Original upload bytes for the "postgres" media storage provider. The row id
+ * is the fileVersions.storageKey. There is deliberately no foreign key to
+ * file_versions: the bytes are stored first and the metadata row second, with
+ * the API route deleting the blob again if metadata persistence fails.
+ */
+export const fileBlobs = pgTable("file_blobs", {
+  id: uuid("id").primaryKey(),
+  bytes: bytea("bytes").notNull(),
+  byteSize: integer("byte_size").notNull(),
+  checksumSha256: varchar("checksum_sha256", { length: 64 }).notNull(),
+  createdBy: uuid("created_by")
+    .notNull()
+    .references(() => users.id, { onDelete: "restrict" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
 
 export const extractedFacts = pgTable(
   "extracted_facts",

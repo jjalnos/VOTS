@@ -81,7 +81,7 @@ export async function POST(request: Request) {
     ? "/curator/survivors"
     : actor.roles.includes("admin")
       ? "/admin/access"
-      : "/family";
+      : "/upload";
   const response = NextResponse.json({ ok: true, destination });
   response.cookies.set(SESSION_COOKIE, token, {
     httpOnly: true,

@@ -133,6 +133,11 @@ function copyFor(locale: Locale, names: number | null): HomeCopy {
           detail: "Las voces del archivo, presentes en las salas adonde San Antonio acude a recordar.",
           status: "ahead",
         },
+        {
+          title: "El sitio web público del museo",
+          detail: "Por definir junto con el museo: este archivo puede sumarse a hmmsa.org, o incluso convertirse en el sitio del museo, conservando todo lo ya publicado.",
+          status: "ahead",
+        },
       ],
       statusLabels: { done: "En línea", now: "En construcción", ahead: "Previsto" },
       fundingEyebrow: "Apoye este trabajo",
@@ -225,6 +230,11 @@ function copyFor(locale: Locale, names: number | null): HomeCopy {
       {
         title: "A kiosk in the museum",
         detail: "The archive's voices, present in the rooms where San Antonio comes to remember.",
+        status: "ahead",
+      },
+      {
+        title: "The museum's public website",
+        detail: "To be shaped with the museum: this archive can join hmmsa.org, or even become the museum's website — with everything already published carried over.",
         status: "ahead",
       },
     ],

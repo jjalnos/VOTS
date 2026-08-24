@@ -151,3 +151,12 @@
     grid-column: span 1;
   }
 }
+
+/* The generation select and the title input share a row; without one height
+   they settle at their own intrinsic sizes and the row reads crooked. */
+.grid input,
+.grid select {
+  height: 48px;
+  box-sizing: border-box;
+  line-height: 1.2;
+}

@@ -1,6 +1,6 @@
 .panel {
   border: 1px solid var(--linen);
-  border-radius: 12px;
+  border-radius: 0;
   background: var(--paper-light);
   padding: 1.5rem 1.6rem 1.6rem;
   margin-bottom: 1.5rem;
@@ -54,7 +54,7 @@
   font-size: 0.95rem;
   padding: 0.6rem 1.15rem;
   border: 1px solid var(--gold);
-  border-radius: 8px;
+  border-radius: 0;
   background: var(--white);
   color: var(--wine-deep);
   cursor: pointer;
@@ -82,7 +82,7 @@
   font: inherit;
   font-weight: 600;
   padding: 0.6rem 1.2rem;
-  border-radius: 8px;
+  border-radius: 0;
   cursor: pointer;
 }
 
@@ -138,7 +138,7 @@
   padding: 1rem 1.15rem;
   border: 1px solid var(--sage);
   border-left: 4px solid var(--success);
-  border-radius: 8px;
+  border-radius: 0;
   background: var(--white);
 }
 
@@ -178,7 +178,7 @@
 .summary > div {
   background: var(--white);
   border: 1px solid var(--linen);
-  border-radius: 8px;
+  border-radius: 0;
   padding: 0.65rem 0.8rem;
 }
 

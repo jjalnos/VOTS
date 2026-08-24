@@ -437,7 +437,6 @@ button.button {
   background: var(--white);
   border: 1px solid var(--linen);
   border-radius: 0;
-  box-shadow: 0 10px 30px rgba(49, 6, 6, 0.04);
 }
 
 .card-rule {
@@ -578,6 +577,7 @@ button.button {
 }
 
 .notice {
+  margin: 0;
   padding: 1rem 1.15rem;
   border-left: 4px solid var(--gold);
   color: var(--ink);
@@ -608,6 +608,11 @@ button.button {
 
 .field {
   display: grid;
+  /* Rows stay their natural height. Without this a field whose neighbour
+     carries a hint line stretches to match it, and the surplus is handed to
+     the control — which is how a select ended up taller than the file input
+     beside it. */
+  align-content: start;
   gap: 0.35rem;
 }
 
@@ -624,9 +629,9 @@ button.button {
 .field select,
 .field textarea,
 .search-form input,
-.chat-form textarea {
+.chat-form textarea,
+.control {
   width: 100%;
-  min-height: 48px;
   padding: 0.72rem 0.85rem;
   color: var(--ink);
   background: var(--white);
@@ -634,15 +639,68 @@ button.button {
   border-radius: 0;
 }
 
+/* One height for every single-line control. `min-height` alone clamped a
+   control up but never down, so a <select> (whose UA line-height is `normal`)
+   finished 5px shorter than an <input> inheriting the body's 1.65 rhythm. */
+.field input,
+.field select,
+.search-form input,
+.upload-locked-group,
+select.control,
+input.control {
+  height: 48px;
+  min-height: 48px;
+  line-height: 1.2;
+}
+
 .field textarea,
 .chat-form textarea {
+  height: auto;
   min-height: 128px;
+  line-height: 1.65;
   resize: vertical;
+}
+
+/* The file control's inner button is raw browser chrome otherwise: Arial, a
+   bevelled border, and its own grey. */
+.field input[type="file"] {
+  display: flex;
+  align-items: center;
+  padding-block: 0;
+}
+
+.field input[type="file"]::file-selector-button {
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  margin-right: 0.75rem;
+  padding: 0.35rem 0.8rem;
+  color: var(--ink);
+  background: var(--tint);
+  border: 1px solid var(--hairline);
+  border-radius: 0;
+  cursor: pointer;
+}
+
+.field input[type="file"]::file-selector-button:hover {
+  background: var(--hairline);
+}
+
+/* One disabled treatment, instead of three. */
+.field input:disabled,
+.field select:disabled,
+.field textarea:disabled {
+  color: var(--muted);
+  background: var(--tint);
+  border-color: var(--hairline);
+  cursor: not-allowed;
 }
 
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
   gap: 1rem;
 }
 
@@ -665,6 +723,7 @@ button.button {
 
 /* Archive upload page */
 .upload-locked-group {
+  margin: 0;
   min-height: 48px;
   display: flex;
   align-items: center;
@@ -831,6 +890,12 @@ button.button {
   min-width: 720px;
   border-collapse: collapse;
   background: var(--white);
+}
+
+.data-table td:has(.button),
+.data-table td:has(button) {
+  /* A 48px control in a top-aligned cell hangs below the text it sits with. */
+  vertical-align: middle;
 }
 
 .data-table th,
@@ -1416,7 +1481,8 @@ body {
 
 .workspace-group-label {
   margin: 0 0 0.55rem;
-  padding-inline: 0.75rem;
+  /* Align with the item text: items carry a 2px active border plus 0.75rem. */
+  padding-inline: calc(0.75rem + 2px) 0.75rem;
   font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0.13em;
@@ -1459,6 +1525,11 @@ a.workspace-item:hover {
 .workspace-item-label {
   flex: 1;
   min-width: 0;
+  /* The NOT BUILT tag sits beside this. Without a truncation rule the label
+     wraps and the planned rows stand taller than everything around them. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Promised, not built: visibly present, deliberately inert. */
@@ -1511,6 +1582,23 @@ a.workspace-item:hover {
   opacity: 0.8;
 }
 
+/* The sign-out control is the public site's 48px call to action. In the
+   sidebar foot it wrapped to two lines, so it is sized for this column. */
+.workspace-sidebar-foot .button {
+  min-height: 34px;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.8125rem;
+  white-space: nowrap;
+  color: var(--parchment);
+  border: 1px solid rgba(234, 219, 195, 0.45);
+  background: transparent;
+}
+
+.workspace-sidebar-foot .button:hover {
+  color: var(--wine-deep);
+  background: var(--parchment);
+}
+
 .workspace-sidebar :focus-visible {
   outline-color: var(--paper);
 }
@@ -1523,7 +1611,7 @@ a.workspace-item:hover {
 
 .workspace-topbar {
   display: flex;
-  align-items: flex-end;
+  align-items: baseline;
   justify-content: space-between;
   gap: 1.5rem;
   padding: 1.75rem clamp(1.5rem, 4vw, 3rem) 1.25rem;
@@ -1532,7 +1620,7 @@ a.workspace-item:hover {
 }
 
 .workspace-topbar h1 {
-  margin: 0.3rem 0 0;
+  margin: 0;
   font-size: clamp(1.5rem, 2.6vw, 2rem);
   color: var(--wine);
 }
@@ -1556,9 +1644,29 @@ a.workspace-item:hover {
   border-bottom: 1px solid var(--wine);
 }
 
+/* The public heading scale is sized for marketing pages; inside the workspace
+   a card heading must not out-shout the page title. */
+.workspace-body h2 {
+  font-size: clamp(1.15rem, 1.6vw, 1.4rem);
+}
+
+.workspace-body h3 {
+  font-size: 1.0625rem;
+}
+
 .workspace-main {
   flex: 1;
   padding: clamp(1.5rem, 3vw, 2.5rem) clamp(1.5rem, 4vw, 3rem) 4rem;
+}
+
+.workspace-main .content-wrap {
+  width: 100%;
+  margin-inline: 0;
+}
+
+.workspace-main > .section,
+.workspace-main > section {
+  padding-block: 0 clamp(1.5rem, 3vw, 2.5rem);
 }
 
 .workspace-lede {
@@ -1596,6 +1704,10 @@ a.workspace-item:hover {
     border-top: 0;
     border-left: 1px solid rgba(234, 219, 195, 0.14);
     padding-left: 1.25rem;
+  }
+
+  .workspace-foot-row {
+    justify-content: flex-start;
   }
 
   .workspace-topbar {

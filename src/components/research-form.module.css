@@ -7,18 +7,18 @@
   grid-template-columns: 40px 1fr;
   gap: 0.8rem;
   padding: 1rem;
-  color: #fff9ef;
-  background: #304a5b;
+  color: var(--parchment);
+  background: var(--wine-deep);
 }
 
 .paidNotice > span {
   display: grid;
-  width: 36px;
+  width: 40px;
   height: 40px;
   place-items: center;
-  color: #351113;
-  background: #e5ca93;
-  font-family: Georgia, "Times New Roman", serif;
+  color: var(--wine-deep);
+  background: var(--parchment);
+  font-family: var(--serif);
   font-size: 1rem;
   font-weight: 700;
 }
@@ -29,8 +29,8 @@
 }
 
 .paidNotice strong {
-  color: #e5ca93;
-  font-family: Georgia, "Times New Roman", serif;
+  color: var(--parchment);
+  font-family: var(--serif);
   font-size: 0.94rem;
   font-weight: 500;
 }

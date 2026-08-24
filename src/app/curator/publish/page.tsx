@@ -84,10 +84,10 @@ export default async function CuratorPublishPage({
                 method="post"
                 action="/api/exports/research-packet"
               >
-                <label htmlFor="research-survivor">
+                <label className="field-label" htmlFor="research-survivor">
                   {locale === "es" ? "Registro aprobado" : "Approved record"}
                 </label>
-                <select id="research-survivor" name="survivorId" required>
+                <select className="control" id="research-survivor" name="survivorId" required>
                   {approvedSurvivors.map((survivor) => (
                     <option key={survivor.id} value={survivor.id}>
                       {survivor.displayName[locale]}

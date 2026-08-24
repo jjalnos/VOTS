@@ -65,7 +65,7 @@ export default async function AdminAccessPage({ searchParams }: PageProps<"/admi
                       <td><strong>{user.displayName}</strong><br />{user.email}</td>
                       <td>{user.roles.join(", ")}</td>
                       <td><StatusPill tone={isStaff && enforceStaffMfa && user.mfaRequired ? "approved" : "pending"}>{mfaLabel}</StatusPill></td>
-                      <td><StatusPill>{user.active ? (locale === "es" ? "Activo" : "Active") : (locale === "es" ? "Inactivo" : "Inactive")}</StatusPill></td>
+                      <td><StatusPill tone={user.active ? "approved" : "pending"}>{user.active ? (locale === "es" ? "Activo" : "Active") : (locale === "es" ? "Inactivo" : "Inactive")}</StatusPill></td>
                       <td><button className="button secondary" type="button" disabled>{locale === "es" ? "Editar" : "Edit"}</button></td>
                     </tr>
                   );

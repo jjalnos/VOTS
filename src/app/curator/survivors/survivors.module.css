@@ -42,7 +42,7 @@
 
 .totals {
   display: grid;
-  grid-template-columns: repeat(4, minmax(5.5rem, auto));
+  grid-template-columns: repeat(4, minmax(5.5rem, 1fr));
   gap: 0.75rem;
   align-content: start;
   margin: 0;
@@ -51,7 +51,7 @@
 .totals > div {
   background: var(--paper-light);
   border: 1px solid var(--linen);
-  border-radius: 10px;
+  border-radius: 0;
   padding: 0.75rem 1rem;
 }
 
@@ -104,11 +104,21 @@
 }
 
 .searchField input,
+.selectField select,
+.applyButton,
+.addButton {
+  /* One height across the filter row: the inputs, the Filter button and the
+     Add-a-person link each used to size themselves from their own padding. */
+  height: 42px;
+  box-sizing: border-box;
+}
+
+.searchField input,
 .selectField select {
   font: inherit;
   padding: 0.55rem 0.75rem;
   border: 1px solid var(--linen);
-  border-radius: 8px;
+  border-radius: 0;
   background: var(--white);
   color: var(--ink);
   min-width: 13rem;
@@ -129,9 +139,9 @@
 .applyButton {
   font: inherit;
   font-weight: 600;
-  padding: 0.55rem 1.1rem;
+  padding: 0 1.1rem;
   border: 1px solid var(--wine);
-  border-radius: 8px;
+  border-radius: 0;
   background: var(--wine);
   color: var(--paper-light);
   cursor: pointer;
@@ -142,17 +152,21 @@
 }
 
 .clearLink {
+  display: inline-flex;
+  align-items: center;
+  height: 42px;
   font-size: 0.9rem;
   color: var(--wine-soft);
-  align-self: center;
+  align-self: end;
 }
 
 .addButton {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
   font-weight: 600;
-  padding: 0.6rem 1.2rem;
+  padding: 0 1.2rem;
   border: 1px solid var(--gold);
-  border-radius: 8px;
+  border-radius: 0;
   background: var(--paper-light);
   color: var(--wine-deep);
   text-decoration: none;
@@ -164,7 +178,7 @@
 
 .familyBanner {
   background: var(--linen);
-  border-radius: 8px;
+  border-radius: 0;
   padding: 0.6rem 1rem;
   font-size: 0.92rem;
   color: var(--ink);
@@ -179,7 +193,7 @@
 .tableWrap {
   overflow-x: auto;
   border: 1px solid var(--linen);
-  border-radius: 12px;
+  border-radius: 0;
   background: var(--white);
   box-shadow: var(--shadow);
 }
@@ -233,7 +247,7 @@
   font-size: 0.75rem;
   font-weight: 600;
   padding: 0.18rem 0.6rem;
-  border-radius: 999px;
+  border-radius: 0;
   border: 1px solid var(--linen);
   background: var(--paper-light);
   color: var(--ink-soft);
@@ -265,7 +279,8 @@
 }
 
 .muted {
-  color: var(--linen);
+  /* Was --linen, the hairline colour: the em dashes were all but invisible. */
+  color: var(--muted);
 }
 
 .rowAction a {
@@ -281,7 +296,7 @@
 
 .editorCard {
   border: 1px solid var(--linen);
-  border-radius: 12px;
+  border-radius: 0;
   background: var(--paper-light);
   margin-bottom: 1.25rem;
   box-shadow: var(--shadow);
@@ -289,7 +304,7 @@
 
 .empty {
   border: 1px dashed var(--linen);
-  border-radius: 12px;
+  border-radius: 0;
   background: var(--paper-light);
   text-align: center;
   padding: 3rem 1.5rem;

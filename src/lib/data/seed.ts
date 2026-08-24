@@ -114,9 +114,9 @@ export const seedSurvivors: Survivor[] = [
     reviewStatus: "approved",
     isDemonstration: false,
     portrait: {
-      url: "/generation-to-generation-family.png",
-      credit: "A Jalnos family photograph",
-      rights: "Family photograph supplied for this project.",
+      url: "/stephan-jalnos-1949.jpg",
+      credit: "Stephan Jalnos, 1949 — detail from the Jalnos wedding portrait, Holocaust Memorial Museum of San Antonio",
+      rights: "Reproduced from material the museum published publicly. Written permission from the museum and the family is being sought.",
     },
     createdBy: "user-curator-demo",
     createdAt: now,
@@ -138,8 +138,8 @@ export const seedSurvivors: Survivor[] = [
     reviewStatus: "approved",
     isDemonstration: false,
     portrait: {
-      url: "/susanne-jalnos-portrait.jpg",
-      credit: "Detail from an HMMSA Survivor Speakers Series announcement, 21 September 2025",
+      url: "/susanne-jalnos-1949.jpg",
+      credit: "Susanne Weisz Jalnos, 1949 — detail from the Jalnos wedding portrait, Holocaust Memorial Museum of San Antonio",
       rights: "Reproduced from material the museum published publicly. Written permission from the museum and the family is being sought.",
     },
     createdBy: "user-curator-demo",

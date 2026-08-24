@@ -1100,18 +1100,18 @@ export function ChatExperience({ locale }: { locale: Locale }) {
         <aside className={styles.identityPanel} aria-labelledby="susanne-name">
           <figure className={styles.portrait}>
             <Image
-              src="/susanne-jalnos-portrait.jpg"
+              src="/susanne-jalnos-1949.jpg"
               alt={es
-                ? "Retrato de Susanne Weisz Jalnos procedente de un anuncio del Museo Conmemorativo del Holocausto de San Antonio"
-                : "Portrait of Susanne Weisz Jalnos from a Holocaust Memorial Museum of San Antonio announcement"}
-              width={760}
-              height={957}
+                ? "Retrato de Susanne Weisz Jalnos en 1949, detalle del retrato de boda de los Jalnos"
+                : "Portrait of Susanne Weisz Jalnos in 1949, detail from the Jalnos wedding portrait"}
+              width={780}
+              height={1040}
               priority
             />
             <figcaption>
               {es
-                ? "Retrato publicado en un anuncio de la serie Survivor Speakers de HMMSA. La imagen permanece inmóvil."
-                : "Portrait published in an HMMSA Survivor Speakers Series announcement. The image remains still."}
+                ? "Detalle del retrato de boda de los Jalnos, 1949, Museo Conmemorativo del Holocausto de San Antonio. La imagen permanece inmóvil."
+                : "Detail from the Jalnos wedding portrait, 1949, Holocaust Memorial Museum of San Antonio. The image remains still."}
             </figcaption>
           </figure>
           <p className={styles.kicker}>

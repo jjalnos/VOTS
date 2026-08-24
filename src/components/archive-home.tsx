@@ -81,14 +81,14 @@ function copyFor(locale: Locale, names: number | null): HomeCopy {
         "sam-cohen":
           "Retrato de Sam Cohen de joven, de la colección del Museo Conmemorativo del Holocausto de San Antonio",
         "susanne-jalnos":
-          "Retrato de Susanne Jalnos, publicado por el Museo Conmemorativo del Holocausto de San Antonio para su serie de conferencias de sobrevivientes",
-        "stephan-jalnos": "Fotografía de la familia Jalnos: una pareja joven con su bebé",
+          "Retrato de Susanne Weisz Jalnos en 1949, detalle del retrato de boda de los Jalnos",
+        "stephan-jalnos": "Retrato de Stephan Jalnos en 1949, detalle del retrato de boda de los Jalnos",
         "rose-williams": null,
       },
       photoCredit: {
         "sam-cohen": "Fotografía: Museo Conmemorativo del Holocausto de San Antonio",
-        "susanne-jalnos": "Fotografía: detalle de un anuncio del Museo Conmemorativo del Holocausto de San Antonio",
-        "stephan-jalnos": "Fotografía: cortesía de la familia Jalnos",
+        "susanne-jalnos": "Fotografía: retrato de boda de los Jalnos, 1949, Museo Conmemorativo del Holocausto de San Antonio",
+        "stephan-jalnos": "Fotografía: retrato de boda de los Jalnos, 1949, Museo Conmemorativo del Holocausto de San Antonio",
         "rose-williams": null,
       },
       platePending: "Se busca una fotografía",
@@ -180,14 +180,14 @@ function copyFor(locale: Locale, names: number | null): HomeCopy {
       "sam-cohen":
         "Portrait of Sam Cohen as a young man, from the collection of the Holocaust Memorial Museum of San Antonio",
       "susanne-jalnos":
-        "Portrait of Susanne Jalnos, published by the Holocaust Memorial Museum of San Antonio for its Survivor Speakers Series announcement",
-      "stephan-jalnos": "A Jalnos family photograph: a young couple with their baby",
+        "Portrait of Susanne Weisz Jalnos in 1949, detail from the Jalnos wedding portrait",
+      "stephan-jalnos": "Portrait of Stephan Jalnos in 1949, detail from the Jalnos wedding portrait",
       "rose-williams": null,
     },
     photoCredit: {
       "sam-cohen": "Photograph: Holocaust Memorial Museum of San Antonio",
-      "susanne-jalnos": "Photograph: detail from a Holocaust Memorial Museum of San Antonio announcement",
-      "stephan-jalnos": "Photograph: courtesy of the Jalnos family",
+      "susanne-jalnos": "Photograph: Jalnos wedding portrait, 1949, Holocaust Memorial Museum of San Antonio",
+      "stephan-jalnos": "Photograph: Jalnos wedding portrait, 1949, Holocaust Memorial Museum of San Antonio",
       "rose-williams": null,
     },
     platePending: "A photograph is being sought",
@@ -271,8 +271,8 @@ export interface ArchiveCounts {
    page must make impossible. */
 const ROW_PHOTOS: Record<FeaturedRecordSlug, string | null> = {
   "sam-cohen": "/sam-cohen-portrait.jpg",
-  "susanne-jalnos": "/susanne-jalnos-portrait.jpg",
-  "stephan-jalnos": "/generation-to-generation-family.png",
+  "susanne-jalnos": "/susanne-jalnos-1949.jpg",
+  "stephan-jalnos": "/stephan-jalnos-1949.jpg",
   // The museum holds no photograph of Rose Williams at a size worth
   // publishing. An archival plate says so rather than borrowing one.
   "rose-williams": null,

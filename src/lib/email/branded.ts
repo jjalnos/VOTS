@@ -28,6 +28,12 @@ export interface BrandedEmailContent {
   callToAction?: { label: string; url: string };
   /** Quiet line under the action, e.g. an expiry note. */
   note?: string;
+  /**
+   * "automated" (default) closes with a do-not-reply notice — right for
+   * resets and invitations. "personal" is for mail a person actually wrote,
+   * where a reply is welcome.
+   */
+  footerVariant?: "automated" | "personal";
 }
 
 /**
@@ -71,6 +77,15 @@ function automatedLine(locale: "en" | "es"): string {
     : "This is an automated message from the private archive. Please do not reply to this email.";
 }
 
+function footerLine(content: BrandedEmailContent): string {
+  if (content.footerVariant === "personal") {
+    return content.locale === "es"
+      ? "Enviado desde el archivo privado Voices of the Shoah."
+      : "Sent from the private Voices of the Shoah archive.";
+  }
+  return automatedLine(content.locale);
+}
+
 export function brandedEmailText(content: BrandedEmailContent): string {
   const lines: string[] = ["VOICES OF THE SHOAH", institutionLine(content.locale), ""];
   lines.push(singleLine(content.heading), "");
@@ -84,7 +99,7 @@ export function brandedEmailText(content: BrandedEmailContent): string {
   if (content.note) {
     lines.push(singleLine(content.note), "");
   }
-  lines.push("—", automatedLine(content.locale));
+  lines.push("—", footerLine(content));
   return lines.join("\n").trimEnd();
 }
 
@@ -136,7 +151,7 @@ export function brandedEmailHtml(content: BrandedEmailContent): string {
   </tr>
   <tr>
     <td style="padding:20px 32px;">
-      <p style="margin:0;font-family:${SANS};font-size:12px;line-height:1.6;color:${MUTED};">${escapeHtml(automatedLine(content.locale))}</p>
+      <p style="margin:0;font-family:${SANS};font-size:12px;line-height:1.6;color:${MUTED};">${escapeHtml(footerLine(content))}</p>
     </td>
   </tr>
 </table>

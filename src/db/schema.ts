@@ -412,6 +412,34 @@ export const chatSessions = pgTable(
   (table) => [index("chat_sessions_last_active_idx").on(table.lastActiveAt)],
 );
 
+/**
+ * One outbound message from the archive to its people, with a snapshot of who
+ * it went to and how each delivery ended. The recipients array is the record
+ * of the send itself; user rows may change later, the snapshot may not.
+ */
+export const communications = pgTable(
+  "communications",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    channel: varchar("channel", { length: 20 }).notNull(),
+    subject: varchar("subject", { length: 150 }).notNull(),
+    body: text("body").notNull(),
+    linkLabel: varchar("link_label", { length: 80 }),
+    linkUrl: text("link_url"),
+    locale: varchar("locale", { length: 2 }).notNull(),
+    recipients: jsonb("recipients")
+      .$type<Array<{ userId: string; email: string; displayName: string; status: "pending" | "sent" | "failed" }>>()
+      .notNull(),
+    sentCount: integer("sent_count").default(0).notNull(),
+    failedCount: integer("failed_count").default(0).notNull(),
+    sentBy: uuid("sent_by")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [index("communications_created_idx").on(table.createdAt)],
+);
+
 export const auditEvents = pgTable(
   "audit_events",
   {

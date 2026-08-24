@@ -819,6 +819,111 @@ input.control {
   color: var(--muted);
 }
 
+/* Communications page */
+.coms-page {
+  display: grid;
+  gap: 2rem;
+}
+
+.coms-channels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem 0 1.5rem;
+  padding: 0;
+  list-style: none;
+}
+
+.coms-channel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.875rem;
+  border: 1px solid var(--hairline);
+  color: var(--muted);
+}
+
+.coms-channel.active {
+  border-color: var(--wine);
+  color: var(--wine);
+  font-weight: 600;
+}
+
+.coms-planned-tag {
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.coms-recipients {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 1rem;
+  border: 1px solid var(--hairline);
+  /* Fieldsets refuse to shrink below their content by default; a long email
+     address must wrap instead of forcing the page to scroll sideways. */
+  min-inline-size: 0;
+}
+
+.coms-recipients legend {
+  padding: 0 0.35rem;
+}
+
+.coms-recipient {
+  display: flex;
+  gap: 0.6rem;
+  align-items: baseline;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.coms-recipient input {
+  flex: none;
+}
+
+.coms-select-all {
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.coms-recipient span {
+  overflow-wrap: anywhere;
+}
+
+.coms-recipient-roles {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.coms-log {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.coms-log li {
+  padding: 0.9rem 0;
+  border-top: 1px solid var(--hairline);
+}
+
+.coms-log-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.coms-log-meta,
+.coms-log-recipients {
+  margin: 0.3rem 0 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
 .source-list {
   margin: 1.2rem 0 0;
   padding-left: 1.25rem;

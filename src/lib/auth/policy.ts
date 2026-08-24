@@ -6,6 +6,7 @@ export type Action =
   | "view_audit"
   | "create_record"
   | "upload_original"
+  | "send_communications"
   | "review_content"
   | "run_external_research"
   | "publish_content"
@@ -28,7 +29,13 @@ const permissions: Record<Role, ReadonlySet<Action>> = {
   // upload_original lets an administrator add originals through the archive
   // upload page without inheriting curatorial duties (registry edits, review,
   // publication stay with the curator role).
-  admin: new Set(["manage_access", "manage_policy", "view_audit", "upload_original"]),
+  admin: new Set([
+    "manage_access",
+    "manage_policy",
+    "view_audit",
+    "upload_original",
+    "send_communications",
+  ]),
   curator: new Set([
     "create_record",
     "view_survivor_registry",
@@ -51,6 +58,7 @@ const mfaActions = new Set<Action>([
   "view_audit",
   "create_record",
   "upload_original",
+  "send_communications",
   "review_content",
   "run_external_research",
   "publish_content",

@@ -21,6 +21,7 @@ export interface WorkspaceLink {
 }
 
 export type WorkspaceIcon =
+  | "coms"
   | "people"
   | "inbox"
   | "studio"
@@ -88,12 +89,20 @@ export function workspaceGroupsFor(actor: Actor | null, locale: Locale): Workspa
 
   const administration: WorkspaceLink[] = [];
   if (admin) {
-    administration.push({
-      label: es ? "Acceso y políticas" : "Access & policy",
-      href: "/admin/access",
-      status: READY,
-      icon: "access",
-    });
+    administration.push(
+      {
+        label: es ? "Acceso y políticas" : "Access & policy",
+        href: "/admin/access",
+        status: READY,
+        icon: "access",
+      },
+      {
+        label: es ? "Comunicaciones" : "Communications",
+        href: "/admin/communications",
+        status: READY,
+        icon: "coms",
+      },
+    );
   }
   administration.push({
     label: es ? "Seguridad" : "Security",

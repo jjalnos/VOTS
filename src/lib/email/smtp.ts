@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import type SMTPPool from "nodemailer/lib/smtp-pool";
 import type SMTPTransport from "nodemailer/lib/smtp-transport";
 
 const CONNECTION_TIMEOUT_MS = 5_000;
@@ -28,6 +29,8 @@ export interface EmailMessage {
   text: string;
   /** Optional branded HTML alternative; the text part is always present. */
   html?: string;
+  /** Where a human reply should land, for mail a person actually wrote. */
+  replyTo?: string;
 }
 
 interface TransportEmailMessage extends EmailMessage {
@@ -215,7 +218,8 @@ function validateMessage(message: EmailMessage, from: string): void {
     message.text.length === 0 ||
     message.text.length > 100_000 ||
     (message.html !== undefined &&
-      (message.html.length === 0 || message.html.length > 200_000))
+      (message.html.length === 0 || message.html.length > 200_000)) ||
+    (message.replyTo !== undefined && !isValidMailbox(message.replyTo))
   ) {
     throw new EmailConfigurationError("The email message is invalid.");
   }
@@ -239,6 +243,7 @@ export async function sendEmail(
       subject: message.subject,
       text: message.text,
       ...(message.html !== undefined ? { html: message.html } : {}),
+      ...(message.replyTo !== undefined ? { replyTo: message.replyTo } : {}),
     });
   } catch {
     throw new EmailDeliveryError();
@@ -250,4 +255,32 @@ export function createSmtpEmailSender(
   transport: EmailTransport = createSmtpTransport(configuration),
 ): EmailSender {
   return (message) => sendEmail(message, { from: configuration.from, transport });
+}
+
+/**
+ * A pooled sender for one batch: a single authenticated connection carries
+ * every message, instead of a fresh TCP+TLS+AUTH handshake per recipient.
+ * Callers must close() it when the batch is done.
+ */
+export function createPooledSmtpEmailSender(
+  configuration = smtpConfigurationFromEnvironment(),
+  factory: (options: SMTPPool.Options) => EmailTransport & { close?: () => void } = (options) =>
+    nodemailer.createTransport(options),
+): { send: EmailSender; close: () => void } {
+  const transport = factory({
+    ...smtpTransportOptions(configuration),
+    pool: true,
+    maxConnections: 1,
+    maxMessages: 200,
+  });
+  return {
+    send: (message) => sendEmail(message, { from: configuration.from, transport }),
+    close: () => {
+      try {
+        transport.close?.();
+      } catch {
+        // Closing a batch connection can never be the failure that matters.
+      }
+    },
+  };
 }

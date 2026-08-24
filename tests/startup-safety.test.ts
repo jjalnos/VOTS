@@ -62,6 +62,7 @@ describe("Cloudways startup safety", () => {
       "0008_auth_password_change_rate_limits",
       "0009_password_reset",
       "0010_file_blobs",
+      "0011_communications",
     ]);
 
     const archiveMigration = readFileSync(

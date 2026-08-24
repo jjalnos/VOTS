@@ -5,6 +5,7 @@ import type { WorkspaceIcon as IconName } from "@/lib/auth/workspace-links";
  * fetches an icon font from a third party.
  */
 const PATHS: Record<IconName, string> = {
+  coms: "M2.5 5.5h14v9h-14v-9Zm0 .5 7 5.5 7-5.5",
   people: "M7 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM1 17c0-3 2.7-5 6-5s6 2 6 5M15 17c0-2.3-1-4-2.6-4.6M13.5 8.4A3 3 0 0 0 13 2.6",
   inbox: "M2 11h4l1.2 2.4h4.6L13 11h4M2 11 4.6 3.6A1 1 0 0 1 5.6 3h6.8a1 1 0 0 1 1 .6L16 11v4.4a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V11Z",
   studio: "M3 3h13v9.5a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V3Zm0 3.6h13M6.6 17h6M9.6 13.5V17",

@@ -156,3 +156,30 @@ describe("admin user routes", () => {
     expect(issued.status).toBe(200);
   });
 });
+
+describe("communications route guards", () => {
+  it("refuses cross-site, anonymous, and non-admin callers", async () => {
+    vi.stubEnv("DATA_ADAPTER", "postgres");
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", ORIGIN);
+    const { POST: sendComs } = await import("@/app/api/admin/communications/route");
+    const body = {
+      subject: "Hello",
+      body: "A message.",
+      locale: "en",
+      recipientUserIds: [USER_ID],
+    };
+
+    const crossSite = await sendComs(
+      jsonRequest("/api/admin/communications", body, "https://evil.example"),
+    );
+    expect(crossSite.status).toBe(403);
+
+    sessionMock.getActorFromRequest.mockResolvedValueOnce(null);
+    const anonymous = await sendComs(jsonRequest("/api/admin/communications", body));
+    expect(anonymous.status).toBe(401);
+
+    sessionMock.getActorFromRequest.mockResolvedValueOnce(viewer);
+    const forbidden = await sendComs(jsonRequest("/api/admin/communications", body));
+    expect(forbidden.status).toBe(403);
+  });
+});

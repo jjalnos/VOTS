@@ -1641,7 +1641,11 @@ a.workspace-item:hover {
 
 .workspace-topbar {
   display: flex;
-  align-items: baseline;
+  /* `baseline` would align the language switch with the eyebrow, because the
+     eyebrow supplies the title block's FIRST baseline. `last baseline` picks
+     the h1's baseline instead, so EN | ES sits on the title's line. */
+  align-items: flex-end;
+  align-items: last baseline;
   justify-content: space-between;
   gap: 1.5rem;
   padding: 1.75rem clamp(1.5rem, 4vw, 3rem) 1.25rem;

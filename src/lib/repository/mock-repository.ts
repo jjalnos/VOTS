@@ -1,6 +1,7 @@
+import { randomUUID } from "node:crypto";
 import type { Actor } from "@/lib/auth/policy";
 import { can } from "@/lib/auth/policy";
-import type { ArchiveItem } from "@/lib/domain/types";
+import type { ArchiveItem, ReviewDecision } from "@/lib/domain/types";
 import {
   seedArchiveItems,
   seedFamilies,
@@ -26,13 +27,16 @@ const mockStateGlobal = globalThis as typeof globalThis & {
   hmmsaMockRepositoryState?: {
     runtimeItems: ArchiveItem[];
     runtimeUploads: PrivateUploadRecord[];
+    runtimeDecisions: ReviewDecision[];
   };
 };
 mockStateGlobal.hmmsaMockRepositoryState ??= {
   runtimeItems: [...seedArchiveItems],
   runtimeUploads: [],
+  runtimeDecisions: [],
 };
-const { runtimeItems, runtimeUploads } = mockStateGlobal.hmmsaMockRepositoryState;
+const { runtimeItems, runtimeUploads, runtimeDecisions } =
+  mockStateGlobal.hmmsaMockRepositoryState;
 
 function requirePermission(actor: Actor, action: Parameters<typeof can>[1]): void {
   if (!can(actor, action)) throw new RepositoryAuthorizationError("Access denied.");
@@ -122,9 +126,57 @@ export const mockArchiveRepository: ArchiveRepository = {
     runtimeItems.push(record.archiveItem);
     runtimeUploads.push(record);
   },
+
+  async archiveItemDetail(actor, itemId) {
+    requirePermission(actor, "view_archive_workspace");
+    const item = runtimeItems.find((candidate) => candidate.id === itemId);
+    if (!item) return null;
+    return {
+      item,
+      fileVersions: runtimeUploads
+        .filter((record) => record.fileVersion.archiveItemId === itemId)
+        .map((record) => record.fileVersion)
+        .sort((a, b) => b.versionNumber - a.versionNumber),
+      // Reversed before sorting so decisions sharing a timestamp — two clicks
+      // inside the same millisecond — still read newest first.
+      decisions: runtimeDecisions
+        .filter((decision) => decision.entityId === itemId)
+        .reverse()
+        .sort((a, b) => b.decidedAt.localeCompare(a.decidedAt)),
+    };
+  },
+
+  async recordReviewDecision(actor, input) {
+    requirePermission(actor, "review_content");
+    const index = runtimeItems.findIndex((candidate) => candidate.id === input.itemId);
+    if (index === -1) {
+      throw new RepositoryValidationError("That upload no longer exists.");
+    }
+    const decidedAt = new Date().toISOString();
+    // Visibility is deliberately preserved: a decision is judgement, not publication.
+    const updated: ArchiveItem = {
+      ...runtimeItems[index],
+      reviewStatus: input.decision === "approve" ? "approved" : "rejected",
+      updatedAt: decidedAt,
+    };
+    runtimeItems[index] = updated;
+    runtimeDecisions.push({
+      id: randomUUID(),
+      entityType: "archive_item",
+      entityId: input.itemId,
+      decision: input.decision,
+      rationale: input.rationale,
+      decidedBy: actor.userId,
+      decidedAt,
+    });
+    return updated;
+  },
 };
 
 export function resetMockUploadsForTests(): void {
-  runtimeItems.splice(seedArchiveItems.length);
+  // Replaces every entry, not just appended ones: a review decision rewrites a
+  // seeded item in place, so truncating alone would leak state between tests.
+  runtimeItems.splice(0, runtimeItems.length, ...seedArchiveItems);
   runtimeUploads.splice(0);
+  runtimeDecisions.splice(0);
 }

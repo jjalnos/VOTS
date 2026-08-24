@@ -12,6 +12,10 @@ export interface OriginalMediaStorage {
   readonly provider: FileVersion["storageProvider"];
   storeOriginal(input: StoreOriginalInput): Promise<FileVersion>;
   privateReadReference(fileVersion: FileVersion): Promise<string>;
+  /** Returns null when the stored bytes are missing, so a reviewer sees a
+   * "file unavailable" state instead of a crash. The ArrayBuffer-backed view
+   * is what a Response body accepts without copying. */
+  readOriginal(fileVersion: FileVersion): Promise<Uint8Array<ArrayBuffer> | null>;
   deleteOriginal(fileVersion: FileVersion): Promise<void>;
 }
 

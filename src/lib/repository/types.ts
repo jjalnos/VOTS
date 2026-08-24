@@ -8,6 +8,7 @@ import type {
   Locale,
   PublicCatalog,
   PublicRelease,
+  ReviewDecision,
   Source,
   Story,
   Survivor,
@@ -49,6 +50,26 @@ export interface PrivateUploadRecord {
   auditEvent: AuditEvent;
 }
 
+/**
+ * One upload as a reviewer needs to see it: the record, the originals stored
+ * against it (newest version first), and the decisions already taken.
+ */
+export interface ArchiveItemDetail {
+  item: ArchiveItem;
+  fileVersions: FileVersion[];
+  decisions: ReviewDecision[];
+}
+
+export interface ReviewDecisionInput {
+  itemId: string;
+  /**
+   * Approval clears a record for curatorial use; it never publishes it and
+   * never changes visibility. Publication remains a separate, deliberate step.
+   */
+  decision: "approve" | "reject";
+  rationale: string;
+}
+
 export interface ArchiveRepository {
   publicCatalog(locale: Locale): Promise<PublicCatalog>;
   curatorWorkspace(actor: Actor): Promise<CuratorWorkspace>;
@@ -57,6 +78,8 @@ export interface ArchiveRepository {
   uploadContext(actor: Actor): Promise<UploadContext>;
   validatePrivateUpload(actor: Actor, archiveItem: ArchiveItem): Promise<void>;
   persistPrivateUpload(actor: Actor, record: PrivateUploadRecord): Promise<void>;
+  archiveItemDetail(actor: Actor, itemId: string): Promise<ArchiveItemDetail | null>;
+  recordReviewDecision(actor: Actor, input: ReviewDecisionInput): Promise<ArchiveItem>;
 }
 
 export class RepositoryAuthorizationError extends Error {}

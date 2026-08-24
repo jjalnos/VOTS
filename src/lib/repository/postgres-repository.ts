@@ -8,6 +8,7 @@ import {
   familyMemberships as familyMembershipsTable,
   fileVersions as fileVersionsTable,
   publicReleases as publicReleasesTable,
+  reviewDecisions as reviewDecisionsTable,
   sources as sourcesTable,
   stories as storiesTable,
   survivors as survivorsTable,
@@ -20,8 +21,10 @@ import type {
   ArchiveItem,
   ExtractedFact,
   Family,
+  FileVersion,
   Locale,
   PublicRelease,
+  ReviewDecision,
   Source,
   Story,
   Survivor,
@@ -33,6 +36,7 @@ import type {
   ArchiveRepository,
   CuratorWorkspace,
   PrivateUploadRecord,
+  ReviewDecisionInput,
   UploadContext,
 } from "@/lib/repository/types";
 import {
@@ -41,6 +45,8 @@ import {
 } from "@/lib/repository/types";
 
 type ArchiveItemRow = typeof archiveItemsTable.$inferSelect;
+type FileVersionRow = typeof fileVersionsTable.$inferSelect;
+type ReviewDecisionRow = typeof reviewDecisionsTable.$inferSelect;
 type ExtractedFactRow = typeof extractedFactsTable.$inferSelect;
 type FamilyRow = typeof familiesTable.$inferSelect;
 type PublicReleaseRow = typeof publicReleasesTable.$inferSelect;
@@ -134,6 +140,34 @@ function mapArchiveItem(row: ArchiveItemRow): ArchiveItem {
     uploadedBy: row.uploadedBy,
     createdAt: iso(row.createdAt),
     updatedAt: iso(row.updatedAt),
+  };
+}
+
+function mapFileVersion(row: FileVersionRow): FileVersion {
+  return {
+    id: row.id,
+    archiveItemId: row.archiveItemId,
+    versionNumber: row.versionNumber,
+    storageProvider: row.storageProvider as FileVersion["storageProvider"],
+    storageKey: row.storageKey,
+    originalFilename: row.originalFilename,
+    mediaType: row.mediaType,
+    byteSize: row.byteSize,
+    checksumSha256: row.checksumSha256,
+    createdBy: row.createdBy,
+    createdAt: iso(row.createdAt),
+  };
+}
+
+function mapReviewDecision(row: ReviewDecisionRow): ReviewDecision {
+  return {
+    id: row.id,
+    entityType: row.entityType as ReviewDecision["entityType"],
+    entityId: row.entityId,
+    decision: row.decision,
+    rationale: row.rationale,
+    decidedBy: row.decidedBy,
+    decidedAt: iso(row.decidedAt),
   };
 }
 
@@ -471,6 +505,89 @@ export const postgresArchiveRepository: ArchiveRepository = {
         metadata: auditEvent.metadata,
         occurredAt: new Date(auditEvent.occurredAt),
       });
+    });
+  },
+
+  async archiveItemDetail(actor: Actor, itemId: string) {
+    if (!can(actor, "view_archive_workspace")) {
+      throw new RepositoryAuthorizationError("Access denied.");
+    }
+    const db = getDatabase();
+    const [itemRow] = await db
+      .select()
+      .from(archiveItemsTable)
+      .where(eq(archiveItemsTable.id, itemId))
+      .limit(1);
+    if (!itemRow) return null;
+    const [versionRows, decisionRows] = await Promise.all([
+      db
+        .select()
+        .from(fileVersionsTable)
+        .where(eq(fileVersionsTable.archiveItemId, itemId))
+        .orderBy(desc(fileVersionsTable.versionNumber)),
+      db
+        .select()
+        .from(reviewDecisionsTable)
+        .where(
+          and(
+            eq(reviewDecisionsTable.entityType, "archive_item"),
+            eq(reviewDecisionsTable.entityId, itemId),
+          ),
+        )
+        // The id tiebreaker keeps the order reproducible when two decisions
+        // share a timestamp; without it PostgreSQL falls back to heap order.
+        .orderBy(desc(reviewDecisionsTable.decidedAt), desc(reviewDecisionsTable.id)),
+    ]);
+    return {
+      item: mapArchiveItem(itemRow),
+      fileVersions: versionRows.map(mapFileVersion),
+      decisions: decisionRows.map(mapReviewDecision),
+    };
+  },
+
+  async recordReviewDecision(actor: Actor, input: ReviewDecisionInput) {
+    if (!can(actor, "review_content")) {
+      throw new RepositoryAuthorizationError("Access denied.");
+    }
+    const db = getDatabase();
+    return db.transaction(async (transaction) => {
+      const [existing] = await transaction
+        .select()
+        .from(archiveItemsTable)
+        .where(eq(archiveItemsTable.id, input.itemId))
+        .limit(1);
+      if (!existing) {
+        throw new RepositoryValidationError("That upload no longer exists.");
+      }
+      // A decision records judgement only. Visibility is deliberately untouched:
+      // approving clears a record for curatorial use, it does not publish it.
+      const reviewStatus = input.decision === "approve" ? "approved" : "rejected";
+      const decidedAt = new Date();
+      const [updated] = await transaction
+        .update(archiveItemsTable)
+        .set({ reviewStatus, updatedAt: decidedAt })
+        .where(eq(archiveItemsTable.id, input.itemId))
+        .returning();
+      await transaction.insert(reviewDecisionsTable).values({
+        entityType: "archive_item",
+        entityId: input.itemId,
+        decision: input.decision,
+        rationale: input.rationale,
+        decidedBy: actor.userId,
+        decidedAt,
+      });
+      await transaction.insert(auditEventsTable).values({
+        actorUserId: actor.userId,
+        action: input.decision === "approve"
+          ? "archive_item.review_approved"
+          : "archive_item.review_rejected",
+        entityType: "archive_item",
+        entityId: input.itemId,
+        familyId: existing.familyId,
+        metadata: { reviewStatus },
+        occurredAt: decidedAt,
+      });
+      return mapArchiveItem(updated);
     });
   },
 };

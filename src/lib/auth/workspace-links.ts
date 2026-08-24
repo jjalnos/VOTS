@@ -60,8 +60,9 @@ export function workspaceGroupsFor(actor: Actor | null, locale: Locale): Workspa
     { label: es ? "Sobrevivientes" : "Survivors", href: "/curator/survivors", status: READY, icon: "people" },
   ];
   if (curator) {
+    // The register is also the review desk: uploads are opened and decided here.
     archive.push(
-      { label: es ? "Registro de cargas" : "Upload register", href: "/curator/archive", status: READY, icon: "register" },
+      { label: es ? "Registro y revisión" : "Register & review", href: "/curator/archive", status: READY, icon: "register" },
     );
   }
   if (roles.includes("family") || admin) {
@@ -71,7 +72,6 @@ export function workspaceGroupsFor(actor: Actor | null, locale: Locale): Workspa
   }
   if (curator) {
     archive.push(
-      { label: es ? "Revisar" : "Review", href: "/curator/review", status: READY, icon: "review" },
       { label: es ? "Investigación pagada" : "Paid research", href: "/curator/research", status: READY, icon: "research" },
       { label: es ? "Publicar" : "Publish", href: "/curator/publish", status: READY, icon: "publish" },
     );

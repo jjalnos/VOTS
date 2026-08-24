@@ -9,7 +9,7 @@ import {
   parseArchiveQuery,
 } from "@/lib/archive/pagination";
 import type { ArchiveItem, Locale, ReviewStatus } from "@/lib/domain/types";
-import { localeFrom } from "@/lib/i18n";
+import { localeFrom, withLocale } from "@/lib/i18n";
 import { getArchiveRepository } from "@/lib/repository";
 import styles from "./archive.module.css";
 
@@ -24,6 +24,9 @@ const itemTypeLabels: Record<ArchiveItem["itemType"], Record<Locale, string>> = 
   artifact: { en: "Artifact", es: "Objeto" },
   other: { en: "Other", es: "Otro" },
 };
+
+/** The register doubles as the review queue: these two statuses still need a decision. */
+const awaitingReview = new Set<ReviewStatus>(["pending", "in_review"]);
 
 const reviewLabels: Record<ReviewStatus, Record<Locale, string>> = {
   pending: { en: "Pending review", es: "Revisión pendiente" },
@@ -59,8 +62,11 @@ export default async function CuratorArchivePage({ searchParams }: PageProps<"/c
   const hasFilters = Boolean(
     archivePage.query.q || archivePage.query.type !== "all" || archivePage.query.status !== "all",
   );
-  const privateCount = workspace.archiveItems.filter((item) => item.visibility === "private").length;
+  const pendingCount = workspace.archiveItems.filter((item) =>
+    awaitingReview.has(item.reviewStatus),
+  ).length;
   const clearHref = archivePageHref({ q: "", type: "all", status: "all" }, 1, locale);
+  const pendingHref = archivePageHref({ q: "", type: "all", status: "pending" }, 1, locale);
 
   return (
     <WorkspaceShell
@@ -94,8 +100,16 @@ export default async function CuratorArchivePage({ searchParams }: PageProps<"/c
                 <dd>{workspace.archiveItems.length}</dd>
               </div>
               <div>
-                <dt>{locale === "es" ? "Privadas" : "Private"}</dt>
-                <dd>{privateCount}</dd>
+                <dt>{locale === "es" ? "Esperan revisión" : "Awaiting review"}</dt>
+                <dd>
+                  {pendingCount ? (
+                    <Link className={styles.pendingLink} href={pendingHref}>
+                      {pendingCount}
+                    </Link>
+                  ) : (
+                    pendingCount
+                  )}
+                </dd>
               </div>
               <div>
                 <dt>{locale === "es" ? "Coincidencias" : "Matches"}</dt>
@@ -159,7 +173,14 @@ export default async function CuratorArchivePage({ searchParams }: PageProps<"/c
                   <article className={styles.record}>
                     <div className={styles.recordLead}>
                       <p className={styles.recordKind}>{itemTypeLabels[item.itemType][locale]}</p>
-                      <h3>{item.title}</h3>
+                      <h3>
+                        <Link
+                          className={styles.recordLink}
+                          href={withLocale(`/curator/archive/${item.id}`, locale)}
+                        >
+                          {item.title}
+                        </Link>
+                      </h3>
                       <p className={styles.recordId}>{item.id}</p>
                     </div>
                     <dl className={styles.recordDetails}>
@@ -179,6 +200,12 @@ export default async function CuratorArchivePage({ searchParams }: PageProps<"/c
                     <div className={styles.recordState}>
                       <span className={`${styles.status} ${styles[item.reviewStatus]}`}>{reviewLabels[item.reviewStatus][locale]}</span>
                       <span className={styles.privateLabel}>{locale === "es" ? "No público" : "Not public"}</span>
+                      <Link className={styles.openRecord} href={withLocale(`/curator/archive/${item.id}`, locale)}>
+                        {awaitingReview.has(item.reviewStatus)
+                          ? locale === "es" ? "Revisar" : "Review"
+                          : locale === "es" ? "Abrir" : "Open"}
+                        <span aria-hidden="true"> →</span>
+                      </Link>
                     </div>
                   </article>
                 </li>

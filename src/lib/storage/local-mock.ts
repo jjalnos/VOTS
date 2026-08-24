@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from "node:crypto";
-import { mkdir, unlink, writeFile } from "node:fs/promises";
+import { mkdir, readFile, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { FileVersion } from "@/lib/domain/types";
 import type { OriginalMediaStorage, StoreOriginalInput } from "@/lib/storage/types";
@@ -52,17 +52,35 @@ export class LocalMockMediaStorage implements OriginalMediaStorage {
     return `local-private://${fileVersion.storageKey}`;
   }
 
+  async readOriginal(fileVersion: FileVersion): Promise<Uint8Array<ArrayBuffer> | null> {
+    if (fileVersion.storageProvider !== this.provider) {
+      throw new Error("The requested file does not belong to the local mock provider.");
+    }
+    const storagePath = this.resolveStoragePath(fileVersion.storageKey);
+    try {
+      return Uint8Array.from(await readFile(storagePath));
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") return null;
+      throw error;
+    }
+  }
+
   async deleteOriginal(fileVersion: FileVersion): Promise<void> {
     if (fileVersion.storageProvider !== this.provider) {
       throw new Error("The requested file does not belong to the local mock provider.");
     }
-    const root = path.resolve(this.rootDirectory);
-    const storagePath = path.resolve(root, fileVersion.storageKey);
-    if (!storagePath.startsWith(`${root}${path.sep}`)) {
-      throw new Error("Invalid archive item storage path.");
-    }
+    const storagePath = this.resolveStoragePath(fileVersion.storageKey);
     await unlink(storagePath).catch((error: NodeJS.ErrnoException) => {
       if (error.code !== "ENOENT") throw error;
     });
+  }
+
+  private resolveStoragePath(storageKey: string): string {
+    const root = path.resolve(this.rootDirectory);
+    const storagePath = path.resolve(root, storageKey);
+    if (!storagePath.startsWith(`${root}${path.sep}`)) {
+      throw new Error("Invalid archive item storage path.");
+    }
+    return storagePath;
   }
 }

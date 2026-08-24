@@ -1,0 +1,137 @@
+.panel {
+  padding: 1.5rem;
+  background: var(--tint);
+  border: 1px solid rgba(29, 25, 23, 0.16);
+}
+
+.legend {
+  margin: 0 0 0.35rem;
+  color: var(--wine);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.note {
+  margin: 0 0 1.1rem;
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.field {
+  display: block;
+  color: var(--ink);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.hint {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--ink-soft);
+  font-size: 0.72rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.textarea {
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.65rem 0.75rem;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.9rem;
+  background: var(--paper);
+  border: 1px solid rgba(29, 25, 23, 0.28);
+  border-radius: 0;
+  resize: vertical;
+}
+
+.textarea:focus-visible {
+  outline: 3px solid var(--wine);
+  outline-offset: 1px;
+}
+
+.error {
+  margin: 0.75rem 0 0;
+  color: var(--danger);
+  font-size: 0.84rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.1rem;
+}
+
+.approve,
+.reject,
+.reopen {
+  padding: 0.6rem 1.4rem;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+  border-radius: 0;
+  cursor: pointer;
+}
+
+.approve {
+  color: var(--paper);
+  background: var(--wine);
+}
+
+.approve:hover:not(:disabled) {
+  background: var(--wine-deep);
+}
+
+.reject {
+  color: var(--wine);
+  background: transparent;
+  border-color: var(--wine);
+}
+
+.reject:hover:not(:disabled) {
+  background: rgba(109, 26, 23, 0.08);
+}
+
+.approve:disabled,
+.reject:disabled {
+  cursor: progress;
+  opacity: 0.6;
+}
+
+.settled {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  background: var(--tint);
+  border: 1px solid rgba(29, 25, 23, 0.16);
+}
+
+.settledText {
+  margin: 0;
+  color: var(--ink);
+  font-size: 0.92rem;
+}
+
+.reopen {
+  color: var(--wine);
+  background: transparent;
+  border-color: rgba(109, 26, 23, 0.4);
+}
+
+.reopen:hover {
+  background: rgba(109, 26, 23, 0.08);
+}

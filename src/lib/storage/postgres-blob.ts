@@ -57,6 +57,18 @@ export class PostgresBlobMediaStorage implements OriginalMediaStorage {
     return `postgres-blob://${fileVersion.storageKey}`;
   }
 
+  async readOriginal(fileVersion: FileVersion): Promise<Uint8Array<ArrayBuffer> | null> {
+    if (fileVersion.storageProvider !== this.provider) {
+      throw new Error("The requested file does not belong to the postgres provider.");
+    }
+    const [row] = await this.db()
+      .select({ bytes: fileBlobs.bytes })
+      .from(fileBlobs)
+      .where(eq(fileBlobs.id, fileVersion.storageKey))
+      .limit(1);
+    return row ? Uint8Array.from(row.bytes) : null;
+  }
+
   async deleteOriginal(fileVersion: FileVersion): Promise<void> {
     if (fileVersion.storageProvider !== this.provider) {
       throw new Error("The requested file does not belong to the postgres provider.");

@@ -383,6 +383,9 @@ export const postgresArchiveRepository: ArchiveRepository = {
         familyId: familyIds.length === 1 ? familyIds[0] : undefined,
         mfaRequired: user.mfaRequired,
         active: user.active,
+        hasPassword: user.passwordHash !== null,
+        invitedAt: user.invitedAt ? iso(user.invitedAt) : undefined,
+        lastLoginAt: user.lastLoginAt ? iso(user.lastLoginAt) : undefined,
         createdAt: iso(user.createdAt),
         updatedAt: iso(user.updatedAt),
       };

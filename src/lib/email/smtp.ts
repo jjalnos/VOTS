@@ -26,6 +26,8 @@ export interface EmailMessage {
   to: string;
   subject: string;
   text: string;
+  /** Optional branded HTML alternative; the text part is always present. */
+  html?: string;
 }
 
 interface TransportEmailMessage extends EmailMessage {
@@ -211,16 +213,19 @@ function validateMessage(message: EmailMessage, from: string): void {
     message.subject.length > 200 ||
     /[\r\n]/.test(message.subject) ||
     message.text.length === 0 ||
-    message.text.length > 100_000
+    message.text.length > 100_000 ||
+    (message.html !== undefined &&
+      (message.html.length === 0 || message.html.length > 200_000))
   ) {
     throw new EmailConfigurationError("The email message is invalid.");
   }
 }
 
 /**
- * Sends one plain-text email through an injected transport. Provider errors are
- * deliberately replaced so response bodies, credentials, and host details do
- * not escape into callers, logs, or API responses.
+ * Sends one email through an injected transport — plain text always, with an
+ * optional branded HTML alternative. Provider errors are deliberately replaced
+ * so response bodies, credentials, and host details do not escape into
+ * callers, logs, or API responses.
  */
 export async function sendEmail(
   message: EmailMessage,
@@ -233,6 +238,7 @@ export async function sendEmail(
       to: message.to,
       subject: message.subject,
       text: message.text,
+      ...(message.html !== undefined ? { html: message.html } : {}),
     });
   } catch {
     throw new EmailDeliveryError();

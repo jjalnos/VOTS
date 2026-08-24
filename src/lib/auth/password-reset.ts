@@ -10,6 +10,7 @@ import {
   sql,
 } from "drizzle-orm";
 import { getDatabase } from "@/db/client";
+import { brandedEmail } from "@/lib/email/branded";
 import {
   auditEvents,
   passwordResetTokens,
@@ -193,28 +194,27 @@ export function canonicalPasswordResetLink(input: {
 export function passwordResetEmail(input: {
   locale: PasswordResetLocale;
   resetLink: string;
-}): { subject: string; text: string } {
-  if (input.locale === "es") {
-    return {
-      subject: "Restablece tu contraseña de Voices of the Shoah",
-      text: [
-        "Recibimos una solicitud para restablecer tu contraseña.",
-        "",
-        `Abre este enlace dentro de los próximos 30 minutos: ${input.resetLink}`,
-        "",
-        "Si no solicitaste este cambio, puedes ignorar este correo. Tu contraseña no cambiará.",
-      ].join("\n"),
-    };
-  }
+}): { subject: string; text: string; html: string } {
+  const spanish = input.locale === "es";
+  const branded = brandedEmail({
+    locale: input.locale,
+    heading: spanish ? "Restablezca su contraseña" : "Reset your password",
+    paragraphs: spanish
+      ? ["Recibimos una solicitud para restablecer su contraseña."]
+      : ["We received a request to reset your password."],
+    callToAction: {
+      label: spanish ? "Restablecer contraseña" : "Reset password",
+      url: input.resetLink,
+    },
+    note: spanish
+      ? "El enlace es válido durante 30 minutos. Si no solicitó este cambio, puede ignorar este correo; su contraseña no cambiará."
+      : "The link is valid for 30 minutes. If you did not request this change, you can ignore this email; your password will not change.",
+  });
   return {
-    subject: "Reset your Voices of the Shoah password",
-    text: [
-      "We received a request to reset your password.",
-      "",
-      `Open this link within the next 30 minutes: ${input.resetLink}`,
-      "",
-      "If you did not request this change, you can ignore this email. Your password will not change.",
-    ].join("\n"),
+    subject: spanish
+      ? "Restablezca su contraseña de Voices of the Shoah"
+      : "Reset your Voices of the Shoah password",
+    ...branded,
   };
 }
 
@@ -416,13 +416,15 @@ export async function confirmPasswordReset(input: {
       .innerJoin(users, eq(users.id, passwordResetTokens.userId))
       .where(eq(passwordResetTokens.tokenHash, tokenHash))
       .limit(1);
+    // A null password hash is allowed on purpose: an invited account sets its
+    // first password through exactly this flow, and the token itself is the
+    // credential that proves the invitation.
     if (
       !preflight ||
       preflight.usedAt ||
       preflight.revokedAt ||
       preflight.expiresAt.getTime() <= now.getTime() ||
       !preflight.active ||
-      !preflight.passwordHash ||
       preflight.sessionVersionAtIssue !== preflight.sessionVersion
     ) {
       return "invalid";
@@ -479,7 +481,7 @@ export async function confirmPasswordReset(input: {
         .for("update")
         .limit(1);
 
-      if (!lockedIdentity || !lockedIdentity.active || !lockedIdentity.passwordHash) {
+      if (!lockedIdentity || !lockedIdentity.active) {
         return "invalid";
       }
 
@@ -561,7 +563,6 @@ export async function confirmPasswordReset(input: {
           and(
             eq(users.id, lockedIdentity.id),
             eq(users.active, true),
-            isNotNull(users.passwordHash),
             eq(users.sessionVersion, lockedIdentity.sessionVersion),
           ),
         )

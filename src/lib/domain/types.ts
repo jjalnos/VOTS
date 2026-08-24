@@ -18,6 +18,10 @@ export interface User {
   familyId?: string;
   mfaRequired: boolean;
   active: boolean;
+  /** False while an invited person has not yet chosen a password. */
+  hasPassword?: boolean;
+  invitedAt?: string;
+  lastLoginAt?: string;
   createdAt: string;
   updatedAt: string;
 }

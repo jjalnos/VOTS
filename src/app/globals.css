@@ -789,6 +789,36 @@ input.control {
   color: var(--muted);
 }
 
+/* Access management */
+.access-manager {
+  display: grid;
+  gap: 2rem;
+}
+
+.access-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.access-actions .button {
+  padding: 0.45rem 0.9rem;
+  font-size: 0.85rem;
+}
+
+.access-self-note {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.access-mfa-note {
+  display: block;
+  margin-top: 0.3rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
 .source-list {
   margin: 1.2rem 0 0;
   padding-left: 1.25rem;

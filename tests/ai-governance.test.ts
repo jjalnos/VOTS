@@ -462,6 +462,79 @@ describe("external research governance", () => {
     });
   });
 
+  it("emits aggregate telemetry after settlement without exposing the actor", async () => {
+    const provider = fakeOpenAIProvider();
+    const recordSettledUsage = vi.fn().mockResolvedValue(undefined);
+
+    const result = await runGovernedExternalResearch(confirmedRequest, {
+      resolveProvider: () => ({ provider, model: "external-model", live: true }),
+      ledger: durableTestLedger(),
+      alertAdapter: successfulAlertAdapter,
+      tokenUsageTelemetry: { recordSettledUsage },
+      now: () => new Date("2026-08-15T12:00:00.000Z"),
+    });
+
+    expect(result.usage.status).toBe("completed");
+    expect(recordSettledUsage).toHaveBeenCalledOnce();
+    expect(recordSettledUsage.mock.calls[0]?.[0]).toMatchObject({
+      provider: "openai",
+      model: "external-model",
+      result: "completed",
+      inputTokens: 10,
+      outputTokens: 5,
+      chargedTokens: 15,
+      snapshot: {
+        daily: { tokens: 15, tokenLimit: 60_000 },
+        monthly: { tokens: 15, tokenLimit: 600_000 },
+      },
+    });
+    expect(JSON.stringify(recordSettledUsage.mock.calls[0]?.[0])).not.toContain(
+      confirmedRequest.initiatedByUserId,
+    );
+  });
+
+  it("does not fail a completed provider call when New Relic delivery fails", async () => {
+    const provider = fakeOpenAIProvider();
+    const recordSettledUsage = vi.fn().mockRejectedValue(
+      new Error("collector echoed an operational detail"),
+    );
+
+    const result = await runGovernedExternalResearch(confirmedRequest, {
+      resolveProvider: () => ({ provider, model: "external-model", live: true }),
+      ledger: durableTestLedger(),
+      alertAdapter: successfulAlertAdapter,
+      tokenUsageTelemetry: { recordSettledUsage },
+    });
+
+    expect(result.usage.status).toBe("completed");
+    expect(recordSettledUsage).toHaveBeenCalledOnce();
+  });
+
+  it("records a settled provider error without changing the sanitized outcome", async () => {
+    const provider: ExternalResearchProvider = {
+      name: "openai",
+      research: vi.fn().mockRejectedValue(new Error("provider secret detail")),
+    };
+    const recordSettledUsage = vi.fn().mockResolvedValue(undefined);
+
+    await expect(runGovernedExternalResearch(confirmedRequest, {
+      resolveProvider: () => ({ provider, model: "external-model", live: true }),
+      ledger: durableTestLedger(),
+      alertAdapter: successfulAlertAdapter,
+      tokenUsageTelemetry: { recordSettledUsage },
+    })).rejects.toMatchObject({
+      code: "provider-error",
+      message: expect.not.stringContaining("secret detail"),
+    });
+
+    expect(recordSettledUsage).toHaveBeenCalledOnce();
+    expect(recordSettledUsage.mock.calls[0]?.[0]).toMatchObject({
+      model: "external-model",
+      result: "provider-error",
+      chargedTokens: expect.any(Number),
+    });
+  });
+
   it("keeps a successful provider call durably chargeable when settlement is unavailable", async () => {
     const providerCall = vi.fn();
     const provider = fakeOpenAIProvider(providerCall);

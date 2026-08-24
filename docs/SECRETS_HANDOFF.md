@@ -23,6 +23,7 @@ Names are safe to document; values are not.
 | Self-hosted AI authentication | `LOCAL_AI_AUTH_TOKEN` | Grant access only to the internal model endpoint. |
 | Paid external research | `OPENAI_API_KEY` | Server-side external-research path only; rotate independently of the internal AI service. |
 | Password recovery and usage alerts | `SMTP_USER`, `SMTP_PASSWORD` (Cloudways Elastic Email) or legacy `RESEND_API_KEY` for alerts only | Keep the selected provider's credential server-side and restrict it to the approved sending identity. Password recovery requires SMTP and does not fall back to Resend. Project SMTP credentials as Cloudways Sensitive values. `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_REQUIRE_TLS`, and `SMTP_FROM` are configuration rather than secret payloads. |
+| New Relic token telemetry | `NEW_RELIC_LICENSE_KEY` | Use a dedicated server-side ingest/license key, never the public Browser `NRJS-...` key. Store the authoritative version in Secret Manager and project only the pinned version into Cloudways as Sensitive. |
 | Bootstrap credentials | `BOOTSTRAP_*_PASSWORD`, bootstrap confirmation values | One-time use only; remove from Cloudways and redeploy immediately after successful bootstrap. |
 
 ## Rotation runbook

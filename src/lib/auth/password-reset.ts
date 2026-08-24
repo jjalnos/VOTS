@@ -36,9 +36,17 @@ type PasswordResetEnvironment = Record<string, string | undefined>;
 export type PasswordResetLocale = "en" | "es";
 
 export class PasswordResetConfigurationError extends Error {
-  constructor() {
+  /**
+   * Names the environment variable that failed validation. Operators need to
+   * know which check rejected a deployment; the value itself is never
+   * captured, logged, or returned.
+   */
+  readonly variable: string;
+
+  constructor(variable = "PASSWORD_RESET_CONFIGURATION") {
     super("Password reset is not configured safely.");
     this.name = "PasswordResetConfigurationError";
+    this.variable = variable;
   }
 }
 
@@ -63,8 +71,11 @@ function assertDatabasePasswordResetProvider(
       : environment.AUTH_PROVIDER === "database"
         ? "database"
         : "unconfigured";
-  if (provider !== "database" || !environment.DATABASE_URL) {
-    throw new PasswordResetConfigurationError();
+  if (provider !== "database") {
+    throw new PasswordResetConfigurationError("AUTH_PROVIDER");
+  }
+  if (!environment.DATABASE_URL) {
+    throw new PasswordResetConfigurationError("DATABASE_URL");
   }
 }
 
@@ -72,7 +83,9 @@ export function canonicalPasswordResetSiteOrigin(
   environment: PasswordResetEnvironment = process.env,
 ): string {
   const raw = environment.NEXT_PUBLIC_SITE_URL;
-  if (!raw || raw.trim() !== raw) throw new PasswordResetConfigurationError();
+  if (!raw || raw.trim() !== raw) {
+    throw new PasswordResetConfigurationError("NEXT_PUBLIC_SITE_URL");
+  }
   try {
     const url = new URL(raw);
     const production = environment.NODE_ENV === "production";
@@ -86,12 +99,12 @@ export function canonicalPasswordResetSiteOrigin(
       url.origin === "null" ||
       (raw !== url.origin && raw !== `${url.origin}/`)
     ) {
-      throw new PasswordResetConfigurationError();
+      throw new PasswordResetConfigurationError("NEXT_PUBLIC_SITE_URL");
     }
     return url.origin;
   } catch (error) {
     if (error instanceof PasswordResetConfigurationError) throw error;
-    throw new PasswordResetConfigurationError();
+    throw new PasswordResetConfigurationError("NEXT_PUBLIC_SITE_URL");
   }
 }
 
@@ -110,7 +123,7 @@ export function passwordResetTokenKey(
     looksLikePlaceholder ||
     key === environment.AUTH_SESSION_SECRET
   ) {
-    throw new PasswordResetConfigurationError();
+    throw new PasswordResetConfigurationError("PASSWORD_RESET_TOKEN_KEY");
   }
   return key;
 }
@@ -227,6 +240,18 @@ export async function issuePasswordReset(input: {
   const generated = generatePasswordResetToken(input.configuration.tokenKey);
   const db = getDatabase();
 
+  // Build the link, the message, and the transport BEFORE the token row is
+  // committed. Each of these can throw on a misconfigured deployment, and a
+  // throw after the commit would strand a live token behind an audit trail
+  // that claims the reset was issued, with nothing to revoke it.
+  const resetLink = canonicalPasswordResetLink({
+    siteOrigin: input.configuration.siteOrigin,
+    locale: input.locale,
+    token: generated.token,
+  });
+  const message = passwordResetEmail({ locale: input.locale, resetLink });
+  const send = input.send ?? createSmtpEmailSender(input.configuration.smtp);
+
   const issuance = await db.transaction(async (transaction) => {
     const targets = await transaction
       .select({
@@ -291,13 +316,6 @@ export async function issuePasswordReset(input: {
   });
 
   if (!issuance) return "ineligible";
-  const resetLink = canonicalPasswordResetLink({
-    siteOrigin: input.configuration.siteOrigin,
-    locale: input.locale,
-    token: generated.token,
-  });
-  const message = passwordResetEmail({ locale: input.locale, resetLink });
-  const send = input.send ?? createSmtpEmailSender(input.configuration.smtp);
 
   try {
     await send({ to: issuance.email, ...message });

@@ -3,10 +3,12 @@ import { z } from "zod";
 import {
   hasExactPasswordResetOrigin,
   issuePasswordReset,
+  PasswordResetConfigurationError,
   passwordResetRequestConfiguration,
   type PasswordResetRequestConfiguration,
 } from "@/lib/auth/password-reset";
 import { consumePasswordResetRequestAttempt } from "@/lib/auth/password-reset-rate-limit";
+import { EmailConfigurationError } from "@/lib/email/smtp";
 import { readBoundedJson } from "@/lib/http/request";
 
 const PASSWORD_RESET_BODY_LIMIT = 4 * 1024;
@@ -39,6 +41,22 @@ const productionDependencies: PasswordResetRequestDependencies = {
   issue: issuePasswordReset,
 };
 
+/**
+ * Records which environment variable rejected the deployment. The response
+ * stays byte-identical for every cause so it cannot be used to probe
+ * configuration; only the variable NAME reaches the log, never its value.
+ */
+function logConfigurationFailure(error: unknown): void {
+  const variable =
+    error instanceof PasswordResetConfigurationError ||
+    error instanceof EmailConfigurationError
+      ? error.variable
+      : "UNKNOWN";
+  console.error(
+    `Password reset is unavailable; configuration check failed for ${variable}.`,
+  );
+}
+
 function unavailableResponse(): NextResponse {
   return NextResponse.json(
     { ok: false, error: "Password reset is temporarily unavailable." },
@@ -56,7 +74,8 @@ export async function handlePasswordResetRequest(
     // SMTP, the database provider, the token key, and the canonical public URL
     // are checked before throttling and before any deferred identity lookup.
     configuration = dependencies.configuration();
-  } catch {
+  } catch (error) {
+    logConfigurationFailure(error);
     return unavailableResponse();
   }
   if (!hasExactPasswordResetOrigin(request, configuration.siteOrigin)) {

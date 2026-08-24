@@ -5,6 +5,7 @@ import {
   confirmPasswordReset,
   hasExactPasswordResetOrigin,
   PASSWORD_RESET_INVALID_MESSAGE,
+  PasswordResetConfigurationError,
   passwordResetConfirmationConfiguration,
   passwordResetTokenDigest,
   type PasswordResetConfirmationConfiguration,
@@ -52,6 +53,20 @@ function invalidResponse(): NextResponse {
   );
 }
 
+/**
+ * Records which environment variable rejected the deployment. The response
+ * stays byte-identical for every cause so it cannot be used to probe
+ * configuration; only the variable NAME reaches the log, never its value.
+ */
+function logConfigurationFailure(error: unknown): void {
+  // Confirmation never resolves SMTP, so only the reset checks can fail here.
+  const variable =
+    error instanceof PasswordResetConfigurationError ? error.variable : "UNKNOWN";
+  console.error(
+    `Password reset is unavailable; configuration check failed for ${variable}.`,
+  );
+}
+
 function unavailableResponse(): NextResponse {
   return NextResponse.json(
     { ok: false, error: "Password reset is temporarily unavailable." },
@@ -67,7 +82,8 @@ export async function handlePasswordResetConfirmation(
   let configuration: PasswordResetConfirmationConfiguration;
   try {
     configuration = dependencies.configuration();
-  } catch {
+  } catch (error) {
+    logConfigurationFailure(error);
     return unavailableResponse();
   }
   if (!hasExactPasswordResetOrigin(request, configuration.siteOrigin)) {

@@ -42,9 +42,19 @@ export type SmtpTransportFactory = (
 ) => EmailTransport;
 
 export class EmailConfigurationError extends Error {
-  constructor(message = "SMTP email is not configured safely.") {
+  /**
+   * Names the SMTP environment variable that failed validation, so an operator
+   * can tell a bad username from a bad port. The value is never captured.
+   */
+  readonly variable: string;
+
+  constructor(
+    message = "SMTP email is not configured safely.",
+    variable = "SMTP_CONFIGURATION",
+  ) {
     super(message);
     this.name = "EmailConfigurationError";
+    this.variable = variable;
   }
 }
 
@@ -61,7 +71,7 @@ function requiredEnvironmentValue(
 ): string {
   const value = environment[name];
   if (typeof value !== "string" || value.trim().length === 0) {
-    throw new EmailConfigurationError();
+    throw new EmailConfigurationError(undefined, name);
   }
   return value;
 }
@@ -73,15 +83,15 @@ function configuredBoolean(
   const value = requiredEnvironmentValue(environment, name);
   if (value === "true") return true;
   if (value === "false") return false;
-  throw new EmailConfigurationError();
+  throw new EmailConfigurationError(undefined, name);
 }
 
 function configuredPort(environment: SmtpEnvironment): number {
   const raw = requiredEnvironmentValue(environment, "SMTP_PORT");
-  if (!/^\d{1,5}$/.test(raw)) throw new EmailConfigurationError();
+  if (!/^\d{1,5}$/.test(raw)) throw new EmailConfigurationError(undefined, "SMTP_PORT");
   const port = Number(raw);
   if (!Number.isSafeInteger(port) || port < 1 || port > 65_535) {
-    throw new EmailConfigurationError();
+    throw new EmailConfigurationError(undefined, "SMTP_PORT");
   }
   return port;
 }
@@ -128,21 +138,26 @@ export function smtpConfigurationFromEnvironment(
   const user = requiredEnvironmentValue(environment, "SMTP_USER").trim();
   const port = configuredPort(environment);
 
+  if (!isValidHostname(host) || host.toLocaleLowerCase("en") !== APPROVED_SMTP_HOST) {
+    throw new EmailConfigurationError(undefined, "SMTP_HOST");
+  }
+  if (port !== APPROVED_SMTP_PORT) {
+    throw new EmailConfigurationError(undefined, "SMTP_PORT");
+  }
+  if (!isValidMailbox(from) || from.toLocaleLowerCase("en") !== APPROVED_SMTP_FROM) {
+    throw new EmailConfigurationError(undefined, "SMTP_FROM");
+  }
   if (
-    !isValidHostname(host) ||
-    !isValidMailbox(from) ||
     !isValidMailbox(user) ||
-    host.toLocaleLowerCase("en") !== APPROVED_SMTP_HOST ||
-    port !== APPROVED_SMTP_PORT ||
-    from.toLocaleLowerCase("en") !== APPROVED_SMTP_FROM ||
     !APPROVED_SMTP_USER_PATTERN.test(user.toLocaleLowerCase("en"))
   ) {
-    throw new EmailConfigurationError();
+    throw new EmailConfigurationError(undefined, "SMTP_USER");
   }
   // This adapter is intentionally limited to Elastic Email's STARTTLS
   // endpoint. Allowing the hostname to drift would let an environment editor
   // relay the hidden credential to an attacker-controlled SMTP server.
-  if (secure || !requireTLS) throw new EmailConfigurationError();
+  if (secure) throw new EmailConfigurationError(undefined, "SMTP_SECURE");
+  if (!requireTLS) throw new EmailConfigurationError(undefined, "SMTP_REQUIRE_TLS");
 
   return {
     host: APPROVED_SMTP_HOST,

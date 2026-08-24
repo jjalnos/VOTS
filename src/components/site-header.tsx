@@ -7,13 +7,13 @@ export function SiteHeader({
   locale,
   path = "/",
   signedIn = false,
-  workspaceLinks = [],
+  workspaceHref = null,
 }: {
   locale: Locale;
   path?: string;
   signedIn?: boolean;
-  /** Private-workspace destinations, shown as a quiet second row when signed in. */
-  workspaceLinks?: string[][];
+  /** The signed-in person's workspace front door, shown as a single button. */
+  workspaceHref?: string | null;
 }) {
   const navigation = [
     [t(locale, "navDirectory"), "/directory"],
@@ -37,6 +37,11 @@ export function SiteHeader({
           ))}
         </nav>
         <div className="header-actions">
+          {workspaceHref ? (
+            <Link className="header-workspace" href={withLocale(workspaceHref, locale)}>
+              {locale === "es" ? "Espacio de trabajo" : "Workspace"}
+            </Link>
+          ) : null}
           <nav className="language-switcher" aria-label={t(locale, "languageLabel")}>
             <Link
               href={withLocale(path, "en")}
@@ -65,20 +70,6 @@ export function SiteHeader({
           )}
         </div>
       </div>
-      {workspaceLinks.length ? (
-        <div className="header-inner">
-          <nav
-            className="workspace-nav"
-            aria-label={locale === "es" ? "Navegación del espacio privado" : "Private workspace navigation"}
-          >
-            {workspaceLinks.map(([label, href]) => (
-              <Link key={href} href={withLocale(href, locale)}>
-                {label}
-              </Link>
-            ))}
-          </nav>
-        </div>
-      ) : null}
     </header>
   );
 }

@@ -113,3 +113,19 @@ export function workspaceLinksFor(actor: Actor | null, locale: Locale): string[]
     .filter((link) => link.href !== null)
     .map((link) => [link.label, link.href as string]);
 }
+
+/**
+ * The workspace's front door for a signed-in person: the registry for anyone
+ * who works the archive, access control for a pure administrator, the upload
+ * page for an invited family contributor. Public pages show one quiet button
+ * to this destination instead of a strip of every private route.
+ */
+export function workspaceHomeFor(actor: Actor | null): string | null {
+  if (!actor) return null;
+  if (actor.roles.includes("curator") || actor.roles.includes("viewer")) {
+    return "/curator/survivors";
+  }
+  if (actor.roles.includes("admin")) return "/admin/access";
+  if (actor.roles.includes("family")) return "/upload";
+  return null;
+}

@@ -10,6 +10,7 @@ import { signSession } from "@/lib/auth/session-token";
 import { hasTrustedOrigin } from "@/lib/http/origin";
 import { readBoundedJson } from "@/lib/http/request";
 import { staffMfaRequired } from "@/lib/auth/mfa";
+import { workspaceHomeFor } from "@/lib/auth/workspace-links";
 
 const loginSchema = z.object({
   email: z.string().email().max(320),
@@ -77,11 +78,7 @@ export async function POST(request: Request) {
   }, secret);
   // Curators and the read-only demonstration account both start at the
   // registry: it is the record everything else in the archive hangs from.
-  const destination = actor.roles.includes("curator") || actor.roles.includes("viewer")
-    ? "/curator/survivors"
-    : actor.roles.includes("admin")
-      ? "/admin/access"
-      : "/upload";
+  const destination = workspaceHomeFor(actor) ?? "/";
   const response = NextResponse.json({ ok: true, destination });
   response.cookies.set(SESSION_COOKIE, token, {
     httpOnly: true,

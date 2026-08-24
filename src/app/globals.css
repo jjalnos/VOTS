@@ -225,6 +225,22 @@ textarea {
   color: var(--paper);
 }
 
+/* One quiet door to the private workspace, instead of a strip of routes. */
+.header-workspace {
+  padding: 0.45rem 0.9rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--paper);
+  text-decoration: none;
+  border: 1px solid rgba(250, 247, 242, 0.4);
+  transition: border-color 200ms ease, background-color 200ms ease;
+}
+
+.header-workspace:hover {
+  background: rgba(250, 247, 242, 0.08);
+  border-color: var(--paper);
+}
+
 
 .page-main {
   min-height: 64vh;

@@ -1335,3 +1335,256 @@ body {
   color: var(--muted);
   margin: 0;
 }
+
+
+/* ---- The private workspace ---------------------------------------------
+   A desk rather than a page: navigation down the side, work in the middle.
+   Wine carries the chrome, paper carries the work. ---------------------- */
+
+.workspace {
+  display: grid;
+  grid-template-columns: 264px minmax(0, 1fr);
+  min-height: 100vh;
+  background: var(--paper);
+}
+
+.workspace-sidebar {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--wine-deep);
+  color: var(--parchment);
+}
+
+.workspace-brand {
+  display: block;
+  padding: 1.4rem 1.5rem 1.2rem;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(234, 219, 195, 0.16);
+}
+
+.workspace-brand-name {
+  display: block;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 1.0625rem;
+  line-height: 1.25;
+  color: var(--paper);
+}
+
+.workspace-brand-role {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--parchment);
+  opacity: 0.72;
+}
+
+.workspace-nav-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.25rem 0.75rem;
+}
+
+.workspace-group + .workspace-group {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(234, 219, 195, 0.14);
+}
+
+.workspace-group-label {
+  margin: 0 0 0.55rem;
+  padding-inline: 0.75rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--parchment);
+  opacity: 0.6;
+}
+
+.workspace-group ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.workspace-item {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.55rem 0.75rem;
+  color: var(--parchment);
+  text-decoration: none;
+  font-size: 0.9375rem;
+  line-height: 1.3;
+  border-left: 2px solid transparent;
+  transition: background 200ms ease, color 200ms ease;
+}
+
+a.workspace-item:hover {
+  background: rgba(234, 219, 195, 0.09);
+  color: var(--paper);
+}
+
+.workspace-item.is-current {
+  background: rgba(234, 219, 195, 0.14);
+  border-left-color: var(--paper);
+  color: var(--paper);
+  font-weight: 500;
+}
+
+.workspace-item-label {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Promised, not built: visibly present, deliberately inert. */
+.workspace-item.is-planned {
+  color: var(--parchment);
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.workspace-planned-tag {
+  flex: none;
+  font-size: 0.5625rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: 1px solid currentColor;
+  padding: 0.1rem 0.3rem;
+}
+
+.workspace-icon {
+  flex: none;
+  opacity: 0.85;
+}
+
+.workspace-sidebar-foot {
+  padding: 1rem 1.5rem 1.25rem;
+  border-top: 1px solid rgba(234, 219, 195, 0.16);
+  font-size: 0.8125rem;
+}
+
+.workspace-foot-link {
+  color: var(--parchment);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.workspace-foot-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 0.85rem;
+}
+
+.workspace-actor {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--parchment);
+  opacity: 0.8;
+}
+
+.workspace-sidebar :focus-visible {
+  outline-color: var(--paper);
+}
+
+.workspace-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.workspace-topbar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1.75rem clamp(1.5rem, 4vw, 3rem) 1.25rem;
+  background: var(--tint);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.workspace-topbar h1 {
+  margin: 0.3rem 0 0;
+  font-size: clamp(1.5rem, 2.6vw, 2rem);
+  color: var(--wine);
+}
+
+.workspace-locale {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+
+.workspace-locale a {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.workspace-locale a[aria-current="page"] {
+  color: var(--wine);
+  font-weight: 500;
+  border-bottom: 1px solid var(--wine);
+}
+
+.workspace-main {
+  flex: 1;
+  padding: clamp(1.5rem, 3vw, 2.5rem) clamp(1.5rem, 4vw, 3rem) 4rem;
+}
+
+.workspace-lede {
+  max-width: 70ch;
+  margin: 0 0 2rem;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+@media (max-width: 900px) {
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .workspace-sidebar {
+    position: static;
+    height: auto;
+  }
+
+  .workspace-nav-scroll {
+    display: flex;
+    gap: 1.25rem;
+    overflow-x: auto;
+    padding: 1rem;
+  }
+
+  .workspace-group {
+    min-width: 13rem;
+  }
+
+  .workspace-group + .workspace-group {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+    border-left: 1px solid rgba(234, 219, 195, 0.14);
+    padding-left: 1.25rem;
+  }
+
+  .workspace-topbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+}

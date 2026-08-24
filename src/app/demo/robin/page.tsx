@@ -1,22 +1,13 @@
-import type { Metadata } from "next";
-import { RobinDemo } from "@/components/robin-demo";
+import { notFound } from "next/navigation";
 
-export const metadata: Metadata = {
-  title: "Robin’s Private Archive Demo",
-  description:
-    "A private, synthetic demonstration of the Voices curatorial workspace, archive assistant, upload library, and source review flow.",
-  robots: {
-    index: false,
-    follow: false,
-    nocache: true,
-    googleBot: {
-      index: false,
-      follow: false,
-      noimageindex: true,
-    },
-  },
-};
+/*
+ * The demonstration workspace is gone. The route file remains because
+ * Cloudways overlays each release onto the previous checkout: deleting this
+ * file would leave the old demonstration page serving on the server. Returning
+ * a 404 removes the route while guaranteeing the overlay overwrites it.
+ */
+export const dynamic = "force-dynamic";
 
-export default function RobinDemoPage() {
-  return <RobinDemo />;
+export default function RemovedDemonstrationRoute(): never {
+  notFound();
 }

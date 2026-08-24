@@ -1,26 +1,13 @@
-import type { Metadata } from "next";
-import { ArchiveIntake } from "@/components/archive-intake";
-import { requireAction } from "@/lib/auth/server-session";
+import { notFound } from "next/navigation";
 
+/*
+ * The demonstration workspace is gone. The route file remains because
+ * Cloudways overlays each release onto the previous checkout: deleting this
+ * file would leave the old demonstration page serving on the server. Returning
+ * a 404 removes the route while guaranteeing the overlay overwrites it.
+ */
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Robin’s Archive Intake & Library",
-  description:
-    "A private demonstration of batch archival intake, rights-aware metadata, and searchable collection review.",
-  robots: {
-    index: false,
-    follow: false,
-    nocache: true,
-    googleBot: {
-      index: false,
-      follow: false,
-      noimageindex: true,
-    },
-  },
-};
-
-export default async function RobinArchivePage() {
-  await requireAction("view_archive_workspace", "/demo/robin/archive");
-  return <ArchiveIntake />;
+export default function RemovedDemonstrationRoute(): never {
+  notFound();
 }

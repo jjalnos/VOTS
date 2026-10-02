@@ -2,14 +2,21 @@ import type { Metadata } from "next";
 import { Fragment } from "react";
 import Link from "next/link";
 import { WorkspaceShell } from "@/components/workspace-shell";
+import {
+  RegistryExportButton,
+  type RegistryExportCopy,
+} from "@/components/registry-export-button";
 import { RegistryPersonEditor } from "@/components/registry-person-editor";
 import { RegistryWorkbookImport } from "@/components/registry-workbook-import";
 import { requireAction } from "@/lib/auth/server-session";
 import { can } from "@/lib/auth/policy";
-import { redactRegistryContact } from "@/lib/survivor-registry/store";
 import type { Locale } from "@/lib/domain/types";
 import { localeFrom } from "@/lib/i18n";
-import { getSurvivorRegistryStore } from "@/lib/survivor-registry/store";
+import type { RegistryExportFormat } from "@/lib/survivor-registry/export";
+import {
+  getSurvivorRegistryStore,
+  listRegistryForReader,
+} from "@/lib/survivor-registry/store";
 import {
   REGISTRY_GENERATIONS,
   type RegistryGeneration,
@@ -41,6 +48,9 @@ interface RegistryCopy {
   apply: string;
   clear: string;
   addPerson: string;
+  download: Omit<RegistryExportCopy, "question"> & {
+    question: (matches: number) => string;
+  };
   totals: { people: string; survivors: string; families: string; remembered: string };
   columns: { name: string; generation: string; family: string; origin: string; camps: string; contact: string };
   edit: string;
@@ -92,6 +102,21 @@ function copyFor(locale: Locale): RegistryCopy {
       apply: "Filtrar",
       clear: "Limpiar filtros",
       addPerson: "Añadir persona",
+      download: {
+        button: "Descargar",
+        title: "Descargar el registro",
+        question: (matches) =>
+          matches === 0
+            ? "¿En qué formato? Nadie coincide con la búsqueda y los filtros actuales, así que el archivo solo tendrá los encabezados."
+            : matches === 1
+              ? "¿En qué formato? El archivo incluirá a la persona que coincide con la búsqueda y los filtros actuales."
+              : `¿En qué formato? El archivo incluirá a las ${matches} personas que coinciden con la búsqueda y los filtros actuales.`,
+        csvLabel: "Archivo CSV",
+        csvHint: "Texto simple que cualquier hoja de cálculo o base de datos puede importar.",
+        xlsxLabel: "Libro de Excel (.xlsx)",
+        xlsxHint: "Se abre directamente en Excel, Numbers o Google Sheets.",
+        cancel: "Cancelar",
+      },
       totals: {
         people: "Personas",
         survivors: "Sobrevivientes",
@@ -140,6 +165,21 @@ function copyFor(locale: Locale): RegistryCopy {
     apply: "Filter",
     clear: "Clear filters",
     addPerson: "Add a person",
+    download: {
+      button: "Download",
+      title: "Download the register",
+      question: (matches) =>
+        matches === 0
+          ? "Which format would you like? No one matches the current search and filters, so the file will hold only the column headings."
+          : matches === 1
+            ? "Which format would you like? The file will include the one person matching the current search and filters."
+            : `Which format would you like? The file will include all ${matches} people matching the current search and filters.`,
+      csvLabel: "CSV file",
+      csvHint: "Plain text that any spreadsheet or database can import.",
+      xlsxLabel: "Excel workbook (.xlsx)",
+      xlsxHint: "Opens directly in Excel, Numbers, or Google Sheets.",
+      cancel: "Cancel",
+    },
     totals: {
       people: "People",
       survivors: "Survivors",
@@ -209,6 +249,21 @@ function registryHref(
   return `/curator/survivors?${params.toString()}`;
 }
 
+/** The download carries the page's search, filters and language, but not its page number. */
+function exportHref(
+  input: RegistryListInput,
+  locale: Locale,
+  format: RegistryExportFormat,
+): string {
+  const params = new URLSearchParams({ format });
+  if (input.query) params.set("q", input.query);
+  if (input.generation !== "all") params.set("generation", input.generation);
+  if (input.family !== "all") params.set("family", input.family);
+  if (input.status !== "all") params.set("status", input.status);
+  params.set("lang", locale);
+  return `/api/curator/registry/export?${params.toString()}`;
+}
+
 function contactSummary(person: RegistryPerson): string {
   return person.email || person.phone || (person.city ? `${person.city}, ${person.state}` : "");
 }
@@ -238,10 +293,9 @@ export default async function SurvivorRegistryPage({
   const canEdit = can(actor, "create_record");
   const input = listInputFrom(params);
   const store = await getSurvivorRegistryStore();
-  const listed = await store.list(input);
-  const result = canEdit
-    ? listed
-    : { ...listed, items: listed.items.map(redactRegistryContact) };
+  // Read-only accounts see the shape of the record, never contact details;
+  // their records are redacted before the search runs so it cannot probe them.
+  const result = await listRegistryForReader(store, input, canEdit);
 
   const expandedPersonId = typeof params.person === "string" ? params.person : "";
   const adding = params.add === "1";
@@ -352,14 +406,21 @@ export default async function SurvivorRegistryPage({
                 </Link>
               ) : null}
             </form>
-            {canEdit ? (
-              <Link
-                className={styles.addButton}
-                href={registryHref(input, locale, {}, { add: true })}
-              >
-                {copy.addPerson}
-              </Link>
-            ) : null}
+            <div className={styles.actionButtons}>
+              <RegistryExportButton
+                copy={{ ...copy.download, question: copy.download.question(result.total) }}
+                csvHref={exportHref(input, locale, "csv")}
+                xlsxHref={exportHref(input, locale, "xlsx")}
+              />
+              {canEdit ? (
+                <Link
+                  className={styles.addButton}
+                  href={registryHref(input, locale, {}, { add: true })}
+                >
+                  {copy.addPerson}
+                </Link>
+              ) : null}
+            </div>
           </div>
 
           {input.family !== "all" ? (

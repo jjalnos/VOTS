@@ -1,0 +1,125 @@
+/* The trigger sits in the registry's filter row and matches its secondary
+   button (.addButton in survivors.module.css): 42px tall, square, one accent. */
+.trigger,
+.cancel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 42px;
+  box-sizing: border-box;
+  font: inherit;
+  font-weight: 600;
+  padding: 0 1.2rem;
+  border: 1px solid var(--gold);
+  border-radius: 0;
+  background: var(--paper-light);
+  color: var(--wine-deep);
+  cursor: pointer;
+}
+
+.trigger:hover,
+.cancel:hover {
+  background: var(--linen);
+}
+
+.trigger:focus-visible,
+.cancel:focus-visible,
+.choice:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.dialog {
+  width: min(calc(100% - 2rem), 30rem);
+  max-height: calc(100dvh - 2rem);
+  padding: 0;
+  overflow: auto;
+  border: 1px solid var(--linen);
+  border-top: 4px solid var(--wine);
+  border-radius: 0;
+  background: var(--paper-light);
+  color: var(--ink);
+  box-shadow: 0 24px 70px rgba(26, 21, 18, 0.35);
+}
+
+.dialog::backdrop {
+  background: rgba(26, 21, 18, 0.62);
+}
+
+.body {
+  padding: 1.5rem 1.6rem 1.4rem;
+}
+
+.title {
+  font-family: var(--serif);
+  font-size: 1.35rem;
+  line-height: 1.25;
+  color: var(--wine-deep);
+  margin: 0 0 0.45rem;
+  text-wrap: balance;
+}
+
+.question {
+  margin: 0 0 1.1rem;
+  font-size: 0.95rem;
+  color: var(--ink-soft);
+}
+
+.choices {
+  display: grid;
+  gap: 0.75rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.choice {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--gold);
+  border-radius: 0;
+  background: var(--white);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.choice:hover {
+  background: var(--linen);
+}
+
+.choiceLabel {
+  font-weight: 600;
+  color: var(--wine-deep);
+}
+
+.choiceHint {
+  font-size: 0.86rem;
+  line-height: 1.4;
+  color: var(--ink-soft);
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1.1rem;
+}
+
+.cancel {
+  border-color: var(--linen);
+}
+
+@media (max-width: 720px) {
+  .trigger {
+    width: 100%;
+  }
+
+  .body {
+    padding: 1.25rem 1.1rem 1.1rem;
+  }
+
+  .cancel {
+    width: 100%;
+  }
+}

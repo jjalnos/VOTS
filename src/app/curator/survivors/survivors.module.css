@@ -87,6 +87,14 @@
   gap: 0.85rem;
 }
 
+/* Download and, for curators, Add a person: one group at the end of the row. */
+.actionButtons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.85rem;
+}
+
 .searchField,
 .selectField {
   display: flex;
@@ -361,6 +369,7 @@
   }
 
   .filters,
+  .actionButtons,
   .searchField,
   .selectField {
     width: 100%;

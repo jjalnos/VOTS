@@ -4,7 +4,7 @@ import { getActorFromRequest } from "@/lib/auth/server-session";
 import { hasTrustedOrigin } from "@/lib/http/origin";
 import {
   getSurvivorRegistryStore,
-  redactRegistryContact,
+  listRegistryForReader,
   SurvivorRegistryUnavailableError,
 } from "@/lib/survivor-registry/store";
 import {
@@ -48,13 +48,15 @@ export async function GET(request: Request) {
   }
   try {
     const store = await getSurvivorRegistryStore();
-    const result = await store.list(parseRegistryListInput(new URL(request.url)));
-    // Read-only accounts see the shape of the record, never contact details.
-    const items = can(authorization.actor, "create_record")
-      ? result.items
-      : result.items.map(redactRegistryContact);
+    // Read-only accounts see the shape of the record, never contact details;
+    // their records are redacted before the search runs so it cannot probe them.
+    const result = await listRegistryForReader(
+      store,
+      parseRegistryListInput(new URL(request.url)),
+      can(authorization.actor, "create_record"),
+    );
     return NextResponse.json(
-      { ...result, items, storage: store.mode },
+      { ...result, storage: store.mode },
       { headers: NO_STORE_HEADERS },
     );
   } catch (error) {

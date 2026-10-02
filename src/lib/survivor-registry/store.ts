@@ -154,6 +154,34 @@ export function redactRegistryContact(person: RegistryPerson): RegistryPerson {
   return { ...person, email: "", phone: "", address: "", zip: "", notes: "" };
 }
 
+/**
+ * Every record as one reader is allowed to see it. A read-only account's
+ * records are redacted BEFORE any search or filter runs on them: otherwise a
+ * query such as a full email address, or a phrase from a curator's note, would
+ * reveal through which rows match the very fields that reader cannot see.
+ */
+export async function visibleRegistryPeople(
+  store: SurvivorRegistryStore,
+  includeContact: boolean,
+): Promise<RegistryPerson[]> {
+  const everyone = await store.all();
+  return includeContact ? everyone : everyone.map(redactRegistryContact);
+}
+
+/**
+ * A page of the registry for one reader. Curators get the store's own listing;
+ * everyone else gets the redacted records filtered and paged the same way, so
+ * the result is already safe to show and the search cannot probe hidden fields.
+ */
+export async function listRegistryForReader(
+  store: SurvivorRegistryStore,
+  input: RegistryListInput,
+  includeContact: boolean,
+): Promise<RegistryListResult> {
+  if (includeContact) return store.list(input);
+  return filterAndPageRegistry(await visibleRegistryPeople(store, false), input);
+}
+
 const IMPORT_COMPARED_FIELDS = [
   "firstName",
   "lastName",

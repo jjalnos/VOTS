@@ -155,6 +155,37 @@ describe("admin user routes", () => {
     );
     expect(issued.status).toBe(200);
   });
+
+  it.each([
+    ["SMTP_PASSWORD", ""],
+    ["SMTP_USER", ""],
+    ["SMTP_USER", "someone@example.com"],
+  ])("answers 503 when %s is %j instead of throwing", async (name, value) => {
+    invitationsMock.issueInvitation.mockClear();
+    stubPostgres();
+    vi.stubEnv("AUTH_PROVIDER", "database");
+    vi.stubEnv("DATABASE_URL", "postgresql://archive:unused@127.0.0.1:5432/archive");
+    vi.stubEnv("PASSWORD_RESET_TOKEN_KEY", "q9Vg3Yp8Kx2Lm7Nd4Rf6Ts1Wc5Zh0BjUaEiOoP");
+    vi.stubEnv("SMTP_HOST", "smtp.elasticemail.com");
+    vi.stubEnv("SMTP_PORT", "2525");
+    vi.stubEnv("SMTP_SECURE", "false");
+    vi.stubEnv("SMTP_REQUIRE_TLS", "true");
+    vi.stubEnv("SMTP_USER", "vots-smtp-4f9a2c1d@voicesoftheshoah.org");
+    vi.stubEnv("SMTP_PASSWORD", "unused");
+    vi.stubEnv("SMTP_FROM", "no-reply@voicesoftheshoah.org");
+    vi.stubEnv(name, value);
+    sessionMock.getActorFromRequest.mockResolvedValue(admin);
+
+    const response = await resendInvite(
+      new Request(`${ORIGIN}/api/admin/users/${USER_ID}/invite`, {
+        method: "POST",
+        headers: { Origin: ORIGIN },
+      }),
+      { params: Promise.resolve({ id: USER_ID }) },
+    );
+    expect(response.status).toBe(503);
+    expect(invitationsMock.issueInvitation).not.toHaveBeenCalled();
+  });
 });
 
 describe("communications route guards", () => {

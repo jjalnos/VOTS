@@ -147,4 +147,39 @@ describe("SMTP configuration names the variable it rejected", () => {
       }).user,
     ).toBe("vots-smtp-vgxcdd0e0w@voicesoftheshoah.org");
   });
+
+  it("accepts the Cloudways managed Elastic Email login exactly as issued", () => {
+    expect(
+      smtpConfigurationFromEnvironment({
+        ...validEnvironment,
+        SMTP_USER: "  a1BC23456789@managedcloudhostingemail.com ",
+      }).user,
+    ).toBe("a1BC23456789@managedcloudhostingemail.com");
+  });
+
+  it("accepts an all-digit Cloudways managed login", () => {
+    expect(
+      smtpConfigurationFromEnvironment({
+        ...validEnvironment,
+        SMTP_USER: "1234567@managedcloudhostingemail.com",
+      }).user,
+    ).toBe("1234567@managedcloudhostingemail.com");
+  });
+
+  it.each([
+    "a1B@managedcloudhostingemail.com",
+    `${"a1".repeat(32)}9@managedcloudhostingemail.com`,
+    "a1BC-23456789@managedcloudhostingemail.com",
+    "a1BC.23456789@managedcloudhostingemail.com",
+    "a1BC23456789@managedcloudhostingemail.com.example.com",
+    "a1BC23456789@mail.managedcloudhostingemail.com",
+    "a1BC23456789@example.com",
+    "a1BC23456789@managedcloudhostingemail.org",
+  ])("names SMTP_USER for the look-alike managed login %s", (user) => {
+    expect(
+      rejectedVariable(() =>
+        smtpConfigurationFromEnvironment({ ...validEnvironment, SMTP_USER: user }),
+      ),
+    ).toBe("SMTP_USER");
+  });
 });

@@ -10,6 +10,11 @@ const APPROVED_SMTP_PORT = 2_525;
 const APPROVED_SMTP_FROM = "no-reply@voicesoftheshoah.org";
 const APPROVED_SMTP_USER_PATTERN =
   /^vots-smtp-[a-z\d]{8,32}@voicesoftheshoah\.org$/;
+// Cloudways' managed Elastic Email add-on issues its own SMTP logins under this
+// domain, both all-digit and mixed-case, and offers no way to create a dedicated
+// vots-smtp credential. The login is passed through exactly as Cloudways shows it.
+const CLOUDWAYS_MANAGED_SMTP_USER_PATTERN =
+  /^[a-z\d]{4,64}@managedcloudhostingemail\.com$/i;
 
 type SmtpEnvironment = Record<string, string | undefined>;
 
@@ -152,9 +157,12 @@ export function smtpConfigurationFromEnvironment(
   if (!isValidMailbox(from) || from.toLocaleLowerCase("en") !== APPROVED_SMTP_FROM) {
     throw new EmailConfigurationError(undefined, "SMTP_FROM");
   }
+  const dedicatedUser = APPROVED_SMTP_USER_PATTERN.test(
+    user.toLocaleLowerCase("en"),
+  );
   if (
     !isValidMailbox(user) ||
-    !APPROVED_SMTP_USER_PATTERN.test(user.toLocaleLowerCase("en"))
+    (!dedicatedUser && !CLOUDWAYS_MANAGED_SMTP_USER_PATTERN.test(user))
   ) {
     throw new EmailConfigurationError(undefined, "SMTP_USER");
   }
@@ -169,7 +177,7 @@ export function smtpConfigurationFromEnvironment(
     port,
     secure,
     requireTLS,
-    user: user.toLocaleLowerCase("en"),
+    user: dedicatedUser ? user.toLocaleLowerCase("en") : user,
     password: requiredEnvironmentValue(environment, "SMTP_PASSWORD"),
     from: APPROVED_SMTP_FROM,
   };

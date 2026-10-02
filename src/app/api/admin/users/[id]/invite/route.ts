@@ -9,6 +9,7 @@ import {
 } from "@/lib/auth/password-reset";
 import { getActorFromRequest } from "@/lib/auth/server-session";
 import { can } from "@/lib/auth/policy";
+import { EmailConfigurationError } from "@/lib/email/smtp";
 import { hasTrustedOrigin } from "@/lib/http/origin";
 import { configuredDataAdapter } from "@/lib/repository";
 
@@ -44,7 +45,10 @@ export async function POST(
   try {
     configuration = passwordResetRequestConfiguration();
   } catch (error) {
-    if (error instanceof PasswordResetConfigurationError) {
+    if (
+      error instanceof PasswordResetConfigurationError ||
+      error instanceof EmailConfigurationError
+    ) {
       return NextResponse.json(
         { error: "Invitation email is not configured for this environment." },
         { status: 503 },

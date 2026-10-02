@@ -31,7 +31,8 @@ export type WorkspaceIcon =
   | "publish"
   | "upload"
   | "access"
-  | "security";
+  | "security"
+  | "log";
 
 export interface WorkspaceGroup {
   label: string;
@@ -101,6 +102,12 @@ export function workspaceGroupsFor(actor: Actor | null, locale: Locale): Workspa
         href: "/admin/communications",
         status: READY,
         icon: "coms",
+      },
+      {
+        label: es ? "Registro de correo" : "Email log",
+        href: "/admin/email-log",
+        status: READY,
+        icon: "log",
       },
     );
   }

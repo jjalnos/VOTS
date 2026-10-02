@@ -2,6 +2,7 @@ import type {
   ExternalUsageStoreMode,
   UsageSnapshot,
 } from "@/lib/ai/usage-ledger";
+import { recordEmailAttempt, withEmailLog } from "@/lib/email/log";
 import {
   createSmtpEmailSender,
   type EmailSender,
@@ -56,6 +57,25 @@ export class ResendUsageAlertAdapter implements UsageAlertAdapter {
       throw new UsageAlertConfigurationError("The usage-alert recipient is not approved.");
     }
     const message = usageAlertMessage(alert);
+    // The log row is written after the outcome is known; it carries the HTTP
+    // status at most, never the provider's response body.
+    const log = (status: "sent" | "failed", httpStatus?: number) =>
+      recordEmailAttempt({
+        emailType: "ai_usage_alert",
+        transport: "resend",
+        status,
+        failureReason: status === "sent" ? null : "delivery failed",
+        recipientEmail: this.recipient,
+        recipientName: null,
+        recipientUserId: null,
+        communicationId: null,
+        actorUserId: null,
+        locale: null,
+        subject: message.subject,
+        textBody: message.text,
+        htmlBody: null,
+        metadata: httpStatus === undefined ? null : { httpStatus },
+      });
     let response: Response;
     try {
       response = await this.request("https://api.resend.com/emails", {
@@ -74,13 +94,16 @@ export class ResendUsageAlertAdapter implements UsageAlertAdapter {
         signal: AbortSignal.timeout(5_000),
       });
     } catch {
+      await log("failed");
       throw new UsageAlertDeliveryError("The usage alert could not be delivered.");
     }
     if (!response.ok) {
       // Do not include provider bodies or request headers: either could echo a
       // credential or operational detail into application logs/responses.
+      await log("failed", response.status);
       throw new UsageAlertDeliveryError("The usage alert could not be delivered.");
     }
+    await log("sent", response.status);
   }
 }
 
@@ -118,7 +141,12 @@ export function getUsageAlertAdapter(): UsageAlertAdapter {
   }
 
   if (provider === "smtp") {
-    return new SmtpUsageAlertAdapter(createSmtpEmailSender(), recipient);
+    // createSmtpEmailSender() runs first, so an unconfigured environment still
+    // throws EmailConfigurationError here, before any adapter exists.
+    return new SmtpUsageAlertAdapter(
+      withEmailLog(createSmtpEmailSender(), { emailType: "ai_usage_alert" }),
+      recipient,
+    );
   }
   if (provider === "resend") {
     const apiKey = process.env.RESEND_API_KEY;

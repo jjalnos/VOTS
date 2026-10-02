@@ -1,0 +1,247 @@
+.summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.caveat {
+  margin-bottom: 1.5rem;
+}
+
+.filters {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) repeat(5, minmax(0, 1fr)) auto auto;
+  gap: 0.75rem;
+  align-items: end;
+}
+
+.filters label {
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.resultsHeading {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin: 1.5rem 0 0.75rem;
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+
+.resultsHeading span {
+  color: var(--muted);
+  font-family: var(--sans);
+  font-size: 0.85rem;
+}
+
+.tableWrap {
+  min-width: 0;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th {
+  padding: 0.6rem 0.5rem;
+  border-bottom: 1px solid var(--linen);
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.table td {
+  padding: 0.75rem 0.5rem;
+  border-bottom: 1px solid var(--linen);
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+.subject {
+  color: var(--wine);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.subject:hover,
+.subject:focus-visible {
+  text-decoration: underline;
+}
+
+.muted {
+  display: block;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.pagination p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.emptyState {
+  margin: 0;
+  padding: 2rem;
+  background: var(--tint);
+  color: var(--muted);
+  text-align: center;
+}
+
+.back {
+  display: inline-block;
+  margin-bottom: 1rem;
+  color: var(--wine);
+}
+
+.meta {
+  display: grid;
+  grid-template-columns: 10rem minmax(0, 1fr);
+  gap: 0.5rem 1rem;
+  margin: 0;
+}
+
+.meta dt {
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding-top: 0.15rem;
+}
+
+.meta dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.meta dd p {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.bodyCard {
+  margin-top: 1rem;
+}
+
+.body {
+  max-height: 60vh;
+  margin: 0;
+  padding: 1rem;
+  overflow: auto;
+  border: 1px solid var(--linen);
+  background: var(--paper-light);
+  color: var(--ink);
+  font: 0.85rem/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* The body scrolls, so it takes keyboard focus; show where that focus is. */
+.body:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.preview {
+  display: block;
+  width: 100%;
+  min-height: 640px;
+  border: 1px solid var(--linen);
+  background: var(--white);
+}
+
+.source {
+  margin-top: 1rem;
+}
+
+.source summary {
+  cursor: pointer;
+  color: var(--wine);
+  font-weight: 600;
+}
+
+.source pre {
+  margin-top: 0.75rem;
+}
+
+@media (max-width: 980px) {
+  .summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .summary,
+  .filters,
+  .meta {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .filters .button {
+    width: 100%;
+    text-align: center;
+  }
+
+  .table thead {
+    position: absolute;
+    clip: rect(0 0 0 0);
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  .table tr {
+    display: block;
+    margin-bottom: 0.75rem;
+    border: 1px solid var(--linen);
+    background: var(--white);
+  }
+
+  .table td {
+    display: grid;
+    grid-template-columns: 7.5rem minmax(0, 1fr);
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border: 0;
+  }
+
+  .table td::before {
+    content: attr(data-label);
+    color: var(--muted);
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .preview {
+    min-height: 480px;
+  }
+}

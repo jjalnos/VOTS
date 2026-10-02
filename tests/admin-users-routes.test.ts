@@ -8,6 +8,18 @@ const invitationsMock = vi.hoisted(() => ({
   issueInvitation: vi.fn(),
   setUserActive: vi.fn(),
 }));
+const logState = vi.hoisted(() => {
+  const rows: unknown[] = [];
+  return {
+    rows,
+    recorder: {
+      async record(row: unknown) {
+        rows.push(row);
+      },
+      async markOpened() {},
+    },
+  };
+});
 
 vi.mock("@/lib/auth/server-session", async (importOriginal) => ({
   ...(await importOriginal<Record<string, unknown>>()),
@@ -19,11 +31,17 @@ vi.mock("@/lib/auth/invitations", async (importOriginal) => ({
   issueInvitation: invitationsMock.issueInvitation,
   setUserActive: invitationsMock.setUserActive,
 }));
+vi.mock("@/lib/email/log-store", () => ({
+  defaultEmailLogRecorder: () => logState.recorder,
+  postgresEmailLogRecorder: () => logState.recorder,
+}));
 
 import { POST as createUser } from "@/app/api/admin/users/route";
 import { PATCH as patchUser } from "@/app/api/admin/users/[id]/route";
 import { POST as resendInvite } from "@/app/api/admin/users/[id]/invite/route";
 import type { Actor } from "@/lib/auth/policy";
+import type { EmailLogRow } from "@/lib/email/log";
+import { EmailConfigurationError } from "@/lib/email/smtp";
 
 const ORIGIN = "https://archive.example";
 const USER_ID = "00000000-0000-4000-8000-0000000000ff";
@@ -51,14 +69,44 @@ const validBody = {
   locale: "en",
 };
 
+const invitedUser = {
+  id: USER_ID,
+  email: validBody.email,
+  displayName: validBody.displayName,
+  roles: validBody.roles,
+  active: true,
+};
+
 afterEach(() => {
   vi.restoreAllMocks();
   vi.unstubAllEnvs();
+  logState.rows.length = 0;
+  invitationsMock.createInvitedUser.mockClear();
+  invitationsMock.issueInvitation.mockClear();
+  invitationsMock.setUserActive.mockClear();
 });
 
 function stubPostgres() {
   vi.stubEnv("DATA_ADAPTER", "postgres");
   vi.stubEnv("NEXT_PUBLIC_SITE_URL", ORIGIN);
+}
+
+/** Everything passwordResetRequestConfiguration() needs to accept the deployment. */
+function stubMail() {
+  vi.stubEnv("AUTH_PROVIDER", "database");
+  vi.stubEnv("DATABASE_URL", "postgresql://archive:unused@127.0.0.1:5432/archive");
+  vi.stubEnv("PASSWORD_RESET_TOKEN_KEY", "q9Vg3Yp8Kx2Lm7Nd4Rf6Ts1Wc5Zh0BjUaEiOoP");
+  vi.stubEnv("SMTP_HOST", "smtp.elasticemail.com");
+  vi.stubEnv("SMTP_PORT", "2525");
+  vi.stubEnv("SMTP_SECURE", "false");
+  vi.stubEnv("SMTP_REQUIRE_TLS", "true");
+  vi.stubEnv("SMTP_USER", "vots-smtp-4f9a2c1d@voicesoftheshoah.org");
+  vi.stubEnv("SMTP_PASSWORD", "unused");
+  vi.stubEnv("SMTP_FROM", "no-reply@voicesoftheshoah.org");
+}
+
+function loggedRows(): EmailLogRow[] {
+  return logState.rows as EmailLogRow[];
 }
 
 describe("admin user routes", () => {
@@ -121,18 +169,73 @@ describe("admin user routes", () => {
     expect(missing.status).toBe(404);
   });
 
+  it("creates the account and reports an issued invitation without logging anything itself", async () => {
+    stubPostgres();
+    stubMail();
+    sessionMock.getActorFromRequest.mockResolvedValue(admin);
+    invitationsMock.createInvitedUser.mockResolvedValueOnce(invitedUser);
+    invitationsMock.issueInvitation.mockResolvedValueOnce("issued");
+    const response = await createUser(jsonRequest("/api/admin/users", validBody));
+    expect(response.status).toBe(201);
+    await expect(response.json()).resolves.toMatchObject({ invitation: "issued", user: { id: USER_ID } });
+    // The wrapped sender logs the attempt; the route must not add a second row.
+    expect(loggedRows()).toHaveLength(0);
+  });
+
+  it("records an invitation that could not be attempted for want of mail configuration", async () => {
+    stubPostgres();
+    stubMail();
+    sessionMock.getActorFromRequest.mockResolvedValue(admin);
+    invitationsMock.createInvitedUser.mockResolvedValueOnce(invitedUser);
+    invitationsMock.issueInvitation.mockRejectedValueOnce(
+      new EmailConfigurationError(undefined, "SMTP_HOST"),
+    );
+    const response = await createUser(jsonRequest("/api/admin/users", validBody));
+    expect(response.status).toBe(201);
+    await expect(response.json()).resolves.toMatchObject({ invitation: "unavailable" });
+    expect(loggedRows()).toHaveLength(1);
+    expect(loggedRows()[0]).toMatchObject({
+      emailType: "invitation",
+      status: "failed",
+      failureReason: "configuration: SMTP_HOST",
+      recipientEmail: validBody.email,
+      recipientName: validBody.displayName,
+      recipientUserId: USER_ID,
+      actorUserId: admin.userId,
+      trackingTokenHash: null,
+    });
+    expect(JSON.stringify(loggedRows()[0])).not.toContain("smtp.elasticemail.com");
+  });
+
+  it("records a refused deployment before any issuance is attempted", async () => {
+    stubPostgres();
+    // No mail configuration at all: passwordResetRequestConfiguration() refuses.
+    sessionMock.getActorFromRequest.mockResolvedValue(admin);
+    invitationsMock.createInvitedUser.mockResolvedValueOnce(invitedUser);
+    const response = await createUser(jsonRequest("/api/admin/users", validBody));
+    expect(response.status).toBe(201);
+    await expect(response.json()).resolves.toMatchObject({ invitation: "unavailable" });
+    expect(invitationsMock.issueInvitation).not.toHaveBeenCalled();
+    expect(loggedRows()).toHaveLength(1);
+    expect(loggedRows()[0]).toMatchObject({ emailType: "invitation", status: "failed" });
+    expect(loggedRows()[0].failureReason).toMatch(/^configuration: [A-Z_]+$/);
+  });
+
+  it("does not invent a failed row when issuance threw after the mail may have gone out", async () => {
+    stubPostgres();
+    stubMail();
+    sessionMock.getActorFromRequest.mockResolvedValue(admin);
+    invitationsMock.createInvitedUser.mockResolvedValueOnce(invitedUser);
+    invitationsMock.issueInvitation.mockRejectedValueOnce(new Error("db down"));
+    const response = await createUser(jsonRequest("/api/admin/users", validBody));
+    expect(response.status).toBe(201);
+    await expect(response.json()).resolves.toMatchObject({ invitation: "unavailable" });
+    expect(loggedRows()).toHaveLength(0);
+  });
+
   it("maps resend outcomes onto honest statuses", async () => {
     stubPostgres();
-    vi.stubEnv("AUTH_PROVIDER", "database");
-    vi.stubEnv("DATABASE_URL", "postgresql://archive:unused@127.0.0.1:5432/archive");
-    vi.stubEnv("PASSWORD_RESET_TOKEN_KEY", "q9Vg3Yp8Kx2Lm7Nd4Rf6Ts1Wc5Zh0BjUaEiOoP");
-    vi.stubEnv("SMTP_HOST", "smtp.elasticemail.com");
-    vi.stubEnv("SMTP_PORT", "2525");
-    vi.stubEnv("SMTP_SECURE", "false");
-    vi.stubEnv("SMTP_REQUIRE_TLS", "true");
-    vi.stubEnv("SMTP_USER", "vots-smtp-4f9a2c1d@voicesoftheshoah.org");
-    vi.stubEnv("SMTP_PASSWORD", "unused");
-    vi.stubEnv("SMTP_FROM", "no-reply@voicesoftheshoah.org");
+    stubMail();
     sessionMock.getActorFromRequest.mockResolvedValue(admin);
 
     invitationsMock.issueInvitation.mockResolvedValueOnce("already-accepted");

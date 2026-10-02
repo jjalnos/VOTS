@@ -9,6 +9,7 @@ import {
 } from "@/lib/auth/password-reset";
 import { getActorFromRequest } from "@/lib/auth/server-session";
 import { can } from "@/lib/auth/policy";
+import { failureReasonFor, recordEmailAttempt } from "@/lib/email/log";
 import { EmailConfigurationError } from "@/lib/email/smtp";
 import { hasTrustedOrigin } from "@/lib/http/origin";
 import { configuredDataAdapter } from "@/lib/repository";
@@ -49,6 +50,23 @@ export async function POST(
       error instanceof PasswordResetConfigurationError ||
       error instanceof EmailConfigurationError
     ) {
+      // The id is not yet verified against the accounts table here, so the
+      // row names no recipient; the failure reason carries only a variable name.
+      await recordEmailAttempt({
+        emailType: "invitation",
+        status: "failed",
+        failureReason: failureReasonFor(error, "setup"),
+        recipientEmail: null,
+        recipientName: null,
+        recipientUserId: null,
+        communicationId: null,
+        actorUserId: actor.userId,
+        locale: null,
+        subject: "Invitation",
+        textBody: "",
+        htmlBody: null,
+        metadata: null,
+      });
       return NextResponse.json(
         { error: "Invitation email is not configured for this environment." },
         { status: 503 },

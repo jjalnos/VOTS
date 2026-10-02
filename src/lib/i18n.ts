@@ -55,6 +55,12 @@ export const dictionary = {
 
 export type DictionaryKey = keyof (typeof dictionary)["en"];
 
+/**
+ * The museum's own clock. Staff screens that show a moment in time render it
+ * in this zone, named, so a timestamp reads the same on every machine.
+ */
+export const ARCHIVE_TIME_ZONE = "America/Chicago";
+
 export function isLocale(value: unknown): value is Locale {
   return typeof value === "string" && LOCALES.includes(value as Locale);
 }

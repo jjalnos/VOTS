@@ -20,6 +20,7 @@ import {
 import { staffMfaRequired, verifyStaffMfa } from "@/lib/auth/mfa";
 import { hashPasswordAsync } from "@/lib/auth/password";
 import { configuredAuthProvider } from "@/lib/auth/provider";
+import { withEmailLog } from "@/lib/email/log";
 import {
   createSmtpEmailSender,
   smtpConfigurationFromEnvironment,
@@ -317,8 +318,18 @@ export async function issuePasswordReset(input: {
 
   if (!issuance) return "ineligible";
 
+  // The log receives the token and the full link so neither survives in the
+  // stored copy of the message; the pixel is added to the outgoing HTML only.
+  const logged = withEmailLog(send, {
+    emailType: "password_reset",
+    locale: input.locale,
+    recipientUserId: issuance.userId,
+    secrets: [generated.token, resetLink],
+    trackingOrigin: input.configuration.siteOrigin,
+  });
+
   try {
-    await send({ to: issuance.email, ...message });
+    await logged({ to: issuance.email, ...message });
   } catch {
     const failedAt = new Date();
     await db.transaction(async (transaction) => {

@@ -440,6 +440,52 @@ export const communications = pgTable(
   (table) => [index("communications_created_idx").on(table.createdAt)],
 );
 
+/**
+ * One row per message handed to, or refused by, the mail transport. Bodies are
+ * stored with one-time links removed; the open-tracking pixel is never stored,
+ * only a SHA-256 of its token.
+ */
+export const emailLog = pgTable(
+  "email_log",
+  {
+    id: uuid("id").primaryKey().defaultRandom().notNull(),
+    emailType: varchar("email_type", { length: 40 }).notNull(),
+    status: varchar("status", { length: 16 }).notNull(),
+    transport: varchar("transport", { length: 16 }).default("smtp").notNull(),
+    failureReason: varchar("failure_reason", { length: 120 }),
+    recipientEmail: varchar("recipient_email", { length: 320 }),
+    recipientName: varchar("recipient_name", { length: 180 }),
+    recipientUserId: uuid("recipient_user_id").references(() => users.id, { onDelete: "set null" }),
+    communicationId: uuid("communication_id").references(() => communications.id, {
+      onDelete: "set null",
+    }),
+    actorUserId: uuid("actor_user_id").references(() => users.id, { onDelete: "set null" }),
+    locale: varchar("locale", { length: 2 }),
+    subject: varchar("subject", { length: 200 }).notNull(),
+    replyTo: varchar("reply_to", { length: 320 }),
+    textBody: text("text_body").notNull(),
+    htmlBody: text("html_body"),
+    metadata: jsonb("metadata").$type<Record<string, number | string | boolean>>(),
+    trackingTokenHash: varchar("tracking_token_hash", { length: 64 }),
+    openedAt: timestamp("opened_at", { withTimezone: true }),
+    lastOpenedAt: timestamp("last_opened_at", { withTimezone: true }),
+    openCount: integer("open_count").default(0).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("email_log_created_idx").on(table.createdAt),
+    index("email_log_status_created_idx").on(table.status, table.createdAt),
+    index("email_log_type_created_idx").on(table.emailType, table.createdAt),
+    index("email_log_opened_idx").on(table.openedAt),
+    index("email_log_communication_idx").on(table.communicationId),
+    uniqueIndex("email_log_tracking_token_hash_idx")
+      .on(table.trackingTokenHash)
+      .where(sql`${table.trackingTokenHash} is not null`),
+    check("email_log_status_check", sql`${table.status} in ('sent', 'failed')`),
+    check("email_log_open_count_check", sql`${table.openCount} >= 0`),
+  ],
+);
+
 export const auditEvents = pgTable(
   "audit_events",
   {

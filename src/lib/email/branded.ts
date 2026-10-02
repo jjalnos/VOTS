@@ -44,7 +44,7 @@ function singleLine(value: string): string {
   return value.replace(/[\u0000-\u001f\u007f\u2028\u2029]/g, " ").replace(/ {2,}/g, " ").trim();
 }
 
-function escapeHtml(value: string): string {
+export function escapeHtml(value: string): string {
   return value
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")

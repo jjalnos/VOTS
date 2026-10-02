@@ -6,9 +6,14 @@ import {
   InvitationValidationError,
   issueInvitation,
 } from "@/lib/auth/invitations";
-import { passwordResetRequestConfiguration } from "@/lib/auth/password-reset";
+import {
+  PasswordResetConfigurationError,
+  passwordResetRequestConfiguration,
+} from "@/lib/auth/password-reset";
 import { getActorFromRequest } from "@/lib/auth/server-session";
 import { can } from "@/lib/auth/policy";
+import { failureReasonFor, recordEmailAttempt } from "@/lib/email/log";
+import { EmailConfigurationError } from "@/lib/email/smtp";
 import { hasTrustedOrigin } from "@/lib/http/origin";
 import { readBoundedJson } from "@/lib/http/request";
 import { configuredDataAdapter } from "@/lib/repository";
@@ -76,9 +81,33 @@ export async function POST(request: Request) {
       configuration,
     });
     return NextResponse.json({ user: invited, invitation }, { status: 201 });
-  } catch {
+  } catch (error) {
     // Covers a missing email configuration and any unexpected issuance
     // failure alike; the page offers "Resend invitation" for exactly this.
+    // Only a configuration refusal is written to the email log: that is the
+    // one case where no attempt was ever made. A delivery failure has already
+    // been logged by the wrapped sender, and anything else that throws here
+    // says nothing about the email, which may well have been accepted.
+    if (
+      error instanceof PasswordResetConfigurationError ||
+      error instanceof EmailConfigurationError
+    ) {
+      await recordEmailAttempt({
+        emailType: "invitation",
+        status: "failed",
+        failureReason: failureReasonFor(error, "setup"),
+        recipientEmail: invited.email,
+        recipientName: invited.displayName,
+        recipientUserId: invited.id,
+        communicationId: null,
+        actorUserId: actor.userId,
+        locale: null,
+        subject: "Invitation",
+        textBody: "",
+        htmlBody: null,
+        metadata: null,
+      });
+    }
     return NextResponse.json({ user: invited, invitation: "unavailable" }, { status: 201 });
   }
 }

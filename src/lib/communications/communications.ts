@@ -5,6 +5,12 @@ import type { Actor } from "@/lib/auth/policy";
 import { can } from "@/lib/auth/policy";
 import { brandedEmail } from "@/lib/email/branded";
 import {
+  failureReasonFor,
+  recordEmailAttempt,
+  trackingOriginFromEnvironment,
+  withEmailLog,
+} from "@/lib/email/log";
+import {
   createPooledSmtpEmailSender,
   EmailConfigurationError,
   smtpConfigurationFromEnvironment,
@@ -160,6 +166,23 @@ export async function sendCommunication(input: {
       closeSender = pooled.close;
     } catch (error) {
       if (error instanceof EmailConfigurationError) {
+        // Nothing was handed to a transport, but the attempt still belongs in
+        // the log: only the variable NAME is kept, never its value.
+        await recordEmailAttempt({
+          emailType: "communication",
+          status: "failed",
+          failureReason: failureReasonFor(error, "setup"),
+          recipientEmail: null,
+          recipientName: null,
+          recipientUserId: null,
+          communicationId: null,
+          actorUserId: input.actor.userId,
+          locale: normalized.locale,
+          subject: normalized.subject,
+          textBody: normalized.body,
+          htmlBody: null,
+          metadata: { intendedRecipients: normalized.recipientUserIds.length },
+        });
         return { status: "unconfigured", sentCount: 0, failedCount: 0 };
       }
       throw error;
@@ -227,10 +250,20 @@ export async function sendCommunication(input: {
 
   let sentCount = 0;
   let failedCount = 0;
+  const trackingOrigin = trackingOriginFromEnvironment();
   try {
     for (const recipient of recipients) {
+      const logged = withEmailLog(send, {
+        emailType: "communication",
+        locale: normalized.locale,
+        communicationId: created.id,
+        recipientUserId: recipient.userId,
+        recipientName: recipient.displayName,
+        actorUserId: input.actor.userId,
+        trackingOrigin,
+      });
       try {
-        await send({
+        await logged({
           to: recipient.email,
           ...message,
           ...(replyTo ? { replyTo } : {}),

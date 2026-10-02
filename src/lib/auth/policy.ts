@@ -7,6 +7,7 @@ export type Action =
   | "create_record"
   | "upload_original"
   | "send_communications"
+  | "view_email_log"
   | "review_content"
   | "run_external_research"
   | "publish_content"
@@ -35,6 +36,7 @@ const permissions: Record<Role, ReadonlySet<Action>> = {
     "view_audit",
     "upload_original",
     "send_communications",
+    "view_email_log",
   ]),
   curator: new Set([
     "create_record",
@@ -59,6 +61,7 @@ const mfaActions = new Set<Action>([
   "create_record",
   "upload_original",
   "send_communications",
+  "view_email_log",
   "review_content",
   "run_external_research",
   "publish_content",

@@ -63,6 +63,7 @@ describe("Cloudways startup safety", () => {
       "0009_password_reset",
       "0010_file_blobs",
       "0011_communications",
+      "0012_email_log",
     ]);
 
     const archiveMigration = readFileSync(

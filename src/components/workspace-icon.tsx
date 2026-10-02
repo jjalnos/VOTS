@@ -16,6 +16,7 @@ const PATHS: Record<IconName, string> = {
   upload: "M9.6 13V3.2m0 0L6 6.8m3.6-3.6 3.6 3.6M3 13.6v2.2a1 1 0 0 0 1 1h11.2a1 1 0 0 0 1-1v-2.2",
   access: "M9.6 2.4 3 5v5c0 4 2.8 6.7 6.6 7.8C13.4 16.7 16.2 14 16.2 10V5L9.6 2.4Zm0 5.4v4.4",
   security: "M5 8.6V6.4a4.6 4.6 0 0 1 9.2 0v2.2M3.8 8.6h11.6a1 1 0 0 1 1 1v6.4a1 1 0 0 1-1 1H3.8a1 1 0 0 1-1-1V9.6a1 1 0 0 1 1-1Z",
+  log: "M4 4.5h11M4 8.5h11M4 12.5h11M4 16.5h6M14.5 15.5l1.5 1.5 3-3",
 };
 
 export function WorkspaceIconMark({ name }: { name: IconName }) {

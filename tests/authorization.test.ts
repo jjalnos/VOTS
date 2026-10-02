@@ -40,3 +40,21 @@ describe("authorization boundaries", () => {
     expect(visibleArchiveItems(seedArchiveItems, family).every((item) => item.familyId === "family-demo")).toBe(true);
   });
 });
+
+describe("email log access", () => {
+  const viewer: Actor = { userId: "viewer", email: "viewer@test", displayName: "Viewer", roles: ["viewer"], mfaVerified: true };
+
+  it("is granted only to MFA-verified administrators", () => {
+    expect(can(admin, "view_email_log")).toBe(true);
+    expect(can({ ...admin, mfaVerified: false }, "view_email_log")).toBe(false);
+  });
+
+  it("is refused to curators, viewers, families, mixed staff without MFA, and anonymous visitors", () => {
+    expect(can(curator, "view_email_log")).toBe(false);
+    expect(can(curatorWithoutMfa, "view_email_log")).toBe(false);
+    expect(can(viewer, "view_email_log")).toBe(false);
+    expect(can(family, "view_email_log")).toBe(false);
+    expect(can({ ...curator, roles: ["curator", "viewer"] }, "view_email_log")).toBe(false);
+    expect(can(null, "view_email_log")).toBe(false);
+  });
+});

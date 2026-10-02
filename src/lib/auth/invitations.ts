@@ -34,6 +34,7 @@ import { staffMfaRequired } from "@/lib/auth/mfa";
 import type { Role } from "@/lib/domain/types";
 import { ROLES } from "@/lib/domain/types";
 import { brandedEmail } from "@/lib/email/branded";
+import { withEmailLog } from "@/lib/email/log";
 import { createSmtpEmailSender, type EmailSender } from "@/lib/email/smtp";
 
 /**
@@ -367,9 +368,20 @@ export async function issueInvitation(input: {
     displayName: issuance.displayName,
     inviteLink: inviteLinkFor(issuance.locale),
   });
+  // Both locale links carry the same token; handing over all of them keeps
+  // the stored copy free of any form of the one-time link.
+  const logged = withEmailLog(send, {
+    emailType: "invitation",
+    locale: issuance.locale,
+    recipientUserId: issuance.userId,
+    recipientName: issuance.displayName,
+    actorUserId: input.actor.userId,
+    secrets: [generated.token, inviteLinkFor("en"), inviteLinkFor("es")],
+    trackingOrigin: input.configuration.siteOrigin,
+  });
 
   try {
-    await send({ to: issuance.email, ...message });
+    await logged({ to: issuance.email, ...message });
   } catch {
     const failedAt = new Date();
     await db.transaction(async (transaction) => {
@@ -395,26 +407,37 @@ export async function issueInvitation(input: {
     return "delivery-failed";
   }
 
+  // The mail server has the message, so from here the invitation is issued
+  // whatever the bookkeeping does: the token stays valid and the caller hears
+  // "issued", because a thrown error would be read upstream as an email that
+  // never went out, and recorded as one.
   const deliveredAt = new Date();
-  await db.transaction(async (transaction) => {
-    await transaction
-      .update(passwordResetTokens)
-      .set({ deliveredAt })
-      .where(
-        and(
-          eq(passwordResetTokens.id, issuance.tokenId),
-          isNull(passwordResetTokens.revokedAt),
-        ),
-      );
-    await transaction.insert(auditEvents).values({
-      actorUserId: input.actor.userId,
-      action: "auth.invitation_email_sent",
-      entityType: "user",
-      entityId: issuance.userId,
-      metadata: { provider: "smtp" },
-      occurredAt: deliveredAt,
+  try {
+    await db.transaction(async (transaction) => {
+      await transaction
+        .update(passwordResetTokens)
+        .set({ deliveredAt })
+        .where(
+          and(
+            eq(passwordResetTokens.id, issuance.tokenId),
+            isNull(passwordResetTokens.revokedAt),
+          ),
+        );
+      await transaction.insert(auditEvents).values({
+        actorUserId: input.actor.userId,
+        action: "auth.invitation_email_sent",
+        entityType: "user",
+        entityId: issuance.userId,
+        metadata: { provider: "smtp" },
+        occurredAt: deliveredAt,
+      });
     });
-  });
+  } catch (error) {
+    console.error(
+      "Invitation email was accepted but its delivery bookkeeping failed",
+      error instanceof Error ? error.name : typeof error,
+    );
+  }
   return "issued";
 }
 
